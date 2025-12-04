@@ -1,0 +1,65 @@
+
+{
+  "header": {
+    "title": "D-Pro Protocol V7.3 - Audit Dashboard"
+  },
+  "form": {
+    "paramsTitle": "System Parameters",
+    "currentCapital": "Current Capital",
+    "monthlyStartCapital": "Monthly Start Capital",
+    "scale": "Operating Scale",
+    "uploadTitle": "Upload Trades",
+    "transactionLog": "Transaction Log (.csv, .xlsx)",
+    "runAudit": "Run Audit",
+    "analyzing": "Analyzing..."
+  },
+  "dashboard": {
+    "reportTitle": "Audit Report",
+    "placeholder": "Your audit report dashboard will be displayed here.",
+    "kpi": {
+      "winRate": "Win Rate",
+      "rr": "Risk/Reward Ratio",
+      "pnl": "Monthly PnL"
+    },
+    "accountStatus": {
+      "title": "Account Status",
+      "currentScale": "Current Scale:",
+      "balance": "Account Balance:"
+    },
+    "safetyChecks": {
+      "title": "Safety Checks",
+      "dailyStop": "Daily Stop (>3 losses):",
+      "monthlyBreaker": "Monthly Circuit Breaker (15%):",
+      "violations": {
+        "title": "Night Session Violations:",
+        "safe": "SAFE",
+        "violated": "VIOLATED",
+        "breached": "BREACHED"
+      }
+    },
+    "evaluation": {
+      "title": "Evaluation & Incentive",
+      "upgradeEligible": "Upgrade Eligible:",
+      "reason": "Reason:",
+      "incentive": "Happiness Incentive:",
+      "eligible": "ELIGIBLE",
+      "notEligible": "NOT ELIGIBLE",
+      "yes": "YES",
+      "no": "NO"
+    },
+    "monthlySummary": {
+      "title": "Monthly Summary",
+      "month": "Month",
+      "totalPnl": "Total PnL",
+      "winRate": "Win Rate",
+      "rr": "RR",
+      "tradeCount": "Trades"
+    }
+  },
+  "error": {
+    "title": "Error:",
+    "noFile": "Please select a transaction file.",
+    "failed": "Failed to run audit: {message}"
+  },
+  "loading": "Running audit, please wait..."
+}

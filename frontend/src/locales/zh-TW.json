@@ -1,0 +1,65 @@
+
+{
+  "header": {
+    "title": "D-Pro Protocol V7.3 - 自動化審計儀表板"
+  },
+  "form": {
+    "paramsTitle": "系統參數",
+    "currentCapital": "目前權益數 (Current Capital)",
+    "monthlyStartCapital": "月初本金 (Monthly Start Capital)",
+    "scale": "操作規模 (Operating Scale)",
+    "uploadTitle": "上傳交易紀錄",
+    "transactionLog": "交易紀錄 (.csv, .xlsx)",
+    "runAudit": "執行審計",
+    "analyzing": "分析中..."
+  },
+  "dashboard": {
+    "reportTitle": "審計報告",
+    "placeholder": "您的審計報告儀表板將會顯示在此處。",
+    "kpi": {
+      "winRate": "勝率 (Win Rate)",
+      "rr": "賺賠比 (Risk/Reward Ratio)",
+      "pnl": "月損益 (Monthly PnL)"
+    },
+    "accountStatus": {
+      "title": "帳戶狀態",
+      "currentScale": "目前規模:",
+      "balance": "帳戶權益數:"
+    },
+    "safetyChecks": {
+      "title": "風險檢查",
+      "dailyStop": "日內風控 (>3筆虧損):",
+      "monthlyBreaker": "月度熔斷 (15%):",
+      "violations": {
+        "title": "夜盤違規紀錄:",
+        "safe": "安全",
+        "violated": "違規",
+        "breached": "觸發熔斷"
+      }
+    },
+    "evaluation": {
+      "title": "評估與激勵",
+      "upgradeEligible": "符合升級資格:",
+      "reason": "原因:",
+      "incentive": "幸福激勵:",
+      "eligible": "符合資格",
+      "notEligible": "不符資格",
+      "yes": "是",
+      "no": "否"
+    },
+    "monthlySummary": {
+      "title": "月度總結",
+      "month": "月份",
+      "totalPnl": "總損益",
+      "winRate": "勝率",
+      "rr": "賺賠比",
+      "tradeCount": "交易筆數"
+    }
+  },
+  "error": {
+    "title": "錯誤:",
+    "noFile": "請選擇一個交易紀錄檔案。",
+    "failed": "執行審計失敗: {message}"
+  },
+  "loading": "審計執行中，請稍候..."
+}
