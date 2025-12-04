@@ -1,4 +1,3 @@
-
 {
   "header": {
     "title": "D-Pro Protocol V7.3 - Audit Dashboard"
@@ -16,6 +15,14 @@
   "dashboard": {
     "reportTitle": "Audit Report",
     "placeholder": "Your audit report dashboard will be displayed here.",
+    "upgradeCriteria": {
+      "title": "Official Upgrade Criteria",
+      "scale": "Scale",
+      "nextScale": "Next Scale",
+      "capital": "Capital Key",
+      "rr": "RR Key",
+      "wr": "WR Key"
+    },
     "kpi": {
       "winRate": "Win Rate",
       "rr": "Risk/Reward Ratio",

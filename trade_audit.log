@@ -1,0 +1,1138 @@
+2025-12-04 13:48:06,392 - __main__ - INFO - Executing TradeAuditor as a standalone script.
+2025-12-04 13:48:06,392 - __main__ - INFO - Searching for trade files in directory: tradedata
+2025-12-04 13:48:06,393 - __main__ - INFO - Found latest trade file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 13:48:06,393 - __main__ - INFO - 
+--- Running Scenario 1: Upgrade Fails (Capital Key) ---
+2025-12-04 13:48:06,393 - __main__ - INFO - Initializing TradeAuditor for scale S1 with capital 185000.
+2025-12-04 13:48:06,393 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 13:48:06,393 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 13:48:06,409 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 13:48:06,411 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 13:48:06,411 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 13:48:06,412 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 13:48:06,412 - __main__ - INFO - Checking for night session violations.
+2025-12-04 13:48:06,413 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 13:48:06,414 - __main__ - INFO - Evaluating capital management for scale S1.
+2025-12-04 13:48:06,414 - __main__ - INFO - Account not eligible for upgrade. Reason: Capital Key not met (185,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 13:48:06,414 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 13:48:06,414 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 13:48:06,414 - __main__ - INFO - Calculating historical monthly summary.
+2025-12-04 13:48:06,419 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 13:48:06,421 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 13:48:06,421 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 13:48:06,421 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 13:48:06,422 - __main__ - INFO - 
+--- Running Scenario 2: Upgrade Succeeds ---
+2025-12-04 13:48:06,422 - __main__ - INFO - Initializing TradeAuditor for scale S1 with capital 210000.
+2025-12-04 13:48:06,422 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 13:48:06,422 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 13:48:06,426 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 13:48:06,427 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 13:48:06,427 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 13:48:06,428 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 13:48:06,428 - __main__ - INFO - Checking for night session violations.
+2025-12-04 13:48:06,428 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 13:48:06,430 - __main__ - INFO - Evaluating capital management for scale S1.
+2025-12-04 13:48:06,430 - __main__ - INFO - Account not eligible for upgrade. Reason: Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 13:48:06,430 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 13:48:06,430 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 13:48:06,430 - __main__ - INFO - Calculating historical monthly summary.
+2025-12-04 13:48:06,433 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 13:48:06,438 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 13:48:06,438 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 13:48:06,438 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 13:48:06,439 - __main__ - INFO - 
+--- Running Scenario 3: Monthly Circuit Breaker ---
+2025-12-04 13:48:06,439 - __main__ - INFO - Initializing TradeAuditor for scale S2 with capital 140000.
+2025-12-04 13:48:06,439 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 13:48:06,440 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 13:48:06,443 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 13:48:06,444 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 13:48:06,444 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 13:48:06,445 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 13:48:06,445 - __main__ - INFO - Checking for night session violations.
+2025-12-04 13:48:06,446 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 13:48:06,447 - __main__ - INFO - Evaluating capital management for scale S2.
+2025-12-04 13:48:06,447 - __main__ - INFO - Account not eligible for upgrade. Reason: Capital Key not met (140,000 < 400,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 13:48:06,447 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 13:48:06,447 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 13:48:06,447 - __main__ - INFO - Calculating historical monthly summary.
+2025-12-04 13:48:06,450 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 13:48:06,451 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 13:48:06,451 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 13:48:06,451 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:06:25,439 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 14:06:26,470 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 14:06:37,609 - trade_check - INFO - [Frontend] File selected for upload: 202507-202508交易資料 - 工作表1.csv | Context: {'size': 3130, 'type': 'text/csv'}
+2025-12-04 14:06:39,851 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 10000, 'monthly_start_capital': 10000, 'current_scale': 'S1'}, 'fileName': '202507-202508交易資料 - 工作表1.csv'}
+2025-12-04 14:06:39,866 - trade_check - INFO - Received audit request for file: 202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:06:39,867 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:06:39,868 - trade_check - INFO - Initializing auditor for scale S1 with capital 10000.0
+2025-12-04 14:06:39,868 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 10000.0.
+2025-12-04 14:06:39,869 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:06:39,869 - trade_check - INFO - Loading transactions from file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:06:39,960 - trade_check - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:06:39,963 - trade_check - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:06:39,963 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:06:39,966 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:06:39,966 - trade_check - INFO - Checking for night session violations.
+2025-12-04 14:06:39,974 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:06:39,977 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:06:39,978 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (10,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:06:39,978 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:06:39,978 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:06:39,978 - trade_check - INFO - Calculating historical monthly summary.
+2025-12-04 14:06:39,986 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:06:39,987 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:06:39,987 - trade_check - INFO - Generated summary for 2 months.
+2025-12-04 14:06:39,987 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:06:39,987 - trade_check - INFO - Audit successful for 202507-202508交易資料 - 工作表1.csv. Returning report.
+2025-12-04 14:06:39,987 - trade_check - INFO - Cleaned up temporary file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:06:39,988 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 14:06:39,993 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 14:19:01,698 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 14:19:05,431 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 14:19:25,610 - trade_check - INFO - [Frontend] File selected for upload: 202507-202508交易資料 - 工作表1.csv | Context: {'size': 3130, 'type': 'text/csv'}
+2025-12-04 14:19:28,928 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 10000, 'monthly_start_capital': 10000, 'current_scale': 'S1'}, 'fileName': '202507-202508交易資料 - 工作表1.csv'}
+2025-12-04 14:19:28,946 - trade_check - INFO - Received audit request for file: 202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:19:28,946 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:19:28,947 - trade_check - INFO - Initializing auditor for scale S1 with capital 10000.0
+2025-12-04 14:19:28,947 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 10000.0.
+2025-12-04 14:19:28,947 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:19:28,948 - trade_check - INFO - Loading transactions from file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:19:29,019 - trade_check - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:19:29,023 - trade_check - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:19:29,023 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:19:29,032 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:19:29,032 - trade_check - INFO - Checking for night session violations.
+2025-12-04 14:19:29,034 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:19:29,035 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:19:29,035 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (10,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:19:29,035 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:19:29,035 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:19:29,035 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:19:29,044 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:19:29,059 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:19:29,060 - trade_check - INFO - Generated summary for 2 months.
+2025-12-04 14:19:29,060 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:19:29,060 - trade_check - INFO - Audit successful for 202507-202508交易資料 - 工作表1.csv. Returning report.
+2025-12-04 14:19:29,060 - trade_check - CRITICAL - An unexpected server error occurred during audit for 202507-202508交易資料 - 工作表1.csv: Object of type date is not JSON serializable
+Traceback (most recent call last):
+  File "/Users/weiyuanlo/Downloads/code/TradeCheck/server.py", line 67, in run_web_audit
+    return JSONResponse(content=report)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 192, in render
+    return json.dumps(
+           ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type date is not JSON serializable
+2025-12-04 14:19:29,086 - trade_check - INFO - Cleaned up temporary file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:19:29,087 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 14:19:29,092 - trade_check - ERROR - [Frontend] Audit API call failed. | Context: {'error': 'An unexpected error occurred: Object of type date is not JSON serializable', 'stack': 'Error: An unexpected error occurred: Object of type date is not JSON serializable\n    at runAudit (http://localhost:5173/src/App.vue:120:13)'}
+2025-12-04 14:22:22,183 - __main__ - INFO - Executing TradeAuditor as a standalone script.
+2025-12-04 14:22:22,183 - __main__ - INFO - Searching for trade files in directory: tradedata
+2025-12-04 14:22:22,184 - __main__ - INFO - Found latest trade file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:22:22,184 - __main__ - INFO - 
+--- Running Scenario 1: Upgrade Fails (Capital Key) ---
+2025-12-04 14:22:22,184 - __main__ - INFO - Initializing TradeAuditor for scale S1 with capital 185000.
+2025-12-04 14:22:22,184 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:22:22,184 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:22:22,194 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:22:22,195 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:22:22,195 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:22:22,197 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:22:22,197 - __main__ - INFO - Checking for night session violations.
+2025-12-04 14:22:22,198 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:22:22,199 - __main__ - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:22:22,199 - __main__ - INFO - Account not eligible for upgrade. Reason: Capital Key not met (185,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:22:22,199 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:22:22,199 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:22:22,199 - __main__ - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:22:22,212 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:22:22,234 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:22:22,235 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 14:22:22,235 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:22:22,235 - __main__ - CRITICAL - An unexpected critical error occurred in the main script block: Object of type date is not JSON serializable
+Traceback (most recent call last):
+  File "/Users/weiyuanlo/Downloads/code/TradeCheck/trade_check.py", line 303, in <module>
+    print(json.dumps(report_s1, indent=2, ensure_ascii=False))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 202, in encode
+    chunks = list(chunks)
+             ^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type date is not JSON serializable
+2025-12-04 14:29:19,922 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 10000, 'monthly_start_capital': 10000, 'current_scale': 'S1'}, 'fileName': '202507-202508交易資料 - 工作表1.csv'}
+2025-12-04 14:29:19,926 - trade_check - INFO - Received audit request for file: 202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:29:19,926 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:29:19,927 - trade_check - INFO - Initializing auditor for scale S1 with capital 10000.0
+2025-12-04 14:29:19,927 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 10000.0.
+2025-12-04 14:29:19,927 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:29:19,927 - trade_check - INFO - Loading transactions from file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:29:19,985 - trade_check - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:29:19,989 - trade_check - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:29:19,989 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:29:19,995 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:29:19,996 - trade_check - INFO - Checking for night session violations.
+2025-12-04 14:29:19,998 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:29:19,999 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:29:20,000 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (10,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:29:20,000 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:29:20,000 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:29:20,000 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:29:20,008 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:29:20,009 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:29:20,010 - trade_check - INFO - Generated summary for 2 months.
+2025-12-04 14:29:20,010 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:29:20,010 - trade_check - INFO - Audit successful for 202507-202508交易資料 - 工作表1.csv. Returning report.
+2025-12-04 14:29:20,010 - trade_check - CRITICAL - An unexpected server error occurred during audit for 202507-202508交易資料 - 工作表1.csv: Object of type date is not JSON serializable
+Traceback (most recent call last):
+  File "/Users/weiyuanlo/Downloads/code/TradeCheck/server.py", line 67, in run_web_audit
+    return JSONResponse(content=report)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 192, in render
+    return json.dumps(
+           ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type date is not JSON serializable
+2025-12-04 14:29:20,013 - trade_check - INFO - Cleaned up temporary file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:29:20,013 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 14:29:20,020 - trade_check - ERROR - [Frontend] Audit API call failed. | Context: {'error': 'An unexpected error occurred: Object of type date is not JSON serializable', 'stack': 'Error: An unexpected error occurred: Object of type date is not JSON serializable\n    at runAudit (http://localhost:5173/src/App.vue:120:13)'}
+2025-12-04 14:41:00,048 - __main__ - INFO - Executing TradeAuditor as a standalone script.
+2025-12-04 14:41:00,048 - __main__ - INFO - Searching for trade files in directory: tradedata
+2025-12-04 14:41:00,049 - __main__ - INFO - Found latest trade file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:00,049 - __main__ - INFO - 
+--- Running Scenario 1: Upgrade Fails (Capital Key) ---
+2025-12-04 14:41:00,049 - __main__ - INFO - Initializing TradeAuditor for scale S1 with capital 185000.
+2025-12-04 14:41:00,049 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:41:00,049 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:00,062 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:41:00,069 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:41:00,070 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:41:00,073 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:41:00,073 - __main__ - INFO - Checking for night session violations.
+2025-12-04 14:41:00,074 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:41:00,075 - __main__ - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:41:00,075 - __main__ - INFO - Account not eligible for upgrade. Reason: Capital Key not met (185,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:41:00,075 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:41:00,075 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:41:00,076 - __main__ - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:41:00,094 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:41:00,097 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:41:00,098 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 14:41:00,098 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:41:00,101 - __main__ - INFO - 
+--- Running Scenario 2: Upgrade Succeeds ---
+2025-12-04 14:41:00,101 - __main__ - INFO - Initializing TradeAuditor for scale S1 with capital 210000.
+2025-12-04 14:41:00,101 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:41:00,101 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:00,104 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:41:00,105 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:41:00,105 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:41:00,106 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:41:00,106 - __main__ - INFO - Checking for night session violations.
+2025-12-04 14:41:00,106 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:41:00,109 - __main__ - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:41:00,109 - __main__ - INFO - Account not eligible for upgrade. Reason: Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:41:00,109 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:41:00,109 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:41:00,110 - __main__ - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:41:00,112 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:41:00,113 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:41:00,117 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 14:41:00,117 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:41:00,122 - __main__ - INFO - 
+--- Running Scenario 3: Monthly Circuit Breaker ---
+2025-12-04 14:41:00,123 - __main__ - INFO - Initializing TradeAuditor for scale S2 with capital 140000.
+2025-12-04 14:41:00,123 - __main__ - INFO - --- Starting Full Audit for file: tradedata/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:41:00,123 - __main__ - INFO - Loading transactions from file: tradedata/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:00,131 - __main__ - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:41:00,132 - __main__ - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:41:00,132 - __main__ - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:41:00,133 - __main__ - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:41:00,134 - __main__ - INFO - Checking for night session violations.
+2025-12-04 14:41:00,134 - __main__ - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:41:00,136 - __main__ - INFO - Evaluating capital management for scale S2.
+2025-12-04 14:41:00,136 - __main__ - INFO - Account not eligible for upgrade. Reason: Capital Key not met (140,000 < 400,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:41:00,136 - __main__ - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:41:00,136 - __main__ - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:41:00,136 - __main__ - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:41:00,138 - __main__ - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:41:00,141 - __main__ - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:41:00,143 - __main__ - INFO - Generated summary for 2 months.
+2025-12-04 14:41:00,143 - __main__ - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:41:36,018 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 14:41:52,347 - trade_check - INFO - [Frontend] File selected for upload: 202507-202508交易資料 - 工作表1.csv | Context: {'size': 3130, 'type': 'text/csv'}
+2025-12-04 14:41:53,959 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '202507-202508交易資料 - 工作表1.csv'}
+2025-12-04 14:41:53,973 - trade_check - INFO - Received audit request for file: 202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:53,974 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:53,974 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-04 14:41:53,975 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-04 14:41:53,975 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 14:41:53,975 - trade_check - INFO - Loading transactions from file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:54,050 - trade_check - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 14:41:54,053 - trade_check - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 14:41:54,053 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 14:41:54,056 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 14:41:54,056 - trade_check - INFO - Checking for night session violations.
+2025-12-04 14:41:54,058 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 14:41:54,060 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 14:41:54,060 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 14:41:54,060 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 14:41:54,060 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 14:41:54,060 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 14:41:54,068 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 14:41:54,070 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 14:41:54,071 - trade_check - INFO - Generated summary for 2 months.
+2025-12-04 14:41:54,071 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 14:41:54,071 - trade_check - INFO - Audit successful for 202507-202508交易資料 - 工作表1.csv. Returning report.
+2025-12-04 14:41:54,074 - trade_check - INFO - Cleaned up temporary file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 14:41:54,074 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 14:41:54,080 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 14:41:58,416 - trade_check - INFO - [Frontend] User requested details for month: 2025-08
+2025-12-04 15:10:16,436 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 15:10:32,142 - trade_check - INFO - [Frontend] File selected for upload: 202507-202508交易資料 - 工作表1.csv | Context: {'size': 3130, 'type': 'text/csv'}
+2025-12-04 15:10:35,202 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '202507-202508交易資料 - 工作表1.csv'}
+2025-12-04 15:10:35,223 - trade_check - INFO - Received audit request for file: 202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:10:35,224 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:10:35,225 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-04 15:10:35,225 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-04 15:10:35,226 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 15:10:35,226 - trade_check - INFO - Loading transactions from file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:10:35,300 - trade_check - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 15:10:35,305 - trade_check - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 15:10:35,305 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:10:35,309 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:10:35,309 - trade_check - INFO - Checking for night session violations.
+2025-12-04 15:10:35,312 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 15:10:35,314 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:10:35,314 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 15:10:35,315 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:10:35,315 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:10:35,315 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 15:10:35,326 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 15:10:35,326 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:10:35,327 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:10:35,327 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:10:35,327 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-04 15:10:35,327 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:10:35,327 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:10:35,337 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 15:10:35,337 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:10:35,338 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:10:35,339 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:10:35,339 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-04 15:10:35,339 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:10:35,339 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:10:35,340 - trade_check - INFO - Generated summary for 2 months.
+2025-12-04 15:10:35,340 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 15:10:35,340 - trade_check - INFO - Audit successful for 202507-202508交易資料 - 工作表1.csv. Returning report.
+2025-12-04 15:10:35,342 - trade_check - INFO - Cleaned up temporary file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:10:35,342 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 15:10:35,349 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 15:10:49,557 - trade_check - INFO - [Frontend] User requested details for month: 2025-08
+2025-12-04 15:25:12,169 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 15:25:25,886 - trade_check - INFO - [Frontend] File selected for upload: 202507-202508交易資料 - 工作表1.csv | Context: {'size': 3130, 'type': 'text/csv'}
+2025-12-04 15:25:29,233 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '202507-202508交易資料 - 工作表1.csv'}
+2025-12-04 15:25:29,251 - trade_check - INFO - Received audit request for file: 202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:25:29,251 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:25:29,252 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-04 15:25:29,252 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-04 15:25:29,252 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/202507-202508交易資料 - 工作表1.csv ---
+2025-12-04 15:25:29,252 - trade_check - INFO - Loading transactions from file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:25:29,322 - trade_check - INFO - Successfully loaded and processed 38 transactions.
+2025-12-04 15:25:29,332 - trade_check - INFO - KPIs calculated: WR=18.42%, RR=8.18, PnL=25,627.00
+2025-12-04 15:25:29,332 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:25:29,335 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:25:29,335 - trade_check - INFO - Checking for night session violations.
+2025-12-04 15:25:29,337 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 15:25:29,338 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:25:29,338 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.18, WR: 18.42%)
+2025-12-04 15:25:29,338 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:25:29,338 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:25:29,338 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 15:25:29,345 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 15:25:29,345 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:25:29,347 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:25:29,347 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:25:29,347 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-04 15:25:29,347 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:25:29,347 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:25:29,349 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 15:25:29,349 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:25:29,350 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:25:29,350 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:25:29,350 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-04 15:25:29,350 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:25:29,350 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:25:29,351 - trade_check - INFO - Generated summary for 2 months.
+2025-12-04 15:25:29,351 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 15:25:29,351 - trade_check - INFO - Audit successful for 202507-202508交易資料 - 工作表1.csv. Returning report.
+2025-12-04 15:25:29,351 - trade_check - INFO - Cleaned up temporary file: temp_uploads/202507-202508交易資料 - 工作表1.csv
+2025-12-04 15:25:29,352 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 15:25:29,356 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 15:28:30,120 - trade_check - INFO - [Frontend] File selected for upload: 2024-2025交易資料 - 工作表1.csv | Context: {'size': 35674, 'type': 'text/csv'}
+2025-12-04 15:28:31,470 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '2024-2025交易資料 - 工作表1.csv'}
+2025-12-04 15:28:31,482 - trade_check - INFO - Received audit request for file: 2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:28:31,482 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:28:31,483 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-04 15:28:31,483 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-04 15:28:31,483 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/2024-2025交易資料 - 工作表1.csv ---
+2025-12-04 15:28:31,483 - trade_check - INFO - Loading transactions from file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:28:31,559 - trade_check - INFO - Successfully loaded and processed 441 transactions.
+2025-12-04 15:28:31,564 - trade_check - INFO - KPIs calculated: WR=16.10%, RR=3.88, PnL=-96,550.00
+2025-12-04 15:28:31,564 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,571 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,571 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -96,550.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,571 - trade_check - INFO - Checking for night session violations.
+2025-12-04 15:28:31,580 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 15:28:31,583 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-04-22 21:44:00'}
+2025-12-04 15:28:31,585 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-03-28 21:43:13'}
+2025-12-04 15:28:31,587 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-08-01 21:39:09'}
+2025-12-04 15:28:31,587 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-06-11 21:37:21'}
+2025-12-04 15:28:31,589 - trade_check - WARNING - Night session violation found: {'rule': 'FOMC Announcement', 'violation_time': '2024-04-20 01:54:24'}
+2025-12-04 15:28:31,590 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-04-11 21:40:18'}
+2025-12-04 15:28:31,590 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-03-12 21:43:46'}
+2025-12-04 15:28:31,591 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-01-11 21:32:26'}
+2025-12-04 15:28:31,592 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,592 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.88, WR: 16.10%)
+2025-12-04 15:28:31,592 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,592 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,593 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 15:28:31,603 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=2.12, PnL=2,218.00
+2025-12-04 15:28:31,603 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,604 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,604 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,604 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:28:31,604 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,604 - trade_check - INFO - Happiness Incentive is eligible. Amount: 222.
+2025-12-04 15:28:31,606 - trade_check - INFO - KPIs calculated: WR=50.00%, RR=2.98, PnL=1,640.00
+2025-12-04 15:28:31,606 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,606 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,606 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:28:31,606 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,606 - trade_check - INFO - Happiness Incentive is eligible. Amount: 164.
+2025-12-04 15:28:31,607 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=6.59, PnL=27,180.00
+2025-12-04 15:28:31,607 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,608 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,608 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,608 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:28:31,608 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,608 - trade_check - INFO - Happiness Incentive is eligible. Amount: 2718.
+2025-12-04 15:28:31,608 - trade_check - INFO - KPIs calculated: WR=19.70%, RR=2.58, PnL=-21,346.00
+2025-12-04 15:28:31,608 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,609 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,609 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,346.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,609 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,609 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 2.58, WR: 19.70%)
+2025-12-04 15:28:31,609 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,609 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,610 - trade_check - INFO - KPIs calculated: WR=9.68%, RR=5.40, PnL=-12,256.00
+2025-12-04 15:28:31,610 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,611 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,611 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,611 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 5.40, WR: 9.68%)
+2025-12-04 15:28:31,611 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,611 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,612 - trade_check - INFO - KPIs calculated: WR=10.53%, RR=0.17, PnL=-26,268.00
+2025-12-04 15:28:31,612 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,613 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,613 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -26,268.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,613 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,614 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.17, WR: 10.53%)
+2025-12-04 15:28:31,614 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,614 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,616 - trade_check - INFO - KPIs calculated: WR=100.00%, RR=inf, PnL=4,864.00
+2025-12-04 15:28:31,616 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,617 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,617 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:28:31,617 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,617 - trade_check - INFO - Happiness Incentive is eligible. Amount: 486.
+2025-12-04 15:28:31,618 - trade_check - INFO - KPIs calculated: WR=7.41%, RR=1.68, PnL=-21,778.00
+2025-12-04 15:28:31,618 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,620 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,620 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,778.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,620 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,620 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.68, WR: 7.41%)
+2025-12-04 15:28:31,620 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,620 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,621 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-22,855.00
+2025-12-04 15:28:31,621 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,621 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,621 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -22,855.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,621 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,621 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 15:28:31,621 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,621 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,622 - trade_check - INFO - KPIs calculated: WR=18.75%, RR=3.56, PnL=-6,085.00
+2025-12-04 15:28:31,622 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,623 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,623 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,623 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.56, WR: 18.75%)
+2025-12-04 15:28:31,623 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,623 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,624 - trade_check - INFO - KPIs calculated: WR=8.79%, RR=8.30, PnL=-13,485.00
+2025-12-04 15:28:31,624 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,625 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,625 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,625 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.30, WR: 8.79%)
+2025-12-04 15:28:31,625 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,625 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,627 - trade_check - INFO - KPIs calculated: WR=5.88%, RR=1.80, PnL=-15,080.00
+2025-12-04 15:28:31,627 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,627 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,627 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -15,080.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,627 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,627 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.80, WR: 5.88%)
+2025-12-04 15:28:31,627 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,627 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,628 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-18,926.00
+2025-12-04 15:28:31,628 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,629 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,629 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -18,926.00 <= Threshold -15,000.00
+2025-12-04 15:28:31,629 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,629 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 15:28:31,629 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,629 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:28:31,631 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 15:28:31,631 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,632 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,632 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,632 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-04 15:28:31,632 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,632 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:28:31,635 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 15:28:31,635 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:28:31,638 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:28:31,638 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:28:31,638 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-04 15:28:31,638 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:28:31,638 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:28:31,639 - trade_check - INFO - Generated summary for 15 months.
+2025-12-04 15:28:31,639 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 15:28:31,639 - trade_check - INFO - Audit successful for 2024-2025交易資料 - 工作表1.csv. Returning report.
+2025-12-04 15:28:31,648 - trade_check - INFO - Cleaned up temporary file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:28:31,648 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 15:28:31,656 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 15:29:39,651 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S2'}, 'fileName': '2024-2025交易資料 - 工作表1.csv'}
+2025-12-04 15:29:39,661 - trade_check - INFO - Received audit request for file: 2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:29:39,662 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:29:39,663 - trade_check - INFO - Initializing auditor for scale S2 with capital 100000.0
+2025-12-04 15:29:39,663 - trade_check - INFO - Initializing TradeAuditor for scale S2 with capital 100000.0.
+2025-12-04 15:29:39,664 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/2024-2025交易資料 - 工作表1.csv ---
+2025-12-04 15:29:39,664 - trade_check - INFO - Loading transactions from file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:29:39,721 - trade_check - INFO - Successfully loaded and processed 441 transactions.
+2025-12-04 15:29:39,725 - trade_check - INFO - KPIs calculated: WR=16.10%, RR=3.88, PnL=-96,550.00
+2025-12-04 15:29:39,725 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,729 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,729 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -96,550.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,729 - trade_check - INFO - Checking for night session violations.
+2025-12-04 15:29:39,731 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 15:29:39,735 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-04-22 21:44:00'}
+2025-12-04 15:29:39,736 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-03-28 21:43:13'}
+2025-12-04 15:29:39,738 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-08-01 21:39:09'}
+2025-12-04 15:29:39,739 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-06-11 21:37:21'}
+2025-12-04 15:29:39,741 - trade_check - WARNING - Night session violation found: {'rule': 'FOMC Announcement', 'violation_time': '2024-04-20 01:54:24'}
+2025-12-04 15:29:39,742 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-04-11 21:40:18'}
+2025-12-04 15:29:39,742 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-03-12 21:43:46'}
+2025-12-04 15:29:39,743 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-01-11 21:32:26'}
+2025-12-04 15:29:39,744 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,744 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 3.88, WR: 16.10%)
+2025-12-04 15:29:39,744 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,744 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,744 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 15:29:39,756 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=2.12, PnL=2,218.00
+2025-12-04 15:29:39,757 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,760 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,760 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,760 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000)
+2025-12-04 15:29:39,760 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,760 - trade_check - INFO - Happiness Incentive is eligible. Amount: 222.
+2025-12-04 15:29:39,762 - trade_check - INFO - KPIs calculated: WR=50.00%, RR=2.98, PnL=1,640.00
+2025-12-04 15:29:39,763 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,764 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,764 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000)
+2025-12-04 15:29:39,764 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,764 - trade_check - INFO - Happiness Incentive is eligible. Amount: 164.
+2025-12-04 15:29:39,767 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=6.59, PnL=27,180.00
+2025-12-04 15:29:39,768 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,769 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,769 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,769 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000)
+2025-12-04 15:29:39,769 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,769 - trade_check - INFO - Happiness Incentive is eligible. Amount: 2718.
+2025-12-04 15:29:39,770 - trade_check - INFO - KPIs calculated: WR=19.70%, RR=2.58, PnL=-21,346.00
+2025-12-04 15:29:39,770 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,771 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,771 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,346.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,771 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,771 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 2.58, WR: 19.70%)
+2025-12-04 15:29:39,771 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,771 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,772 - trade_check - INFO - KPIs calculated: WR=9.68%, RR=5.40, PnL=-12,256.00
+2025-12-04 15:29:39,772 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,773 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,773 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,773 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 5.40, WR: 9.68%)
+2025-12-04 15:29:39,773 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,773 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,774 - trade_check - INFO - KPIs calculated: WR=10.53%, RR=0.17, PnL=-26,268.00
+2025-12-04 15:29:39,774 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,774 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,774 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -26,268.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,774 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,774 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 0.17, WR: 10.53%)
+2025-12-04 15:29:39,774 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,775 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,775 - trade_check - INFO - KPIs calculated: WR=100.00%, RR=inf, PnL=4,864.00
+2025-12-04 15:29:39,775 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,776 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,776 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000)
+2025-12-04 15:29:39,776 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,776 - trade_check - INFO - Happiness Incentive is eligible. Amount: 486.
+2025-12-04 15:29:39,776 - trade_check - INFO - KPIs calculated: WR=7.41%, RR=1.68, PnL=-21,778.00
+2025-12-04 15:29:39,776 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,777 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,777 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,778.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,777 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,777 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 1.68, WR: 7.41%)
+2025-12-04 15:29:39,777 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,777 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,778 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-22,855.00
+2025-12-04 15:29:39,778 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,778 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,779 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -22,855.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,779 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,779 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 15:29:39,779 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,779 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,780 - trade_check - INFO - KPIs calculated: WR=18.75%, RR=3.56, PnL=-6,085.00
+2025-12-04 15:29:39,780 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,781 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,781 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,781 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 3.56, WR: 18.75%)
+2025-12-04 15:29:39,781 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,781 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,783 - trade_check - INFO - KPIs calculated: WR=8.79%, RR=8.30, PnL=-13,485.00
+2025-12-04 15:29:39,783 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,786 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,787 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,787 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 8.30, WR: 8.79%)
+2025-12-04 15:29:39,787 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,787 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,788 - trade_check - INFO - KPIs calculated: WR=5.88%, RR=1.80, PnL=-15,080.00
+2025-12-04 15:29:39,788 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,789 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,789 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -15,080.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,789 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,789 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 1.80, WR: 5.88%)
+2025-12-04 15:29:39,789 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,789 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,790 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-18,926.00
+2025-12-04 15:29:39,790 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,790 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,790 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -18,926.00 <= Threshold -15,000.00
+2025-12-04 15:29:39,790 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,790 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 15:29:39,790 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,790 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:29:39,791 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 15:29:39,791 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,792 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,792 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,792 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-04 15:29:39,792 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,792 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:29:39,792 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 15:29:39,793 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:29:39,793 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:29:39,793 - trade_check - INFO - Evaluating capital management for scale S2.
+2025-12-04 15:29:39,793 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 400,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-04 15:29:39,793 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:29:39,793 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:29:39,794 - trade_check - INFO - Generated summary for 15 months.
+2025-12-04 15:29:39,794 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 15:29:39,794 - trade_check - INFO - Audit successful for 2024-2025交易資料 - 工作表1.csv. Returning report.
+2025-12-04 15:29:39,802 - trade_check - INFO - Cleaned up temporary file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:29:39,802 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 15:29:39,810 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 15:30:24,593 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '2024-2025交易資料 - 工作表1.csv'}
+2025-12-04 15:30:24,599 - trade_check - INFO - Received audit request for file: 2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:30:24,601 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:30:24,603 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-04 15:30:24,603 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-04 15:30:24,603 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/2024-2025交易資料 - 工作表1.csv ---
+2025-12-04 15:30:24,603 - trade_check - INFO - Loading transactions from file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:30:24,661 - trade_check - INFO - Successfully loaded and processed 441 transactions.
+2025-12-04 15:30:24,665 - trade_check - INFO - KPIs calculated: WR=16.10%, RR=3.88, PnL=-96,550.00
+2025-12-04 15:30:24,665 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,670 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,670 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -96,550.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,670 - trade_check - INFO - Checking for night session violations.
+2025-12-04 15:30:24,673 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 15:30:24,676 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-04-22 21:44:00'}
+2025-12-04 15:30:24,678 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-03-28 21:43:13'}
+2025-12-04 15:30:24,680 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-08-01 21:39:09'}
+2025-12-04 15:30:24,680 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-06-11 21:37:21'}
+2025-12-04 15:30:24,683 - trade_check - WARNING - Night session violation found: {'rule': 'FOMC Announcement', 'violation_time': '2024-04-20 01:54:24'}
+2025-12-04 15:30:24,685 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-04-11 21:40:18'}
+2025-12-04 15:30:24,685 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-03-12 21:43:46'}
+2025-12-04 15:30:24,687 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-01-11 21:32:26'}
+2025-12-04 15:30:24,688 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,688 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.88, WR: 16.10%)
+2025-12-04 15:30:24,688 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,688 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,688 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 15:30:24,699 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=2.12, PnL=2,218.00
+2025-12-04 15:30:24,699 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,700 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,700 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,700 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:30:24,700 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,701 - trade_check - INFO - Happiness Incentive is eligible. Amount: 222.
+2025-12-04 15:30:24,702 - trade_check - INFO - KPIs calculated: WR=50.00%, RR=2.98, PnL=1,640.00
+2025-12-04 15:30:24,702 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,703 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,703 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:30:24,703 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,703 - trade_check - INFO - Happiness Incentive is eligible. Amount: 164.
+2025-12-04 15:30:24,704 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=6.59, PnL=27,180.00
+2025-12-04 15:30:24,705 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,705 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,705 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,705 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:30:24,705 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,705 - trade_check - INFO - Happiness Incentive is eligible. Amount: 2718.
+2025-12-04 15:30:24,706 - trade_check - INFO - KPIs calculated: WR=19.70%, RR=2.58, PnL=-21,346.00
+2025-12-04 15:30:24,706 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,707 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,707 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,346.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,707 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,707 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 2.58, WR: 19.70%)
+2025-12-04 15:30:24,707 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,707 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,708 - trade_check - INFO - KPIs calculated: WR=9.68%, RR=5.40, PnL=-12,256.00
+2025-12-04 15:30:24,708 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,708 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,708 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,708 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 5.40, WR: 9.68%)
+2025-12-04 15:30:24,708 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,708 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,709 - trade_check - INFO - KPIs calculated: WR=10.53%, RR=0.17, PnL=-26,268.00
+2025-12-04 15:30:24,709 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,710 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,710 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -26,268.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,710 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,710 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.17, WR: 10.53%)
+2025-12-04 15:30:24,710 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,710 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,711 - trade_check - INFO - KPIs calculated: WR=100.00%, RR=inf, PnL=4,864.00
+2025-12-04 15:30:24,711 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,712 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,712 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 15:30:24,712 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,712 - trade_check - INFO - Happiness Incentive is eligible. Amount: 486.
+2025-12-04 15:30:24,712 - trade_check - INFO - KPIs calculated: WR=7.41%, RR=1.68, PnL=-21,778.00
+2025-12-04 15:30:24,712 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,713 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,713 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,778.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,713 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,713 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.68, WR: 7.41%)
+2025-12-04 15:30:24,713 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,713 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,714 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-22,855.00
+2025-12-04 15:30:24,714 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,714 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,714 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -22,855.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,714 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,714 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 15:30:24,714 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,714 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,715 - trade_check - INFO - KPIs calculated: WR=18.75%, RR=3.56, PnL=-6,085.00
+2025-12-04 15:30:24,715 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,716 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,716 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,716 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.56, WR: 18.75%)
+2025-12-04 15:30:24,716 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,716 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,717 - trade_check - INFO - KPIs calculated: WR=8.79%, RR=8.30, PnL=-13,485.00
+2025-12-04 15:30:24,717 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,718 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,718 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,718 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.30, WR: 8.79%)
+2025-12-04 15:30:24,718 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,718 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,719 - trade_check - INFO - KPIs calculated: WR=5.88%, RR=1.80, PnL=-15,080.00
+2025-12-04 15:30:24,719 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,719 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,719 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -15,080.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,719 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,719 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.80, WR: 5.88%)
+2025-12-04 15:30:24,719 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,719 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,720 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-18,926.00
+2025-12-04 15:30:24,720 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,720 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,720 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -18,926.00 <= Threshold -15,000.00
+2025-12-04 15:30:24,720 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,720 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 15:30:24,720 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,721 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 15:30:24,721 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 15:30:24,721 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,722 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,722 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,722 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-04 15:30:24,722 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,722 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:30:24,723 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 15:30:24,723 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 15:30:24,723 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 15:30:24,723 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 15:30:24,723 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-04 15:30:24,723 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 15:30:24,723 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 15:30:24,724 - trade_check - INFO - Generated summary for 15 months.
+2025-12-04 15:30:24,724 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 15:30:24,724 - trade_check - INFO - Audit successful for 2024-2025交易資料 - 工作表1.csv. Returning report.
+2025-12-04 15:30:24,731 - trade_check - INFO - Cleaned up temporary file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 15:30:24,731 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 15:30:24,740 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-04 23:52:58,349 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-04 23:53:06,452 - trade_check - INFO - [Frontend] File selected for upload: 2024-2025交易資料 - 工作表1.csv | Context: {'size': 35674, 'type': 'text/csv'}
+2025-12-04 23:53:26,218 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '2024-2025交易資料 - 工作表1.csv'}
+2025-12-04 23:53:26,247 - trade_check - INFO - Received audit request for file: 2024-2025交易資料 - 工作表1.csv
+2025-12-04 23:53:26,247 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 23:53:26,250 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-04 23:53:26,250 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-04 23:53:26,250 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/2024-2025交易資料 - 工作表1.csv ---
+2025-12-04 23:53:26,250 - trade_check - INFO - Loading transactions from file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 23:53:26,427 - trade_check - INFO - Successfully loaded and processed 441 transactions.
+2025-12-04 23:53:26,434 - trade_check - INFO - KPIs calculated: WR=16.10%, RR=3.88, PnL=-96,550.00
+2025-12-04 23:53:26,434 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,443 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,444 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -96,550.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,444 - trade_check - INFO - Checking for night session violations.
+2025-12-04 23:53:26,450 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-04 23:53:26,452 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-04-22 21:44:00'}
+2025-12-04 23:53:26,454 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-03-28 21:43:13'}
+2025-12-04 23:53:26,456 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-08-01 21:39:09'}
+2025-12-04 23:53:26,457 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-06-11 21:37:21'}
+2025-12-04 23:53:26,459 - trade_check - WARNING - Night session violation found: {'rule': 'FOMC Announcement', 'violation_time': '2024-04-20 01:54:24'}
+2025-12-04 23:53:26,460 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-04-11 21:40:18'}
+2025-12-04 23:53:26,461 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-03-12 21:43:46'}
+2025-12-04 23:53:26,462 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-01-11 21:32:26'}
+2025-12-04 23:53:26,463 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,463 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.88, WR: 16.10%)
+2025-12-04 23:53:26,463 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,463 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,463 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-04 23:53:26,481 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=2.12, PnL=2,218.00
+2025-12-04 23:53:26,481 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,483 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,483 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,483 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 23:53:26,483 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,483 - trade_check - INFO - Happiness Incentive is eligible. Amount: 222.
+2025-12-04 23:53:26,503 - trade_check - INFO - KPIs calculated: WR=50.00%, RR=2.98, PnL=1,640.00
+2025-12-04 23:53:26,503 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,504 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,504 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 23:53:26,504 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,504 - trade_check - INFO - Happiness Incentive is eligible. Amount: 164.
+2025-12-04 23:53:26,505 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=6.59, PnL=27,180.00
+2025-12-04 23:53:26,505 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,505 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,506 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,506 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 23:53:26,506 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,506 - trade_check - INFO - Happiness Incentive is eligible. Amount: 2718.
+2025-12-04 23:53:26,506 - trade_check - INFO - KPIs calculated: WR=19.70%, RR=2.58, PnL=-21,346.00
+2025-12-04 23:53:26,507 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,507 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,507 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,346.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,507 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,507 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 2.58, WR: 19.70%)
+2025-12-04 23:53:26,507 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,507 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,508 - trade_check - INFO - KPIs calculated: WR=9.68%, RR=5.40, PnL=-12,256.00
+2025-12-04 23:53:26,508 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,509 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,509 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,509 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 5.40, WR: 9.68%)
+2025-12-04 23:53:26,509 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,509 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,510 - trade_check - INFO - KPIs calculated: WR=10.53%, RR=0.17, PnL=-26,268.00
+2025-12-04 23:53:26,510 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,511 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,511 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -26,268.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,511 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,511 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.17, WR: 10.53%)
+2025-12-04 23:53:26,511 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,511 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,512 - trade_check - INFO - KPIs calculated: WR=100.00%, RR=inf, PnL=4,864.00
+2025-12-04 23:53:26,512 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,512 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,512 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-04 23:53:26,512 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,512 - trade_check - INFO - Happiness Incentive is eligible. Amount: 486.
+2025-12-04 23:53:26,513 - trade_check - INFO - KPIs calculated: WR=7.41%, RR=1.68, PnL=-21,778.00
+2025-12-04 23:53:26,513 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,514 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,514 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,778.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,514 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,514 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.68, WR: 7.41%)
+2025-12-04 23:53:26,514 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,514 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,516 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-22,855.00
+2025-12-04 23:53:26,516 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,517 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,517 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -22,855.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,517 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,517 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 23:53:26,517 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,517 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,518 - trade_check - INFO - KPIs calculated: WR=18.75%, RR=3.56, PnL=-6,085.00
+2025-12-04 23:53:26,518 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,520 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,520 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,520 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.56, WR: 18.75%)
+2025-12-04 23:53:26,520 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,520 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,521 - trade_check - INFO - KPIs calculated: WR=8.79%, RR=8.30, PnL=-13,485.00
+2025-12-04 23:53:26,521 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,522 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,522 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,535 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.30, WR: 8.79%)
+2025-12-04 23:53:26,535 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,535 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,538 - trade_check - INFO - KPIs calculated: WR=5.88%, RR=1.80, PnL=-15,080.00
+2025-12-04 23:53:26,538 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,539 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,539 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -15,080.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,539 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,539 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.80, WR: 5.88%)
+2025-12-04 23:53:26,539 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,539 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,541 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-18,926.00
+2025-12-04 23:53:26,541 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,542 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,543 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -18,926.00 <= Threshold -15,000.00
+2025-12-04 23:53:26,543 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,543 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-04 23:53:26,543 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,543 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-04 23:53:26,544 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-04 23:53:26,544 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,546 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,546 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,546 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-04 23:53:26,546 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,546 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 23:53:26,547 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-04 23:53:26,547 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-04 23:53:26,547 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-04 23:53:26,547 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-04 23:53:26,547 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-04 23:53:26,547 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-04 23:53:26,547 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-04 23:53:26,548 - trade_check - INFO - Generated summary for 15 months.
+2025-12-04 23:53:26,548 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-04 23:53:26,548 - trade_check - INFO - Audit successful for 2024-2025交易資料 - 工作表1.csv. Returning report.
+2025-12-04 23:53:26,555 - trade_check - INFO - Cleaned up temporary file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-04 23:53:26,556 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-04 23:53:26,566 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
+2025-12-05 00:16:29,682 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-05 00:19:07,780 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-05 00:19:07,804 - trade_check - INFO - Request received for upgrade criteria.
+2025-12-05 00:19:07,858 - trade_check - INFO - [Frontend] Successfully fetched upgrade criteria.
+2025-12-05 00:19:22,292 - trade_check - INFO - [Frontend] File selected for upload: 2024-2025交易資料 - 工作表1.csv | Context: {'size': 35674, 'type': 'text/csv'}
+2025-12-05 00:19:43,413 - trade_check - INFO - [Frontend] Starting audit run. | Context: {'params': {'current_capital': 100000, 'monthly_start_capital': 100000, 'current_scale': 'S1'}, 'fileName': '2024-2025交易資料 - 工作表1.csv'}
+2025-12-05 00:19:43,428 - trade_check - INFO - Received audit request for file: 2024-2025交易資料 - 工作表1.csv
+2025-12-05 00:19:43,428 - trade_check - INFO - Saving uploaded file to temporary path: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-05 00:19:43,429 - trade_check - INFO - Initializing auditor for scale S1 with capital 100000.0
+2025-12-05 00:19:43,429 - trade_check - INFO - Initializing TradeAuditor for scale S1 with capital 100000.0.
+2025-12-05 00:19:43,429 - trade_check - INFO - --- Starting Full Audit for file: temp_uploads/2024-2025交易資料 - 工作表1.csv ---
+2025-12-05 00:19:43,429 - trade_check - INFO - Loading transactions from file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-05 00:19:43,523 - trade_check - INFO - Successfully loaded and processed 441 transactions.
+2025-12-05 00:19:43,528 - trade_check - INFO - KPIs calculated: WR=16.10%, RR=3.88, PnL=-96,550.00
+2025-12-05 00:19:43,528 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,536 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,536 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -96,550.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,536 - trade_check - INFO - Checking for night session violations.
+2025-12-05 00:19:43,541 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-08-21 21:26:49'}
+2025-12-05 00:19:43,545 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-04-22 21:44:00'}
+2025-12-05 00:19:43,547 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2025-03-28 21:43:13'}
+2025-12-05 00:19:43,549 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-08-01 21:39:09'}
+2025-12-05 00:19:43,549 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-06-11 21:37:21'}
+2025-12-05 00:19:43,551 - trade_check - WARNING - Night session violation found: {'rule': 'FOMC Announcement', 'violation_time': '2024-04-20 01:54:24'}
+2025-12-05 00:19:43,553 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-04-11 21:40:18'}
+2025-12-05 00:19:43,553 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-03-12 21:43:46'}
+2025-12-05 00:19:43,554 - trade_check - WARNING - Night session violation found: {'rule': 'US Market Open', 'violation_time': '2024-01-11 21:32:26'}
+2025-12-05 00:19:43,558 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,558 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.88, WR: 16.10%)
+2025-12-05 00:19:43,558 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,558 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,558 - trade_check - INFO - Calculating historical monthly summary and trade details.
+2025-12-05 00:19:43,569 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=2.12, PnL=2,218.00
+2025-12-05 00:19:43,569 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,570 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,570 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,571 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-05 00:19:43,571 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,571 - trade_check - INFO - Happiness Incentive is eligible. Amount: 222.
+2025-12-05 00:19:43,608 - trade_check - INFO - KPIs calculated: WR=50.00%, RR=2.98, PnL=1,640.00
+2025-12-05 00:19:43,608 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,609 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,609 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-05 00:19:43,609 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,609 - trade_check - INFO - Happiness Incentive is eligible. Amount: 164.
+2025-12-05 00:19:43,610 - trade_check - INFO - KPIs calculated: WR=33.33%, RR=6.59, PnL=27,180.00
+2025-12-05 00:19:43,610 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,611 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,611 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,612 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-05 00:19:43,612 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,612 - trade_check - INFO - Happiness Incentive is eligible. Amount: 2718.
+2025-12-05 00:19:43,613 - trade_check - INFO - KPIs calculated: WR=19.70%, RR=2.58, PnL=-21,346.00
+2025-12-05 00:19:43,613 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,614 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,614 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,346.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,614 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,614 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 2.58, WR: 19.70%)
+2025-12-05 00:19:43,614 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,614 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,616 - trade_check - INFO - KPIs calculated: WR=9.68%, RR=5.40, PnL=-12,256.00
+2025-12-05 00:19:43,616 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,616 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,617 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,617 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 5.40, WR: 9.68%)
+2025-12-05 00:19:43,617 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,617 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,617 - trade_check - INFO - KPIs calculated: WR=10.53%, RR=0.17, PnL=-26,268.00
+2025-12-05 00:19:43,618 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,618 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,618 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -26,268.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,618 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,618 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.17, WR: 10.53%)
+2025-12-05 00:19:43,618 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,618 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,620 - trade_check - INFO - KPIs calculated: WR=100.00%, RR=inf, PnL=4,864.00
+2025-12-05 00:19:43,620 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,621 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,621 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000)
+2025-12-05 00:19:43,621 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,621 - trade_check - INFO - Happiness Incentive is eligible. Amount: 486.
+2025-12-05 00:19:43,622 - trade_check - INFO - KPIs calculated: WR=7.41%, RR=1.68, PnL=-21,778.00
+2025-12-05 00:19:43,622 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,622 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,622 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -21,778.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,623 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,623 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.68, WR: 7.41%)
+2025-12-05 00:19:43,623 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,623 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,623 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-22,855.00
+2025-12-05 00:19:43,623 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,624 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,624 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -22,855.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,624 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,624 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-05 00:19:43,624 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,625 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,626 - trade_check - INFO - KPIs calculated: WR=18.75%, RR=3.56, PnL=-6,085.00
+2025-12-05 00:19:43,626 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,627 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,627 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,627 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 3.56, WR: 18.75%)
+2025-12-05 00:19:43,627 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,627 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,628 - trade_check - INFO - KPIs calculated: WR=8.79%, RR=8.30, PnL=-13,485.00
+2025-12-05 00:19:43,628 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,628 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,628 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,628 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 8.30, WR: 8.79%)
+2025-12-05 00:19:43,628 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,628 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,630 - trade_check - INFO - KPIs calculated: WR=5.88%, RR=1.80, PnL=-15,080.00
+2025-12-05 00:19:43,630 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,631 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,631 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -15,080.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,631 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,631 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 1.80, WR: 5.88%)
+2025-12-05 00:19:43,631 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,631 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,631 - trade_check - INFO - KPIs calculated: WR=0.00%, RR=0.00, PnL=-18,926.00
+2025-12-05 00:19:43,632 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,632 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,632 - trade_check - WARNING - Monthly Circuit Breaker breached. PnL -18,926.00 <= Threshold -15,000.00
+2025-12-05 00:19:43,632 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,632 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 0.00, WR: 0.00%)
+2025-12-05 00:19:43,632 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,632 - trade_check - INFO - Happiness Incentive not eligible: No profit this month.
+2025-12-05 00:19:43,633 - trade_check - INFO - KPIs calculated: WR=16.67%, RR=10.34, PnL=18,372.00
+2025-12-05 00:19:43,633 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,634 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,635 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,635 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 10.34, WR: 16.67%)
+2025-12-05 00:19:43,635 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,635 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-05 00:19:43,636 - trade_check - INFO - KPIs calculated: WR=20.00%, RR=6.23, PnL=7,255.00
+2025-12-05 00:19:43,636 - trade_check - INFO - Checking safety valves: Daily Stop and Monthly Circuit Breaker.
+2025-12-05 00:19:43,636 - trade_check - WARNING - Daily Stop violation detected (more than 3 losing trades in a day).
+2025-12-05 00:19:43,636 - trade_check - INFO - Evaluating capital management for scale S1.
+2025-12-05 00:19:43,636 - trade_check - INFO - Account not eligible for upgrade. Reason: Capital Key not met (100,000 < 200,000), Performance Key not met (RR: 6.23, WR: 20.00%)
+2025-12-05 00:19:43,637 - trade_check - INFO - Evaluating life strategy (Moat Rule and Happiness Incentive).
+2025-12-05 00:19:43,637 - trade_check - INFO - Happiness Incentive not eligible: KPI not met, profit reserved.
+2025-12-05 00:19:43,637 - trade_check - INFO - Generated summary for 15 months.
+2025-12-05 00:19:43,637 - trade_check - INFO - --- Audit Completed Successfully ---
+2025-12-05 00:19:43,637 - trade_check - INFO - Audit successful for 2024-2025交易資料 - 工作表1.csv. Returning report.
+2025-12-05 00:19:43,650 - trade_check - INFO - Cleaned up temporary file: temp_uploads/2024-2025交易資料 - 工作表1.csv
+2025-12-05 00:19:43,651 - trade_check - INFO - Cleaned up temporary directory: temp_uploads
+2025-12-05 00:19:43,668 - trade_check - INFO - [Frontend] Audit API call successful. Report data received.
