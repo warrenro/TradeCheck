@@ -1,4 +1,41 @@
-｀#!/bin/bash
+#!/bin/bash
+
+# Function to select a project subdirectory
+select_project_directory() {
+    echo "正在偵測專案子目錄..."
+    
+    # Find all non-hidden directories in the current path and store them in an array
+    mapfile -t subdirs < <(find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' | sed 's|^\./||' | sort)
+
+    # Check if any subdirectories were found
+    if [ ${#subdirs[@]} -eq 0 ]; then
+        echo "未偵測到任何子目錄。將在當前目錄 ($PWD) 執行操作。"
+        return
+    fi
+
+    echo "請選擇要操作的專案目錄："
+    
+    # Print a numbered list of directories
+    for i in "${!subdirs[@]}"; do
+        printf "  %d) %s\n" "$((i+1))" "${subdirs[$i]}"
+    done
+    
+    # Prompt the user for their choice
+    read -p "請輸入選項編號: " choice
+
+    # Validate the input
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#subdirs[@]}" ]; then
+        echo "無效的選項。請輸入 1 到 ${#subdirs[@]} 之間的數字。"
+        exit 1
+    fi
+    
+    # Get the selected directory
+    selected_dir="${subdirs[$((choice-1))]}"
+    echo "已選擇專案: $selected_dir"
+    
+    # Change into the selected directory
+    cd "$selected_dir" || exit
+}
 
 # Function to create a default .gitignore if it doesn't exist
 create_gitignore_if_needed() {
@@ -92,6 +129,11 @@ EOL
 
 # Function to move YAML files to .github/workflows
 move_yaml_files() {
+    # Check if we are in a git repository before proceeding
+    if [ ! -d .git ]; then
+        return
+    fi
+    
     if [ -d .github/workflows ]; then
         echo ".github/workflows 目錄已存在。"
     else
@@ -99,12 +141,14 @@ move_yaml_files() {
         mkdir -p .github/workflows
     fi
 
-    # Check if there are any .yml files in the root directory
-    if ls *.yml 1> /dev/null 2>&1; then
-        echo "正在將根目錄的 .yml 檔案移動到 .github/workflows/"
-        mv *.yml .github/workflows/
+    # Check if there are any .yml or .yaml files in the root directory
+    if ls *.yml *.yaml 1> /dev/null 2>&1; then
+        echo "正在將根目錄的 YAML 檔案移動到 .github/workflows/"
+        # Use find to handle cases where no files of a certain extension exist
+        find . -maxdepth 1 -name "*.yml" -exec mv {} .github/workflows/ \;
+        find . -maxdepth 1 -name "*.yaml" -exec mv {} .github/workflows/ \;
     else
-        echo "根目錄中找不到 .yml 檔案。"
+        echo "根目錄中找不到 YAML 檔案。"
     fi
 }
 
@@ -146,25 +190,57 @@ setup_git_repo() {
     fi
 }
 
+# Function to verify the push was successful
+verify_push() {
+    local branch_name=$1
+    echo "正在驗證遠端分支 '$branch_name' 是否已成功更新..."
+    
+    # Allow some time for the remote to update
+    sleep 2
+
+    # Get local and remote commit hashes
+    local_hash=$(git rev-parse HEAD)
+    remote_hash=$(git ls-remote origin -h "refs/heads/$branch_name" | awk '{print $1}')
+
+    if [ -z "$remote_hash" ]; then
+        echo "警告：無法從遠端获取 '$branch_name' 分支的資訊。可能分支是新的，或者有延遲。"
+        echo "請手動在 GitHub 上檢查是否推送成功。"
+        return
+    fi
+    
+    if [ "$local_hash" == "$remote_hash" ]; then
+        echo "✅ 驗證成功：遠端分支的最新 commit 與本地一致。"
+        echo "程式碼已成功推送到 GitHub！"
+    else
+        echo "❌ 錯誤：遠端分支的 commit ($remote_hash) 與本地 ($local_hash) 不匹配。"
+        echo "推送可能失敗或未完全更新。請檢查您的網路連線並重試。"
+        exit 1
+    fi
+}
+
 # --- Main Script ---
 
-# Setup repository (init and remote)
+# 1. Select the project directory to work on
+select_project_directory
+
+# 2. Setup repository (init and remote)
 setup_git_repo
 
+# 3. Create supporting files if needed
 create_gitignore_if_needed
 move_yaml_files
 
-# Add all changes
+# 4. Add all changes
 git add .
 
-# Commit with a message
+# 5. Commit with a message
 read -p "請輸入提交訊息 (commit message): " commit_message
 if [ -z "$commit_message" ]; then
     commit_message="Update project files" # Default commit message
 fi
 git commit -m "$commit_message"
 
-# Push to the remote repository
+# 6. Push to the remote repository
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 read -p "請輸入要推送的分支名稱 (預設為: $current_branch): " branch_name
 if [ -z "$branch_name" ]; then
@@ -172,4 +248,5 @@ if [ -z "$branch_name" ]; then
 fi
 git push origin "$branch_name"
 
-echo "程式碼已成功推送到 GitHub！"
+# 7. Verify the push
+verify_push "$branch_name"
