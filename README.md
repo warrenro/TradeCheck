@@ -86,16 +86,20 @@
 
 如果您只想使用原始的 Python 指令碼進行分析：
 
-1.  **安裝/更新 Python 依賴套件:**
+1.  **準備您的交易資料**:
+    -   將您的交易紀錄檔案（支援 `.csv` 或 `.xlsx` 格式）放入專案根目錄下的 `tradedata/` 資料夾中。
+    -   請確保檔案包含 `成交時間`, `買賣別`, `平倉損益淨額` 這幾個欄位。
+
+2.  **安裝/更新 Python 依賴套件:**
     ```bash
     pip install --upgrade -r requirements.txt
     ```
 
-2.  **執行 Python 指令碼:**
+3.  **執行 Python 指令碼:**
     ```bash
     python trade_check.py
     ```
-    此指令碼會使用內建的範例資料 (`dummy_trades.csv`) 執行三次模擬分析，並將結果輸出到終端機。您可以直接修改 `trade_check.py` 的 `if __name__ == '__main__':` 區塊來載入您自己的交易檔案和參數。
+    指令碼會自動在 `tradedata/` 資料夾中尋找最新的一筆交易紀錄檔案進行分析，並將結果輸出到終端機。
 
 ---
 
@@ -109,6 +113,7 @@ TradeCheck/
 │   │   └── main.js      # 前端進入點
 │   ├── index.html         # HTML 主頁
 │   └── package.json       # 前端依賴套件定義
+├── tradedata/             # 存放交易紀錄檔案的資料夾
 ├── trade_check.py         # 核心審計邏輯
 ├── server.py              # FastAPI 後端伺服器
 ├── requirements.txt       # Python 依賴套件
