@@ -185,7 +185,7 @@ setup_git_repo() {
             exit 1
         fi
         
-        git config --local http.postBuffer 524288000
+        
         
         git remote add origin "$git_url"
         echo "已新增遠端 'origin': $git_url"
