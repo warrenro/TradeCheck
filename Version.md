@@ -1,5 +1,10 @@
 # 版本歷史 (Version History)
 
+## Version 1.6 (2025-12-06)
+
+### ✨ 新功能 (Features)
+- **帳戶權益數動態計算**: 帳戶的「目前權益數」現在會基於 `config.ini` 中的 `monthly_start_capital` 加上當月的損益 (Monthly PnL) 動態計算。這取代了原先直接從 `config.ini` 讀取 `current_capital` 的方式，使評估更為即時和準確。
+
 ## Version 1.5 (2025-12-06)
 
 ### ✨ 新功能 (Features)

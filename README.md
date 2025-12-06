@@ -1,5 +1,5 @@
 # TradeCheck 交易審計系統
-- **版本**: v1.5
+- **版本**: v1.6
 - **最後更新日期**: 2025-12-06
 
 本專案是一個專為短線交易者設計的交易紀錄分析與風險控管工具。它能讀取您的交易歷史（支援 `.csv` 或 `.xlsx` 格式），並根據 **D-Pro** 風控規則進行審計與 **交易 DNA 診斷**，最終生成一份綜合 JSON 報告，幫助您評估交易表現並識別潛在風險。
@@ -13,6 +13,8 @@
 ## 近期更新 (Recent Updates)
 
 為了提供更精準的交易分析與風險評估，系統近期已整合以下新功能：
+
+- **帳戶權益數動態計算**: 帳戶的「目前權益數」現在會基於 `config.ini` 中的 `monthly_start_capital` 加上當月的損益 (Monthly PnL) 動態計算。這取代了原先直接從 `config.ini` 讀取 `current_capital` 的方式，使評估更為即時和準確。
 
 - **交易 DNA 診斷 (Trading DNA Diagnosis)**:
   - 將您的每筆交易依「獲利/虧損點數」自動歸類至 **噪音區** 或 **波段區**，幫助您識別主要的獲利來源與無效的交易行為。
@@ -74,15 +76,12 @@ pip install --upgrade -r requirements.txt
 在專案根目錄下，建立一個名為 `config.ini` 的檔案，並填入以下內容。請根據您的實際情況修改數值。
 
 ```ini
-[DEFAULT]
-# 您目前的帳戶權益數
-CURRENT_EQUITY = 1000000
-
-# 審計月份的月初本金
-MONTH_START_CAPITAL = 1000000
+[Account]
+# 審計月份的月初本金。目前的帳戶權益數將由此本金加上當月損益動態計算。
+monthly_start_capital = 1000000
 
 # 您目前的操作規模 (合約口數)
-OPERATION_CONTRACTS = 10
+operation_contracts = 10
 ```
 
 ### 3. 準備交易資料

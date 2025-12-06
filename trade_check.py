@@ -96,14 +96,14 @@ class TradeAuditor:
     """
     Automated audit system for D-Pro Protocol V7.3.
     """
-    def __init__(self, current_capital: float, monthly_start_capital: float, current_scale: str, operation_contracts: int):
-        logger.info(f"Initializing TradeAuditor for scale {current_scale} with capital {current_capital}.")
+    def __init__(self, monthly_start_capital: float, current_scale: str, operation_contracts: int):
+        logger.info(f"Initializing TradeAuditor for scale {current_scale} with monthly start capital {monthly_start_capital}.")
         if current_scale not in UPGRADE_CRITERIA:
             log_msg = f"Invalid scale '{current_scale}'. Must be one of {list(UPGRADE_CRITERIA.keys())}"
             logger.error(log_msg)
             raise ValueError(log_msg)
             
-        self.current_capital = current_capital
+        self.current_capital = monthly_start_capital  # Initialize with start capital, will be updated in run_audit
         self.monthly_start_capital = monthly_start_capital
         self.current_scale = current_scale
         self.operation_contracts = operation_contracts
@@ -513,6 +513,11 @@ class TradeAuditor:
             
             # --- Perform All Calculations & Audits ---
             win_rate, risk_reward_ratio, total_pnl = self._calculate_kpis(trades)
+            
+            # Update current capital based on PnL
+            self.current_capital = self.monthly_start_capital + total_pnl
+            logger.info(f"Capital updated. Start: {self.monthly_start_capital:,.0f}, PnL: {total_pnl:,.0f}, Current: {self.current_capital:,.0f}")
+
             risk_audit = self._check_safety_valves(trades)
             risk_audit['night_session_violations'] = self._check_night_session(trades)
             
@@ -588,13 +593,12 @@ if __name__ == '__main__':
         
         # --- Load Parameters from Config ---
         account_section = config['Account']
-        current_capital = account_section.getfloat('current_capital')
+        # current_capital is now dynamically calculated within TradeAuditor.run_audit
         monthly_start_capital = account_section.getfloat('monthly_start_capital')
         current_scale = account_section.get('current_scale')
         operation_contracts = account_section.getint('operation_contracts')
         
         logger.info(f"Loaded parameters from {config_file}:")
-        logger.info(f"  - Current Capital: {current_capital:,.0f}")
         logger.info(f"  - Monthly Start Capital: {monthly_start_capital:,.0f}")
         logger.info(f"  - Current Scale: {current_scale}")
         logger.info(f"  - Operation Contracts: {operation_contracts}")
@@ -608,7 +612,6 @@ if __name__ == '__main__':
 
         # --- Run Audit ---
         auditor = TradeAuditor(
-            current_capital=current_capital,
             monthly_start_capital=monthly_start_capital,
             current_scale=current_scale,
             operation_contracts=operation_contracts

@@ -118,7 +118,6 @@ custom_encoder = {
 
 @app.post("/api/audit")
 async def run_web_audit(
-    current_capital: float = Form(...),
     monthly_start_capital: float = Form(...),
     current_scale: str = Form(...),
     file: UploadFile = File(...)
@@ -150,9 +149,8 @@ async def run_web_audit(
             shutil.copyfileobj(file.file, buffer)
 
         # Initialize and run the auditor
-        logger.info(f"Initializing auditor for scale {current_scale} with capital {current_capital}")
+        logger.info(f"Initializing auditor for scale {current_scale} with monthly start capital {monthly_start_capital}")
         auditor = TradeAuditor(
-            current_capital=current_capital,
             monthly_start_capital=monthly_start_capital,
             current_scale=current_scale,
             operation_contracts=operation_contracts
