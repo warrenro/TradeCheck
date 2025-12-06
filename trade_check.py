@@ -7,6 +7,7 @@ import os
 import glob
 import logging
 import configparser
+import numpy as np
 
 # --- Logging Setup ---
 # Configure logger to write to a file and the console
@@ -131,10 +132,11 @@ class TradeAuditor:
             }
             df.rename(columns=column_mapping, inplace=True)
 
-            df['trade_time'] = pd.to_datetime(df['trade_time'])
-            df['net_pnl'] = df['net_pnl'].astype(str).str.replace(',', '').astype(float)
-            df['contracts'] = df['contracts'].astype(int)
-            df['product_name'] = df['product_name'].str.strip()
+            df['trade_time'] = pd.to_datetime(df['trade_time'], format='mixed')
+            # Use pd.to_numeric for robust conversion, coercing errors to NaN, then filling with 0
+            df['net_pnl'] = pd.to_numeric(df['net_pnl'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+            df['contracts'] = pd.to_numeric(df['contracts'], errors='coerce').fillna(0).astype(int)
+            df['product_name'] = df['product_name'].astype(str).str.strip()
 
             logger.info(f"Successfully loaded and processed {len(df)} transactions.")
             return df
@@ -153,26 +155,30 @@ class TradeAuditor:
         logger.info("Calculating trade points for DNA diagnosis.")
         
         def calculate_points(row):
-            product_name = row['product_name']
-            # Find the corresponding point value, trying to match parts of the name
-            point_value = next((POINT_VALUES[key] for key in POINT_VALUES if key in product_name), None)
+            try:
+                product_name = row['product_name']
+                # Find the corresponding point value, trying to match parts of the name
+                point_value = next((POINT_VALUES[key] for key in POINT_VALUES if key in product_name), None)
 
-            if point_value is None:
-                logger.warning(f"No point value found for product '{product_name}'. Cannot calculate points for this trade.")
+                if point_value is None:
+                    logger.warning(f"No point value found for product '{product_name}'. Cannot calculate points. Row: {row.to_dict()}")
+                    return None
+                
+                if row['contracts'] == 0:
+                    logger.warning(f"Trade has 0 contracts. Cannot calculate points. PnL: {row['net_pnl']}. Row: {row.to_dict()}")
+                    return 0
+
+                return row['net_pnl'] / (row['contracts'] * point_value)
+            except TypeError:
+                logger.error(f"TypeError during point calculation. 'product_name' is likely not a string. Problematic row data: {row.to_dict()}", exc_info=True)
                 return None
-            
-            if row['contracts'] == 0:
-                logger.warning(f"Trade has 0 contracts. Cannot calculate points. PnL: {row['net_pnl']}")
-                return 0
-
-            return row['net_pnl'] / (row['contracts'] * point_value)
 
         trades['points'] = trades.apply(calculate_points, axis=1)
         logger.info("Successfully calculated and added 'points' column.")
         return trades
 
-    def _calculate_kpis(self, trades: pd.DataFrame) -> Tuple[float, float, float]:
-        """Calculates Win Rate (WR) and Risk/Reward Ratio (RR)."""
+    def _calculate_kpis(self, trades: pd.DataFrame) -> Tuple[float, Any, float]:
+        """Calculates Win Rate (WR) and Risk/Reward Ratio (RR). Returns a JSON-compliant RR."""
         if trades.empty:
             logger.warning("KPI calculation attempted on an empty DataFrame.")
             return 0.0, 0.0, 0.0
@@ -183,10 +189,25 @@ class TradeAuditor:
         win_rate = len(winning_trades) / total_trades if total_trades > 0 else 0.0
         avg_win = winning_trades['net_pnl'].mean() if not winning_trades.empty else 0
         avg_loss = abs(losing_trades['net_pnl'].mean()) if not losing_trades.empty else 0
-        risk_reward_ratio = avg_win / avg_loss if avg_loss > 0 else float('inf')
-        monthly_pnl = trades['net_pnl'].sum()
+        
+        risk_reward_ratio: Any
+        if avg_loss > 0:
+            risk_reward_ratio = avg_win / avg_loss
+        else:
+            # If there are no losses, RR is conceptually infinite.
+            risk_reward_ratio = np.inf
 
-        logger.info(f"KPIs calculated: WR={win_rate:.2%}, RR={risk_reward_ratio:.2f}, PnL={monthly_pnl:,.2f}")
+        # Ensure the RR is JSON serializable (no np.inf or np.nan)
+        if risk_reward_ratio == np.inf:
+            risk_reward_ratio = "Infinity"
+        elif pd.isna(risk_reward_ratio):
+            risk_reward_ratio = 0
+        else:
+            risk_reward_ratio = round(risk_reward_ratio, 2)
+
+        monthly_pnl = float(trades['net_pnl'].sum())
+
+        logger.info(f"KPIs calculated: WR={win_rate:.2%}, RR={risk_reward_ratio}, PnL={monthly_pnl:,.2f}")
         return win_rate, risk_reward_ratio, monthly_pnl
 
     def _run_trading_dna_diagnosis(self, trades: pd.DataFrame) -> Dict[str, Any]:
@@ -248,31 +269,37 @@ class TradeAuditor:
         """Runs the SOP Risk Stress Test based on D-Pro V2.99."""
         logger.info("Running SOP Risk Stress Test.")
         
-        # Assumption: The primary instrument for risk calculation is '小型台指'.
-        # A more robust implementation might determine this from the trade data itself.
         primary_point_value = POINT_VALUES.get("小型台指", 50)
-        
         max_points = SOP_RISK_STRESS_TEST['MAX_EXPOSURE_POINTS']
         
-        # SOP-A Risk
-        sop_a_risk = max_points * primary_point_value * 1  # 1 contract
-        
-        # SOP-B Risk
+        sop_a_risk = max_points * primary_point_value * 1
         sop_b_contracts = self.operation_contracts * SOP_RISK_STRESS_TEST['SOP_B_SCALE_FACTOR']
         sop_b_risk = max_points * primary_point_value * sop_b_contracts
         
-        # Risk Ratio Calculation
-        risk_ratio = sop_b_risk / self.current_capital if self.current_capital > 0 else float('inf')
-        
+        risk_ratio_val: Any
+        if self.current_capital > 0:
+            risk_ratio_val = sop_b_risk / self.current_capital
+        else:
+            risk_ratio_val = np.inf
+
+        # Ensure the RR is JSON serializable
+        if risk_ratio_val == np.inf:
+            risk_ratio_val_display = "Infinity"
+        elif pd.isna(risk_ratio_val):
+            risk_ratio_val_display = "N/A"
+        else:
+            risk_ratio_val_display = f"{risk_ratio_val:.2%}"
+
         warning = None
-        if risk_ratio > SOP_RISK_STRESS_TEST['RISK_RATIO_THRESHOLD']:
+        # Only check threshold if risk_ratio is a number
+        if isinstance(risk_ratio_val, (int, float)) and risk_ratio_val > SOP_RISK_STRESS_TEST['RISK_RATIO_THRESHOLD']:
             warning = "高風險警告：建議降級或切換至 SOP-A (High Risk Warning: Consider downgrade or switch to SOP-A)"
-            logger.warning(f"SOP Risk Stress Test: {warning} (Risk Ratio: {risk_ratio:.2%})")
+            logger.warning(f"SOP Risk Stress Test: {warning} (Risk Ratio: {risk_ratio_val:.2%})")
 
         return {
             "sop_a_potential_risk": round(sop_a_risk, 2),
             "sop_b_potential_risk": round(sop_b_risk, 2),
-            "risk_ratio": f"{risk_ratio:.2%}",
+            "risk_ratio": risk_ratio_val_display,
             "warning": warning
         }
 
@@ -283,7 +310,7 @@ class TradeAuditor:
         
         # Daily Stop (Intraday Risk Control)
         daily_loss_counts = trades[trades['net_pnl'] < 0].groupby(trades['trade_time'].dt.date).size()
-        daily_stop_violation_days = (daily_loss_counts > 3).sum()
+        daily_stop_violation_days = int((daily_loss_counts > 3).sum())
         daily_stop_triggered = daily_stop_violation_days > 0
         if daily_stop_triggered:
             logger.warning(f"Daily Stop violation detected on {daily_stop_violation_days} day(s).")
@@ -301,19 +328,17 @@ class TradeAuditor:
             logger.warning(f"Monthly Capital Circuit Breaker breached. PnL {monthly_pnl:,.2f} <= Threshold {monthly_loss_threshold:,.2f}")
         
         return {
-            "daily_stop_violated_days": int(daily_stop_violation_days),
+            "daily_stop_violated_days": daily_stop_violation_days,
             "strategy_circuit_breaker_triggered": bool(strategy_circuit_breaker_triggered),
             "capital_circuit_breaker_status": capital_circuit_breaker,
         }
 
     def _check_night_session(self, trades: pd.DataFrame) -> List[Dict[str, str]]:
-        """2.2.4: Checks for opening new positions during restricted night session windows."""
-        logger.info("Checking for night session violations (opening trades only).")
+        """2.2.4: Checks for any trading activity during restricted night session windows."""
+        logger.info("Checking for night session violations (all trades).")
         violations = []
-        # Filter for trades that are considered 'opening' a new position
-        opening_trades = trades[trades['action'].isin(['買進', '賣出'])]
-
-        for _, trade in opening_trades.iterrows():
+        
+        for _, trade in trades.iterrows():
             trade_time = trade['trade_time'].time()
             for window in NIGHT_SESSION_VIOLATIONS:
                 start = datetime.strptime(window['start'], '%H:%M:%S').time()
@@ -328,7 +353,7 @@ class TradeAuditor:
                     logger.warning(f"Night session violation found: {violation_details}")
         return violations
 
-    def _evaluate_capital_management(self, win_rate: float, risk_reward_ratio: float, trade_month: int) -> Dict[str, Any]:
+    def _evaluate_capital_management(self, win_rate: float, risk_reward_ratio: Any, trade_month: int) -> Dict[str, Any]:
         """2.3: Evaluates upgrade eligibility, including quarterly cost deduction."""
         logger.info(f"Evaluating capital management for scale {self.current_scale}.")
         criteria = UPGRADE_CRITERIA.get(self.current_scale, {})
@@ -346,7 +371,11 @@ class TradeAuditor:
 
         if criteria:
             capital_ok = adjusted_capital >= criteria['capital_key']
-            perf_ok = risk_reward_ratio >= criteria['rr_key'] and win_rate >= criteria['wr_key']
+            
+            # Performance check, handling 'Infinity' RR
+            rr_ok = (risk_reward_ratio == "Infinity") or (risk_reward_ratio >= criteria['rr_key'])
+            wr_ok = win_rate >= criteria['wr_key']
+            perf_ok = rr_ok and wr_ok
 
             if capital_ok and perf_ok:
                 upgrade_eligible = True
@@ -357,7 +386,8 @@ class TradeAuditor:
                 if not capital_ok:
                     reasons.append(f"Capital Key not met ({adjusted_capital:,.0f} < {criteria['capital_key']:,.0f})")
                 if not perf_ok:
-                    reasons.append(f"Performance Key not met (RR: {risk_reward_ratio:.2f}, WR: {win_rate:.2%})")
+                    rr_display = risk_reward_ratio if isinstance(risk_reward_ratio, str) else f"{risk_reward_ratio:.2f}"
+                    reasons.append(f"Performance Key not met (RR: {rr_display}, WR: {win_rate:.2%})")
                 reason = ", ".join(reasons)
                 logger.info(f"Account not eligible for upgrade. Reason: {reason}")
 
@@ -372,13 +402,17 @@ class TradeAuditor:
             }
         }
 
-    def _calculate_happiness_incentive(self, monthly_pnl: float, win_rate: float, risk_reward_ratio: float) -> Dict[str, Any]:
+    def _calculate_happiness_incentive(self, monthly_pnl: float, win_rate: float, risk_reward_ratio: Any) -> Dict[str, Any]:
         """2.3.2: Calculates the Happiness Incentive based on monthly performance."""
         logger.info("Calculating Happiness Incentive.")
         
         # Happiness Incentive
         kpi_criteria = UPGRADE_CRITERIA[self.current_scale]
-        kpi_met = risk_reward_ratio >= kpi_criteria['rr_key'] and win_rate >= kpi_criteria['wr_key']
+        
+        # KPI check, handling 'Infinity' RR
+        rr_ok = (risk_reward_ratio == "Infinity") or (risk_reward_ratio >= kpi_criteria['rr_key'])
+        wr_ok = win_rate >= kpi_criteria['wr_key']
+        kpi_met = rr_ok and wr_ok
 
         if monthly_pnl > 0 and kpi_met:
             incentive_amount = monthly_pnl * 0.10
@@ -428,23 +462,29 @@ class TradeAuditor:
             
             summary = {
                 "month": month_str,
-                "total_pnl": float(round(pnl, 2)),
+                "total_pnl": float(pnl),
                 "win_rate": f"{win_rate:.2%}",
-                "risk_reward_ratio": f"{rr:.2f}",
-                "trade_count": len(group),
+                "risk_reward_ratio": str(rr),
+                "trade_count": int(len(group)),
                 "risk_audit": risk_check,
                 "capital_assessment": evaluation,
                 "happiness_incentive": incentive,
             }
             summary_list.append(summary)
             
-            # Prepare detailed trades for this month, ensuring 'points' is included
+            # Prepare detailed trades for this month, ensuring JSON compliance
             group_copy = group.copy()
             group_copy['trade_time'] = group_copy['trade_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
-            # Ensure 'points' column is rounded for clean JSON output
+            
             if 'points' in group_copy.columns:
                 group_copy['points'] = group_copy['points'].round(2)
-            monthly_trades_dict[month_str] = group_copy.to_dict('records')
+            
+            # Convert numpy int to python int for JSON serialization
+            group_copy['contracts'] = group_copy['contracts'].apply(int)
+
+            # Replace special float values (NaN, inf) with None for JSON compliance
+            group_copy_safe = group_copy.replace([np.inf, -np.inf], "Infinity").replace({np.nan: None})
+            monthly_trades_dict[month_str] = group_copy_safe.to_dict('records')
 
         logger.info(f"Generated summary for {len(summary_list)} months.")
         # Sort summary list by month descending
@@ -481,10 +521,10 @@ class TradeAuditor:
                 "account_summary": {
                     "scale": self.current_scale, 
                     "current_balance": self.current_capital, 
-                    "monthly_pnl": float(round(total_pnl, 2)),
+                    "monthly_pnl": float(total_pnl),
                     "kpi_metrics": {
                         "win_rate": f"{win_rate:.2%}", 
-                        "risk_reward_ratio": f"{risk_reward_ratio:.2f}"
+                        "risk_reward_ratio": str(risk_reward_ratio)
                     }
                 },
                 "risk_audit": risk_audit,

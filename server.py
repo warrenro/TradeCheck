@@ -3,12 +3,14 @@ import os
 import shutil
 import uvicorn
 import logging
+import configparser
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from fastapi.encoders import jsonable_encoder
+import numpy as np
 
 # Import the existing auditor class and the logger
 from trade_check import TradeAuditor, logger, UPGRADE_CRITERIA
@@ -39,6 +41,15 @@ def get_upgrade_criteria():
     logger.info("Request received for upgrade criteria.")
     return JSONResponse(content=UPGRADE_CRITERIA)
 
+# Custom encoder for numpy types
+custom_encoder = {
+    np.integer: int,
+    np.floating: float,
+    np.ndarray: lambda x: x.tolist(),
+    np.int64: int,
+    np.float64: float
+}
+
 @app.post("/api/audit")
 async def run_web_audit(
     current_capital: float = Form(...),
@@ -58,6 +69,15 @@ async def run_web_audit(
     temp_file_path = os.path.join(temp_dir, file.filename)
 
     try:
+        # --- Read operation_contracts from config.ini ---
+        config = configparser.ConfigParser()
+        config_file = 'config.ini'
+        if not os.path.exists(config_file):
+            raise FileNotFoundError(f"Configuration file '{config_file}' not found on server.")
+        config.read(config_file)
+        operation_contracts = config.getint('DEFAULT', 'operation_contracts', fallback=1)
+        logger.info(f"Loaded operation_contracts '{operation_contracts}' from {config_file}")
+
         # Save the uploaded file
         logger.info(f"Saving uploaded file to temporary path: {temp_file_path}")
         with open(temp_file_path, "wb") as buffer:
@@ -68,20 +88,24 @@ async def run_web_audit(
         auditor = TradeAuditor(
             current_capital=current_capital,
             monthly_start_capital=monthly_start_capital,
-            current_scale=current_scale
+            current_scale=current_scale,
+            operation_contracts=operation_contracts
         )
         report = auditor.run_audit(temp_file_path)
         
         logger.info(f"Audit successful for {file.filename}. Returning report.")
-        json_compatible_report = jsonable_encoder(report)
+        json_compatible_report = jsonable_encoder(report, custom_encoder=custom_encoder)
         return JSONResponse(content=json_compatible_report)
 
-    except ValueError as e:
-        # Handle known exceptions from the auditor (e.g., bad file, wrong scale)
-        logger.error(f"Validation error during audit for {file.filename}: {e}", exc_info=True)
+    except (ValueError, FileNotFoundError) as e:
+        # Handle known exceptions from the auditor (e.g., bad file, wrong scale, missing config)
+        logger.error(f"Validation or file error during audit for {file.filename}: {e}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(e))
+    except configparser.Error as e:
+        logger.error(f"Error parsing config file 'config.ini': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Server configuration error: Could not read 'config.ini'.")
     except Exception as e:
-        # Handle unexpected errors
+        # Handle other unexpected errors
         logger.critical(f"An unexpected server error occurred during audit for {file.filename}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
     finally:

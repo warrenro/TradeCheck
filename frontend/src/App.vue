@@ -110,15 +110,15 @@
           <div class="kpi-grid">
             <div class="kpi-card">
               <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
-              <p :class="getKpiClass(report.kpi_metrics.win_rate, 'wr')">{{ report.kpi_metrics.win_rate }}</p>
+              <p :class="getKpiClass(report.account_summary.kpi_metrics.win_rate, 'wr')">{{ report.account_summary.kpi_metrics.win_rate }}</p>
             </div>
             <div class="kpi-card">
               <h4>{{ $t('dashboard.kpi.rr') }}</h4>
-              <p :class="getKpiClass(report.kpi_metrics.risk_reward_ratio, 'rr')">{{ report.kpi_metrics.risk_reward_ratio }}</p>
+              <p :class="getKpiClass(report.account_summary.kpi_metrics.risk_reward_ratio, 'rr')">{{ report.account_summary.kpi_metrics.risk_reward_ratio }}</p>
             </div>
             <div class="kpi-card">
               <h4>{{ $t('dashboard.kpi.pnl') }}</h4>
-              <p :class="getPnlClass(report.account_status.monthly_pnl)">{{ formatCurrency(report.account_status.monthly_pnl) }}</p>
+              <p :class="getPnlClass(report.account_summary.monthly_pnl)">{{ formatCurrency(report.account_summary.monthly_pnl) }}</p>
             </div>
           </div>
 
@@ -128,8 +128,8 @@
             <div class="card">
               <div class="card-header"><h3>{{ $t('dashboard.accountStatus.title') }}</h3></div>
               <div class="card-body">
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.currentScale') }}</span> <strong>{{ report.account_status.scale }}</strong></div>
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong>{{ formatCurrency(report.account_status.balance) }}</strong></div>
+                <div class="status-item"><span>{{ $t('dashboard.accountStatus.currentScale') }}</span> <strong>{{ report.account_summary.scale }}</strong></div>
+                <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong>{{ formatCurrency(report.account_summary.current_balance) }}</strong></div>
               </div>
             </div>
             <!-- Safety Checks -->
@@ -138,20 +138,20 @@
               <div class="card-body">
                 <div class="status-item">
                   <span>{{ $t('dashboard.safetyChecks.dailyStop') }}</span>
-                  <strong :class="report.safety_checks.daily_stop_violated ? 'text-danger' : 'text-success'">
-                    {{ report.safety_checks.daily_stop_violated ? $t('dashboard.safetyChecks.violations.violated') : $t('dashboard.safetyChecks.violations.safe') }}
+                  <strong :class="report.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
+                    {{ report.risk_audit.daily_stop_violated_days > 0 ? $t('dashboard.safetyChecks.violations.violated') : $t('dashboard.safetyChecks.violations.safe') }}
                   </strong>
                 </div>
                 <div class="status-item">
                   <span>{{ $t('dashboard.safetyChecks.monthlyBreaker') }}</span>
-                  <strong :class="report.safety_checks.monthly_circuit_breaker === 'BREACHED' ? 'text-danger' : 'text-success'">
-                    {{ report.safety_checks.monthly_circuit_breaker === 'BREACHED' ? $t('dashboard.safetyChecks.violations.breached') : $t('dashboard.safetyChecks.violations.safe') }}
+                  <strong :class="report.risk_audit.capital_circuit_breaker_status === 'BREACHED' ? 'text-danger' : 'text-success'">
+                    {{ report.risk_audit.capital_circuit_breaker_status === 'BREACHED' ? $t('dashboard.safetyChecks.violations.breached') : $t('dashboard.safetyChecks.violations.safe') }}
                   </strong>
                 </div>
-                 <div v-if="report.safety_checks.night_session_violations.length > 0" class="violations">
+                 <div v-if="report.risk_audit.night_session_violations.length > 0" class="violations">
                   <h5>{{ $t('dashboard.safetyChecks.violations.title') }}</h5>
                   <ul>
-                    <li v-for="(v, i) in report.safety_checks.night_session_violations" :key="i">
+                    <li v-for="(v, i) in report.risk_audit.night_session_violations" :key="i">
                       {{ v.rule }} at {{ v.violation_time }}
                     </li>
                   </ul>
@@ -164,24 +164,24 @@
               <div class="card-body">
                 <div class="status-item">
                   <span>{{ $t('dashboard.evaluation.upgradeEligible') }}</span>
-                  <strong :class="report.evaluation.upgrade_eligible ? 'text-success' : 'text-warning'">
-                    {{ report.evaluation.upgrade_eligible ? $t('dashboard.evaluation.yes') : $t('dashboard.evaluation.no') }}
+                  <strong :class="report.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
+                    {{ report.capital_assessment.upgrade_eligible ? $t('dashboard.evaluation.yes') : $t('dashboard.evaluation.no') }}
                   </strong>
                 </div>
-                <p class="reason"><strong>{{ $t('dashboard.evaluation.reason') }}</strong> {{ report.evaluation.reason }}</p>
+                <p class="reason"><strong>{{ $t('dashboard.evaluation.reason') }}</strong> {{ report.capital_assessment.reason }}</p>
                 <hr>
                 <div class="status-item">
                   <span>{{ $t('dashboard.evaluation.incentive') }}</span>
-                   <strong :class="report.evaluation.happiness_incentive.eligible ? 'text-success' : 'text-warning'">
-                     {{ report.evaluation.happiness_incentive.eligible ? $t('dashboard.evaluation.eligible') : $t('dashboard.evaluation.notEligible') }}
+                   <strong :class="report.capital_assessment.happiness_incentive.eligible ? 'text-success' : 'text-warning'">
+                     {{ report.capital_assessment.happiness_incentive.eligible ? $t('dashboard.evaluation.eligible') : $t('dashboard.evaluation.notEligible') }}
                    </strong>
                 </div>
-                <div v-if="report.evaluation.happiness_incentive.eligible">
-                  <p class="incentive-amount">{{ formatCurrency(report.evaluation.happiness_incentive.amount) }}</p>
-                  <p class="reason">{{ report.evaluation.happiness_incentive.distribution }}</p>
+                <div v-if="report.capital_assessment.happiness_incentive.eligible">
+                  <p class="incentive-amount">{{ formatCurrency(report.capital_assessment.happiness_incentive.amount) }}</p>
+                  <p class="reason">{{ report.capital_assessment.happiness_incentive.distribution }}</p>
                 </div>
                  <div v-else>
-                  <p class="reason">{{ report.evaluation.happiness_incentive.status }}</p>
+                  <p class="reason">{{ report.capital_assessment.happiness_incentive.status }}</p>
                 </div>
               </div>
             </div>
@@ -204,25 +204,25 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="summary in report.monthly_summary" :key="summary.month" @click="showMonthDetails(summary.month)" class="clickable-row">
+                    <tr v-for="summary in report.historical_summary" :key="summary.month" @click="showMonthDetails(summary.month)" class="clickable-row">
                       <td>{{ summary.month }}</td>
                       <td :class="getPnlClass(summary.total_pnl)">{{ formatCurrency(summary.total_pnl) }}</td>
                       <td>{{ summary.win_rate }}</td>
                       <td>{{ summary.risk_reward_ratio }}</td>
                       <td>{{ summary.trade_count }}</td>
                       <td>
-                        <span :class="summary.risk_check.monthly_circuit_breaker === 'BREACHED' || summary.risk_check.daily_stop_violated ? 'text-danger' : 'text-success'">
-                          {{ summary.risk_check.monthly_circuit_breaker === 'BREACHED' || summary.risk_check.daily_stop_violated ? '違規' : '安全' }}
+                        <span :class="summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
+                          {{ summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? '違規' : '安全' }}
                         </span>
                       </td>
                       <td>
-                        <span :class="summary.evaluation.upgrade_eligible ? 'text-success' : 'text-warning'">
-                          {{ summary.evaluation.upgrade_eligible ? '合格' : '不合格' }}
+                        <span :class="summary.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
+                          {{ summary.capital_assessment.upgrade_eligible ? '合格' : '不合格' }}
                         </span>
                       </td>
                       <td>
-                        <span :class="summary.incentive.eligible ? 'text-success' : (summary.incentive.status === '獲利保留補考' ? 'text-warning' : '')">
-                          {{ summary.incentive.eligible ? formatCurrency(summary.incentive.amount) : summary.incentive.status }}
+                        <span :class="summary.happiness_incentive.eligible ? 'text-success' : (summary.happiness_incentive.status === '獲利保留補考' ? 'text-warning' : '')">
+                          {{ summary.happiness_incentive.eligible ? formatCurrency(summary.happiness_incentive.amount) : summary.happiness_incentive.status }}
                         </span>
                       </td>
                     </tr>
@@ -321,10 +321,10 @@ const errorDisplay = computed(() => {
 });
 
 const selectedMonthTrades = computed(() => {
-  if (!selectedMonth.value || !report.value || !report.value.monthly_trades) {
+  if (!selectedMonth.value || !report.value || !report.value.detailed_trades) {
     return [];
   }
-  return report.value.monthly_trades[selectedMonth.value] || [];
+  return report.value.detailed_trades[selectedMonth.value] || [];
 });
 
 
@@ -401,10 +401,12 @@ const runAudit = async () => {
       body: formData,
     });
     const data = await response.json();
+    console.log('Raw response from server:', data); // Added for debugging
     if (!response.ok) {
       throw new Error(data.detail || `HTTP error! status: ${response.status}`);
     }
     report.value = data;
+    console.log('Report object after assignment:', report.value); // Added for debugging
     logger.info('Audit API call successful. Report data received.');
   } catch (e) {
     error.value = 'error.failed';

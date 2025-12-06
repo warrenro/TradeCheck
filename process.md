@@ -1,222 +1,144 @@
-# TradeCheck 開發與實作紀錄
+# TradeCheck 系統實作與設計決策
 
-本文檔記錄了 `TradeCheck` 專案根據 `spec.md` 進行功能開發與程式碼修改的完整流程。
-
----
-
-## 1. 系統規格書 (System Specification)
-
-以下為本次開發所依據的系統規格書 (`spec.md`) 全文。
-
-# TradeCheck 交易審計系統規格書
+本文檔旨在記錄 `TradeCheck` 專案在根據 `spec.md` 進行功能開發時，其核心功能的實作摘要、關鍵的設計決策與問題修正過程。它並非鉅細靡遺的步驟紀錄，而是為了幫助未來的維護者快速理解系統的設計思路與重要權衡。
 
 ---
 
-## 1. 專案概述 (Project Overview)
-**TradeCheck** 是一個專為短線交易者設計的交易紀錄分析與風險控管工具。它能讀取用户的交易歷史（支援 `.csv` 或 `.xlsx` 格式），並根據 **D-Pro** 風控規則進行審計與 **交易 DNA 診斷**，最終生成一份綜合報告，幫助使用者評估其交易表現並識別潛在風險。
+## 1. 核心功能實作摘要 (Core Feature Implementation Summary)
+
+為了實現 `spec.md` 中定義的複雜分析與審計功能，`trade_check.py` 腳本的核心邏輯被組織成一系列獨立的函式，並由主函式 `run_audit` 進行統籌調用。以下是關鍵模組的職責劃分：
+
+- **`config.ini` 整合**:
+  - 程式啟動時會讀取 `config.ini`，獲取 `目前權益數`、`月初本金`、`操作規模` 等使用者自定義參數，實現了設定與程式碼的分離。
+
+- **`load_transactions` (資料讀取)**:
+  - 負責讀取 `tradedata/` 目錄下的交易紀錄，並驗證 `成交時間`, `買賣別`, `平倉損益淨額`, `口數`, `商品名稱` 等必要欄位是否存在。
+
+- **`_add_trade_points_column` (計算交易點數)**:
+  - 根據 `商品名稱` 決定點值 (50/10/200)，計算每筆交易的「點數」 (`points`)，作為交易 DNA 診斷的基礎。
+
+- **`_run_trading_dna_diagnosis` (交易 DNA 診斷)**:
+  - 依據 `points` 將交易劃分為「噪音區」(`<=40點`) 與「波段區」(`>40點`)。
+  - 獨立計算兩個區間的交易筆數、勝率、總損益，並根據 `spec.md` 的規則判斷使用者是否「陷入泥淖」。
+
+- **`_run_sop_risk_stress_test` (SOP 風險壓力測試)**:
+  - 基於固定的 `1500` 最大曝險點數，計算在當前操作規模下的潛在風險值與風險率，並在 `風險率 > 15%` 時生成警告。
+
+- **`_check_safety_valves` (D-Pro 風險審計)**:
+  - 實作了多項 D-Pro 風險規則，包括「日內風控」、「月度資金熔斷」及「月度策略熔斷」。
+
+- **`_check_night_session` (夜盤避險時段檢查)**:
+  - 檢查是否有任何交易的 **平倉時間** 落入 `21:15-21:45` 或 `01:45-02:15` 區間，以執行夜盤避險規則。(*細節請參考 2.4 節*)
+
+- **`_evaluate_capital_management` (帳戶升級評估)**:
+  - 在 **3, 6, 9, 12 月**進行評估時，會從`目前權益數`中扣除 **25,000** 元的「季度固定成本」。
+  - 根據調整後的資本額、風報比與勝率，與 `UPGRADE_CRITERIA` 比對，判斷是否符合升級資格。
+
+- **`run_audit` (主審計流程)**:
+  - 作為主流程函式，依序調用上述所有分析與審計模組。
+  - 最終將所有結果彙整成一個字典，並寫入 `audit_report.json` 檔案。
 
 ---
 
-## 2. 核心功能 (Core Features)
+## 2. 除錯與關鍵決策 (Debugging and Key Decisions)
 
-### 2.1 交易紀錄分析 (Transaction Analysis)
-- **支援格式**: 可讀取並解析 `.csv` 及 `.xlsx` 格式的交易紀錄檔案。
-- **資料提取**: 自動從交易紀錄中提取關鍵資訊，包括 `成交時間`、`買賣別`、`平倉損益淨額`、`口數`及`商品名稱`。
-- **指標計算**:
-  - **勝率 (Win Rate)**: 計算 `(獲利交易筆數 / 總交易筆數) * 100%`。
-  - **賺賠比 (Profit/Loss Ratio)**: 計算 `平均每筆獲利金額 / 平均每筆虧損金額`。
-  - **月損益 (Monthly PnL)**: 計算指定月份內所有交易的總損益。
-  - **交易點數 (Points)**: `平倉損益淨額 / (口數 * 點值)`，用於交易DNA診斷。
+在開發與整合過程中，有數個關鍵的技術問題與邏輯釐清，其解決方案對系統的穩定性與正確性至關重要。
 
-#### 新增：交易 DNA 診斷 (Trading DNA Diagnosis)
-系統需將每筆交易依「獲利/虧損點數」進行分類統計，以診斷交易行為。同時，系統需追蹤 `月目標點數 (Monthly Point Target): +30 點` 的達成進度。
+### 2.1 錯誤一：伺服器 API 呼叫失敗
 
-- **噪音區 (Noise Zone / Loss DNA)**: `絕對點數 <= 40 點`。
-  - **統計指標**: 計算此區間的 **交易筆數、勝率、總損益**。
-  - **診斷邏輯**: 若此區間交易筆數佔總筆數 **超過 80%** 且 **總損益為負**，系統應標記為「**陷入泥淖 (Stuck in the Mud)**」，代表使用者可能陷入無效的過度交易。
+- **錯誤現象**: 前端呼叫 API 時，伺服器日誌顯示 `TypeError: TradeAuditor.__init__() missing 1 required positional argument: 'operation_contracts'`。
+- **根本原因**: `trade_check.py` 的 `TradeAuditor` 類別在 `__init__` 中新增了 `operation_contracts` 參數，但 `server.py` 的 API 端點在呼叫它時未同步更新。
+- **解決方案**: 修改 `server.py`，使其在 API 內部也讀取 `config.ini`，從中獲取 `operation_contracts` 並在建立 `TradeAuditor` 物件時傳入，確保前後端模組介面一致。
 
-- **波段區 (Trend Zone / Profit DNA)**: `絕對點數 > 40 點`。
-  - **統計指標**: 計算此區間的 **交易筆數、勝率、總損益**。
-  - **診斷邏輯**: 此區間被視為主要獲利來源。系統需監控其 **勝率是否維持在 30% 以上**。
+### 2.2 錯誤二：JSON 序列化失敗 - `float('inf')`
 
-- **綜合評價**: 系統將根據以上兩個區間的表現，提供一份包含數據與文字建議的綜合診斷報告。
+- **錯誤現象**: API 呼叫日誌顯示 `ValueError: Out of range float values are not JSON compliant`。
+- **根本原因**: 當交易紀錄中沒有虧損時，「賺賠比」的計算結果為 `float('inf')` (無限大)，此數值不符合 JSON 標準。
+- **解決方案**:
+    1.  修改 `_calculate_kpis` 和 `_run_sop_risk_stress_test` 函式，將回傳 `float('inf')` 的情況改為回傳 **字串** `"Infinity"`。
+    2.  同步修改下游使用這些值的函式 (`_evaluate_capital_management` 等)，使其能夠正確處理 `"Infinity"` 這個字串，通常是視為滿足績效標準。
 
-### 2.2 風險審計 (Risk Audit)
-系統會根據以下 **D-Pro** 規則進行自動審計：
-1.  **日內風控 (Daily Stop)**:
-    - **規則**: 單日虧損筆數不得超過 **3** 筆。
-    - **觸發**: 當日累積虧損筆數 > 3，系統會標記為違規。
-2.  **月度資金熔斷 (Capital Circuit Breaker)**:
-    - **規則**: 當月總虧損不得超過 `月初本金 * 15%`。
-    - **觸發**: 當月累積虧損超過此上限，系統會發出警示。
-3.  **月度策略熔斷 (Strategy Circuit Breaker)**:
-    - **規則**: 單月內觸發「日內風控」的次數不得超過 **10** 次。
-    - **觸發**: 當月違規天數 > 10，系統會發出警示。
-4.  **新增：夜盤避險時段 (Night Session Hedging Window)**:
-    - **規則**: 於 `21:15-21:45` 及 `01:45-02:15` 兩個時段內，禁止開立新倉。
-    - **觸發**: 若偵測到在此區間內的開倉交易，系統會標記為違規。
+### 2.3 錯誤三：JSON 序列化失敗 - `f-string` 格式化
 
-### 2.3 帳戶升級評估 (Account Upgrade Assessment)
-系統會根據 **附錄** 中的 `UPGRADE_CRITERIA`，評估使用者是否具備晉升至下一級操作規模的資格。
-- **評估週期**: 每月進行一次。
-- **評估標準**:
-  1. **資本額達標**: `調整後資本額 >= 目標級別要求`。
-  2. **交易表現達標**: `風報比 (RR)` 與 `勝率 (WR)` 均達到目標級別要求。
-- **特別計算規則**:
-  1. **固定成本扣除 (中哥費)**:
-     - **規則**: 於 **3, 6, 9, 12 月底**進行升級評估時，會從`目前權益數`中扣除 **25,000** 元作為季度固定成本。
-     - **說明**: 此為模擬真實營運的固定支出。扣除後的資本額僅用於升級資格判斷，報告中會明確標示此扣除項。
-  2. **幸福激勵 (Happiness Incentive)**:
-     - 當月獲利且交易表現達標時，會提撥 **10%** 的獲利作為獎勵金。此金額**不會**影響升級評估的資本計算。
+- **錯誤現象**: 即使修正了 `inf` 問題，序列化失敗的錯誤依然存在。
+- **根本原因**: 在 `run_audit` 中，使用了 f-string `f"{rr:.2f}"` 來格式化賺賠比 `rr`。當 `rr` 的值是 `"Infinity"` 字串時，此格式化操作會引發 `ValueError`。
+- **解決方案**: 在格式化輸出前加入條件判斷，確保只有在變數是數字時才進行格式化，如果是字串則直接使用。
+    ```python
+    # 修正後的寫法
+    "risk_reward_ratio": rr if isinstance(rr, str) else f"{rr:.2f}"
+    ```
 
-### 2.4 新增：SOP 風險壓力測試 (SOP Risk Stress Test)
-根據 **D-Pro V2.99** 附錄，系統需計算當前操作規模下的潛在最大月度風險。
-- **最大曝險點數**: 固定為 **1500 點** (模擬單月 60 筆交易，平均每筆停損 25 點)。
-- **風險計算**:
-  - **SOP-A (1口試單) 風險值**: `1500 * 點值 * 1口`。
-  - **SOP-B (20%規模) 風險值**: `1500 * 點值 * (當前規模口數 * 0.2)`。
-- **風險率 (Risk Ratio)**: `計算出的風險值 / 目前權益數`。
-- **診斷**: 若 `風險率 > 15%`，系統應在報告中輸出「**高風險警告：建議降級或切換至 SOP-A**」。
+### 2.4 規則邏輯釐清：「夜盤避險時段」的實作
 
----
+- **規則模糊點**: `spec.md` 要求「禁止開立新倉」，但系統僅有「平倉資料」，無法直接獲取「開倉時間」。
+- **問題**: 如何在只有平倉資料的情況下，準確執行此規則？
+- **最終決策與權衡**:
+    1.  **確認資料本質**: 提供的交易紀錄是「平倉資料」，`成交時間` 代表「平倉時間」。
+    2.  **推斷規則意圖**: 此規則的風控本質是「**確保在敏感時段內無任何交易活動風險**」。
+    3.  **最終實作**: 考量到資料限制，`_check_night_session` 函式的最終邏輯被確定為：檢查 **所有交易的平倉時間**。只要有任何一筆交易的平倉時間落入指定區間，即視為違規。此作法確保了使用者在避險時段內已完全清倉，達成了規則的實質目的。函式文件也已同步更新，以反映此判斷邏輯。
 
-## 3. 指令碼模式 (Script Mode)
+### 2.5 錯誤四：前端畫面無法顯示審計報告
 
-### 3.1 執行方式
-使用者可透過執行 `trade_check.py` 指令碼來啟動分析。
+- **錯誤現象**: 前端成功呼叫 API 並取得數據後，畫面並未渲染出審計報告，而是停留在初始狀態。
+- **根本原因**: `TradeCheck/frontend/src/App.vue` 檔案中，月度總結表格的資料綁定路徑有誤。程式碼嘗試存取 `summary.incentive.amount` 來顯示激勵獎金，但根據後端 API 回傳的資料結構，正確的路徑應為 `summary.happiness_incentive.amount`。這個錯誤的路徑導致 Vue 在渲染時拋出執行階段錯誤，中斷了畫面的更新。
+- **解決方案**:
+    1.  **定位問題**: 檢查瀏覽器開發者主控台，發現 Vue 的渲染錯誤，指向 `App.vue` 範本中的一個屬性存取問題。
+    2.  **修正路徑**: 將範本中的 `formatCurrency(summary.incentive.amount)` 修改為 `formatCurrency(summary.happiness_incentive.amount)`，使其與 `historical_summary` 物件的資料結構保持一致。
+    ```vue
+    <!-- 錯誤的程式碼 -->
+    {{ summary.happiness_incentive.eligible ? formatCurrency(summary.incentive.amount) : summary.happiness_incentive.status }}
 
-- **指令**: `python trade_check.py`
-- **配置文件**: 腳本會讀取 `config.ini` 以獲取 `目前權益數`、`月初本金` 及 `操作規模` 等參數。
-- **交易資料**: 腳本會自動讀取 `tradedata/` 目錄下的交易紀錄檔案。
+    <!-- 修正後的程式碼 -->
+    {{ summary.happiness_incentive.eligible ? formatCurrency(summary.happiness_incentive.amount) : summary.happiness_incentive.status }}
+    ```
+- **影響**: 此修正恢復了前端的渲染能力，確保 API 回傳的報告能夠被正確地呈現在使用者介面中。
 
-### 3.2 輸出結果
-執行完成後，會在根目錄生成一份 `audit_report.json`，包含完整的分析指標與審計結果。報告的 JSON 結構將擴充，以包含所有新增的分析結果，例如：
-- `trading_dna_diagnosis`:
-  - `noise_zone_verdict`: "陷入泥淖" 或 "防守得宜" 等文字評價。
-  - `trend_zone_verdict`: "獲利核心" 或 "錯失行情" 等文字評價。
-  - `monthly_point_target_progress`: 點數進度。
-- `sop_risk_stress_test`:
-  - `risk_ratio`: 風險率百分比。
-  - `warning`: "高風險警告" 或空值。
-- `risk_audit`:
-  - `night_session_violation`: 布林值，表示是否違反夜盤避險規則。
-- `capital_assessment`:
-  - `quarterly_cost_deducted`: 實際扣除的固定成本金額。
+### 2.6 錯誤五：後端資料處理與序列化錯誤
 
----
+在處理特定資料檔案時，系統發生了兩類主要的後端錯誤，導致審計流程中斷。
 
-## 4. 伺服器模式 (Server Mode)
-... (伺服器模式章節維持不變) ...
+- **錯誤現象一**: 伺服器日誌顯示 `TypeError: argument of type 'float' is not iterable`。
+- **根本原因一**:
+    此錯誤發生在 `_add_trade_points_column` 函式內部調用的 `calculate_points` 方法中。當交易紀錄 CSV 檔案的 `商品名稱` (`product_name`) 欄位有缺失值 (空值) 時，Pandas 會將其讀取為 `NaN` (Not a Number)，其資料型別為 `float`。後續的程式碼嘗試對這個 `float` 型別的 `product_name` 進行字串匹配迭代，從而引發 `TypeError`。
+- **解決方案一**:
+    在 `calculate_points` 函式中，對傳入的 `product_name` 進行型別檢查與轉換。在進行迭代匹配之前，先確保它是一個字串。如果值為 `NaN` 或其他非字串類型，則將其視為空字串，避免了迭代錯誤，並使其能夠安全地走完流程（雖然可能找不到對應的點值）。
 
----
+    ```python
+    # trade_check.py - calculate_points 修正
+    product_name = row['product_name']
+    # 確保 product_name 是字串
+    if not isinstance(product_name, str):
+        product_name = ""
+    
+    # 後續的迭代匹配...
+    point_value = next((p['point'] for p in self.product_points if any(keyword in product_name for keyword in p['keywords'])), None)
+    ```
 
-## 7. 資料格式要求 (Data Format Requirements)
+- **錯誤現象二**: API 呼叫日誌顯示 `ValueError: [TypeError("'numpy.int64' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]`。
+- **根本原因二**:
+    此錯誤發生在 `server.py` 將審計報告回傳給前端的過程中。Pandas 在進行數據聚合時，產生的數值（如交易筆數、總損益等）其資料型別通常是 NumPy 的特定型別，例如 `numpy.int64` 或 `numpy.float64`。FastAPI 預設的 `jsonable_encoder` 無法直接將這些 NumPy 特有的數字型別序列化為標準的 JSON 格式，從而導致轉換失敗。
+- **解決方案二**:
+    在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），並轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
 
-### 7.1 交易紀錄檔案 (Transaction Record File)
-為了讓指令碼模式能順利執行，交易紀錄檔案（支援 `.csv` 或 `.xlsx`）需放置在 `tradedata/` 目錄下，且必須包含以下 **五個欄位**:
+    ```python
+    # server.py - 新增遞迴轉換函式
+    def convert_numpy_types(obj):
+        if isinstance(obj, dict):
+            return {k: convert_numpy_types(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_numpy_types(i) for i in obj]
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return obj
 
-1.  **成交時間**: 交易發生的完整時間，格式需為 `YYYY/MM/DD HH:MM:SS`。
-2.  **買賣別**: 交易的類型。
-3.  **平倉損益淨額**: 該筆交易的淨損益，需為數值格式。
-4.  **口數**: 交易的合約數量，需為數值格式。
-5.  **商品名稱**: 用於判斷合約類型（e.g., `小型期`, `微型台指期`）。
-
-**注意**: 腳本會自動將這些中文欄位名稱映射到內部處理所用的英文名稱。
-
----
-
-## 8. 運維特性 (Operational Features)
-... (運維特性章節維持不變) ...
----
-
-## 附錄：帳戶升級資格計算方法
-
-本系統會根據以下規則，評估帳戶是否符合升級資格。所有規則皆定義於 `trade_check.py`。
-
-### 1. 升級標準 (Upgrade Criteria)
-... (此表格維持不變) ...
-
-### 2. 關鍵績效指標 (KPI) 計算方式
-... (此章節維持不變) ...
-
-### 3. 資格綜合評估
-在 `_evaluate_capital_management` 函式中，系統會將您目前的 **資本額** 與計算出的 **KPI 指標** 與 `UPGRADE_CRITERIA` 中的標準進行比對。
-
-一筆帳戶必須 **同時滿足** 以下兩個條件，才能獲得升級資格：
-
-1.  **資本額達標 (Capital OK)**:
-    -   `您目前的資本額 (經季末成本調整後) >= 該級別的資本額要求`
-
-2.  **交易表現達標 (Performance OK)**:
-    -   `您的風報比 >= 該級別的風報比要求`
-    -   **且** `您的勝率 >= 該級別的勝率要求`
-
-如果其中任何一項不滿足，系統將判定為不符合升級資格，並在報告中明確指出未達標的項目。
-
-### 4. 新增：特殊計算規則說明
-
-- **交易點數 (Points) 計算**:
-  - 為了進行 DNA 診斷，系統會將每筆交易的 `平倉損益淨額` 轉換為「點數」。
-  - **公式**: `點數 = 平倉損益淨額 / (口數 * 點值)`
-  - **點值**: 根據交易紀錄中的 `商品名稱` 決定。
-    - `小型期` (Mini-Taiex): 50 TWD/點
-    - `微型台指期` (Micro-Taiex): 10 TWD/點
-    - `大台` (Taiex): 200 TWD/點 (若適用)
-
-- **固定成本扣除 (中哥費 / Brother Chung Cost)**:
-  - **目的**: 模擬真實世界中的固定營運成本 (e.g., 軟體、資訊源費用)。
-  - **觸發時機**: 當升級審查的月份為 **3月、6月、9月、或12月** 時觸發。
-  - **計算方式**: `調整後資本額 = 目前權益數 - 25,000`。
-  - **應用**: 此`調整後資本額`專門用於升級資格的「資本額達標」判斷。系統報告需明確列出「固定成本扣除」項目，確保使用者了解淨值調整細節。
-
----
-
-## 2. 程式碼修改步驟 (Implementation Steps)
-
-在收到新的規格書後，我遵循以下步驟來更新 `trade_check.py` 程式碼：
-
-1.  **分析新規格**：詳細閱讀 `spec.md`，辨識出所有新增功能與修改項目，包括：
-    *   交易 DNA 診斷
-    *   SOP 風險壓力測試
-    *   新的風險規則 (月度策略熔斷、夜盤開倉限制)
-    *   帳戶升級評估調整 (季度成本)
-    *   新的資料欄位要求 (`商品名稱`, `口數`)
-    *   `config.ini` 的引入與 `audit_report.json` 的格式擴充
-
-2.  **制定修改計畫**：根據分析結果，將整個開發任務拆解為以下可執行的子項目：
-
-    1.  **更新程式設定與常數**:
-        *   新增 `POINT_VALUE`, `TRADING_DNA_RULES`, `SOP_RISK_STRESS_TEST`, `QUARTERLY_COST` 等常數。
-
-    2.  **修改 `load_transactions` (資料讀取函式)**:
-        *   將 `口數` 和 `商品名稱` 加入必要欄位檢查與欄位映射。
-
-    3.  **新增 `_add_trade_points_column` (計算交易點數)**:
-        *   建立一個新的內部函式，用於計算每筆交易的「點數」，並在主資料表中新增 `points` 欄位。
-
-    4.  **新增 `_run_trading_dna_diagnosis` (執行交易DNA診斷)**:
-        *   建立新函式，根據交易的 `points` 進行「噪音區」與「波段區」的分析，並實作「陷入泥淖」的判斷邏輯。
-
-    5.  **新增 `_run_sop_risk_stress_test` (執行SOP風險壓力測試)**:
-        *   建立新函式，計算潛在風險值與風險率，並在超過閾值時發出警告。
-        *   同時修改 `__init__` 建構函式以接收 `operation_contracts` 參數。
-
-    6.  **修改 `_check_safety_valves` (風險審計檢查)**:
-        *   新增「月度策略熔斷」邏輯，計算單月觸發「日內風控」的天數。
-
-    7.  **修改 `_check_night_session` (夜盤交易檢查)**:
-        *   將檢查邏輯聚焦於 `買賣別` 為「買進」或「賣出」的開倉交易。
-
-    8.  **修改 `_evaluate_capital_management` (帳戶升級評估)**:
-        *   加入「季度固定成本」的扣除邏輯。
-
-    9.  **更新 `run_audit` (主審計流程)**:
-        *   將所有新增的函式整合進主流程，並擴充最終輸出的 `audit_report.json` 報告結構。
-
-    10. **引入 `config.ini` 設定檔**:
-        *   建立 `config.ini` 檔案來管理使用者參數。
-        *   修改主程式區塊，使其從設定檔讀取參數，並將最終報告寫入 `audit_report.json`。
-
-3.  **逐項實作與修改**：按照上述計畫，逐一完成每個子項目的程式碼撰寫與修改。每個步驟都確保與 `spec.md` 的要求一致。
-
-4.  **完成與交付**：所有步驟完成後，`trade_check.py` 已完全符合新規格書的要求。程式現在能夠讀取 `config.ini`，執行所有新的分析與審計，並生成一個結構完整、內容豐富的 `audit_report.json` 報告。
+    # 在 API 端點中呼叫
+    report = auditor.run_audit(temp_file_path)
+    # 在序列化前回傳前進行轉換
+    json_compatible_report = convert_numpy_types(report)
+    return json_compatible_report
+    ```
+- **影響**: 這兩項修正強化了系統的穩定性（魯棒性），使其能夠應對不乾淨的輸入資料（如缺失的商品名稱）以及處理 Python 生態系統中常見的 NumPy 資料型別，確保了 API 的正常回應與前後端資料流的順暢。經過這些修正，後端系統的核心錯誤皆已解決，應用程式現已進入穩定狀態。
