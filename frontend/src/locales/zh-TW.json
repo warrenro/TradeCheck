@@ -73,6 +73,15 @@
       "notEligible": "不合格"
     }
   },
+   "sopRisk": {
+    "title": "SOP 風險參考表",
+    "scale": "規模 (S)",
+    "capital": "V2.99 升級本金 (元)",
+    "sopA_loss": "SOP-A 最大月虧 (元)",
+    "sopA_risk": "SOP-A 風險佔比 (虧/本)",
+    "sopB_loss": "SOP-B (20%規模) 最大月虧 (元)",
+    "sopB_risk": "SOP-B 風險佔比 (虧/本)"
+  },
   "details": {
     "title": "交易明細 - {month}",
     "tradeTime": "成交時間",

@@ -71,6 +71,15 @@
       "safe": "Safe",
       "eligible": "Eligible",
       "notEligible": "Not Eligible"
+    },
+    "sopRisk": {
+      "title": "SOP Risk Reference",
+      "scale": "Scale (S)",
+      "capital": "V2.99 Upgrade Capital (TWD)",
+      "sopA_loss": "SOP-A Max Monthly Loss (TWD)",
+      "sopA_risk": "SOP-A Risk Ratio (Loss/Capital)",
+      "sopB_loss": "SOP-B (20% Scale) Max Monthly Loss (TWD)",
+      "sopB_risk": "SOP-B Risk Ratio (Loss/Capital)"
     }
   },
   "details": {

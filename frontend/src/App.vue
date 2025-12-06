@@ -187,6 +187,35 @@
                 </table>
               </div>
             </div>
+
+            <!-- SOP Risk Reference -->
+            <div class="card full-width-card">
+              <div class="card-header"><h3>{{ $t('dashboard.sopRisk.title') }}</h3></div>
+              <div class="card-body">
+                <table class="summary-table">
+                  <thead>
+                    <tr>
+                      <th>{{ $t('dashboard.sopRisk.scale') }}</th>
+                      <th>{{ $t('dashboard.sopRisk.capital') }}</th>
+                      <th>{{ $t('dashboard.sopRisk.sopA_loss') }}</th>
+                      <th>{{ $t('dashboard.sopRisk.sopA_risk') }}</th>
+                      <th>{{ $t('dashboard.sopRisk.sopB_loss') }}</th>
+                      <th>{{ $t('dashboard.sopRisk.sopB_risk') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in sopRiskData" :key="row.scale">
+                      <td>{{ row.scale }}</td>
+                      <td>{{ row.capital }}</td>
+                      <td>{{ row.sopA_loss }}</td>
+                      <td>{{ row.sopA_risk }}</td>
+                      <td>{{ row.sopB_loss }}</td>
+                      <td>{{ row.sopB_risk }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -264,6 +293,22 @@ const serverStatus = ref('offline');
 const selectedMonth = ref(null);
 const tradeFiles = ref([]);
 const selectedFile = ref('');
+const upgradeCriteria = ref(null);
+const sopRiskData = ref([
+  { scale: 'S1', capital: '100,000 (起始)', sopA_loss: '75,000', sopA_risk: '75.0%', sopB_loss: '75,000', sopB_risk: '75.0%' },
+  { scale: 'S2', capital: '200,000', sopA_loss: '75,000', sopA_risk: '37.5%', sopB_loss: '75,000', sopB_risk: '37.5%' },
+  { scale: 'S3', capital: '400,000', sopA_loss: '75,000', sopA_risk: '18.8%', sopB_loss: '75,000', sopB_risk: '18.8%' },
+  { scale: 'S4', capital: '600,000', sopA_loss: '300,000', sopA_risk: '50.0%', sopB_loss: '300,000', sopB_risk: '50.0%' },
+  { scale: 'S5', capital: '800,000', sopA_loss: '300,000', sopA_risk: '37.5%', sopB_loss: '300,000', sopB_risk: '37.5%' },
+  { scale: 'S6', capital: '1,600,000', sopA_loss: '300,000', sopA_risk: '18.8%', sopB_loss: '300,000', sopB_risk: '18.8%' },
+  { scale: 'S7', capital: '3,600,000', sopA_loss: '300,000', sopA_risk: '8.3%', sopB_loss: '300,000', sopB_risk: '8.3%' },
+  { scale: 'S8', capital: '4,800,000', sopA_loss: '300,000', sopA_risk: '6.3%', sopB_loss: '300,000', sopB_risk: '6.3%' },
+  { scale: 'S9', capital: '6,000,000', sopA_loss: '300,000', sopA_risk: '5.0%', sopB_loss: '300,000', sopB_risk: '5.0%' },
+  { scale: 'S10', capital: '9,600,000', sopA_loss: '300,000', sopA_risk: '3.1%', sopB_loss: '600,000', sopB_risk: '6.3%' },
+  { scale: 'S11', capital: '16,000,000', sopA_loss: '300,000', sopA_risk: '1.9%', sopB_loss: '600,000', sopB_risk: '3.8%' },
+  { scale: 'S12', capital: '20,000,000', sopA_loss: '300,000', sopA_risk: '1.5%', sopB_loss: '600,000', sopB_risk: '3.0%' },
+  { scale: 'S13', capital: '33,600,000', sopA_loss: '300,000', sopA_risk: '0.9%', sopB_loss: '900,000', sopB_risk: '2.7%' },
+]);
 
 // --- Computed Properties ---
 const errorDisplay = computed(() => {

@@ -361,7 +361,7 @@ class TradeAuditor:
         logger.info(f"Evaluating capital management for scale {self.current_scale}.")
         criteria = UPGRADE_CRITERIA.get(self.current_scale, {})
         upgrade_eligible = False
-        reason = "No further upgrade path from this scale."
+        reason = "沒有可用的升級路徑 (No further upgrade path from this scale)."
         
         adjusted_capital = self.current_capital
         cost_deducted = 0
@@ -376,21 +376,27 @@ class TradeAuditor:
             capital_ok = adjusted_capital >= criteria['capital_key']
             
             # Performance check, handling 'Infinity' RR
-            rr_ok = (risk_reward_ratio == "Infinity") or (risk_reward_ratio >= criteria['rr_key'])
+            rr_ok = (risk_reward_ratio == "Infinity") or (isinstance(risk_reward_ratio, (int, float)) and risk_reward_ratio >= criteria['rr_key'])
             wr_ok = win_rate >= criteria['wr_key']
             perf_ok = rr_ok and wr_ok
 
             if capital_ok and perf_ok:
                 upgrade_eligible = True
-                reason = f"All conditions met for {criteria['next_scale']}."
+                reason = f"所有條件均符合，可升級至 {criteria['next_scale']} (All conditions met for {criteria['next_scale']})."
                 logger.info(f"Account is eligible for upgrade to {criteria['next_scale']}.")
             else:
                 reasons = []
                 if not capital_ok:
-                    reasons.append(f"Capital Key not met ({adjusted_capital:,.0f} < {criteria['capital_key']:,.0f})")
+                    reasons.append(f"權益數未達標 (Capital not met): {adjusted_capital:,.0f} / {criteria['capital_key']:,.0f}")
+                
+                # Detailed performance reasons
                 if not perf_ok:
                     rr_display = risk_reward_ratio if isinstance(risk_reward_ratio, str) else f"{risk_reward_ratio:.2f}"
-                    reasons.append(f"Performance Key not met (RR: {rr_display}, WR: {win_rate:.2%})")
+                    if not rr_ok:
+                        reasons.append(f"風險報酬比未達標 (RR not met): {rr_display} / {criteria['rr_key']:.2f}")
+                    if not wr_ok:
+                        reasons.append(f"勝率未達標 (WR not met): {win_rate:.2%} / {criteria['wr_key']:.2%}")
+
                 reason = ", ".join(reasons)
                 logger.info(f"Account not eligible for upgrade. Reason: {reason}")
 
