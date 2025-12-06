@@ -1,5 +1,6 @@
 <template>
   <main>
+    <!-- Header -->
     <div class="header-container">
       <header>
         <h1>{{ $t('header.title') }}</h1>
@@ -19,50 +20,25 @@
     </div>
 
     <div class="container">
-      <!-- Left side: Input Form -->
+      <!-- Left side: File Selection -->
       <div class="form-section">
-        <form @submit.prevent="runAudit" id="audit-form">
-          <div class="card">
-            <div class="card-header">
-              <h2><span class="step">1</span> {{ $t('form.paramsTitle') }}</h2>
-            </div>
-            <div class="card-body">
-              <div class="form-group">
-                <label for="current_capital">{{ $t('form.currentCapital') }}</label>
-                <input type="number" id="current_capital" v-model.number="params.current_capital" placeholder="e.g., 185000" required>
-              </div>
-              <div class="form-group">
-                <label for="monthly_start_capital">{{ $t('form.monthlyStartCapital') }}</label>
-                <input type="number" id="monthly_start_capital" v-model.number="params.monthly_start_capital" placeholder="e.g., 173000" required>
-              </div>
-              <div class="form-group">
-                <label for="current_scale">{{ $t('form.scale') }}</label>
-                <select id="current_scale" v-model="params.current_scale" required>
-                  <option value="S1">S1</option>
-                  <option value="S2">S2</option>
-                  <option value="S3">S3</option>
-                  <option value="S4">S4</option>
-                </select>
-              </div>
-            </div>
+        <div class="card">
+          <div class="card-header">
+            <h2><span class="step">1</span> {{ $t('form.selectFileTitle') }}</h2>
           </div>
-
-          <div class="card">
-            <div class="card-header">
-              <h2><span class="step">2</span> {{ $t('form.uploadTitle') }}</h2>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="trade_file_select">{{ $t('form.transactionLog') }}</label>
+              <select id="trade_file_select" v-model="selectedFile" @change="handleFileSelection" :disabled="loading">
+                <option v-if="tradeFiles.length === 0" disabled value="">{{ $t('form.loadingFiles') }}</option>
+                <option v-for="file in tradeFiles" :key="file" :value="file">
+                  {{ file }}
+                </option>
+              </select>
             </div>
-            <div class="card-body">
-              <div class="form-group">
-                <label for="file">{{ $t('form.transactionLog') }}</label>
-                <input type="file" id="file" @change="handleFileUpload" accept=".csv,.xlsx,.xls" required>
-              </div>
-            </div>
+             <p v-if="!loading" class="file-selection-note">{{ $t('form.autoRecalculate') }}</p>
           </div>
-
-          <button type="submit" :disabled="loading">
-            {{ loading ? $t('form.analyzing') : $t('form.runAudit') }}
-          </button>
-        </form>
+        </div>
       </div>
 
       <!-- Right side: Dashboard Display -->
@@ -74,38 +50,19 @@
           <p>{{ $t('loading') }}</p>
         </div>
 
-        <!-- Upgrade Criteria Definition Card -->
-        <div v-if="upgradeCriteria" class="card-grid">
-            <div class="card full-width-card">
-              <div class="card-header">
-                <h3>{{ $t('dashboard.upgradeCriteria.title') }}</h3>
-              </div>
-              <div class="card-body">
-                <table class="summary-table">
-                  <thead>
-                    <tr>
-                      <th>{{ $t('dashboard.upgradeCriteria.scale') }}</th>
-                      <th>{{ $t('dashboard.upgradeCriteria.nextScale') }}</th>
-                      <th>{{ $t('dashboard.upgradeCriteria.capital') }}</th>
-                      <th>{{ $t('dashboard.upgradeCriteria.rr') }}</th>
-                      <th>{{ $t('dashboard.upgradeCriteria.wr') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(criteria, scale) in upgradeCriteria" :key="scale">
-                      <td><strong>{{ scale }}</strong></td>
-                      <td>{{ criteria.next_scale }}</td>
-                      <td>≥ {{ formatCurrency(criteria.capital_key) }}</td>
-                      <td>≥ {{ criteria.rr_key }}</td>
-                      <td>≥ {{ criteria.wr_key * 100 }}%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-        </div>
-        
         <div v-if="report" id="report-dashboard">
+          <!-- Report Metadata -->
+          <div class="card full-width-card report-meta">
+            <div class="meta-item">
+              <span>{{ $t('dashboard.meta.interval') }}:</span>
+              <strong>{{ report.startDate }} &mdash; {{ report.endDate }}</strong>
+            </div>
+            <div class="meta-item">
+              <span>{{ $t('dashboard.meta.generated') }}:</span>
+              <strong>{{ new Date(report.generatedAt).toLocaleString() }}</strong>
+            </div>
+          </div>
+
           <!-- KPI Metrics Row -->
           <div class="kpi-grid">
             <div class="kpi-card">
@@ -198,9 +155,9 @@
                       <th>{{ $t('dashboard.monthlySummary.winRate') }}</th>
                       <th>{{ $t('dashboard.monthlySummary.rr') }}</th>
                       <th>{{ $t('dashboard.monthlySummary.tradeCount') }}</th>
-                      <th>風險檢查</th>
-                      <th>評估</th>
-                      <th>激勵</th>
+                      <th>{{ $t('dashboard.monthlySummary.riskCheck') }}</th>
+                      <th>{{ $t('dashboard.monthlySummary.evaluation') }}</th>
+                      <th>{{ $t('dashboard.monthlySummary.incentive') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -212,16 +169,16 @@
                       <td>{{ summary.trade_count }}</td>
                       <td>
                         <span :class="summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
-                          {{ summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? '違規' : '安全' }}
+                          {{ summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? $t('dashboard.monthlySummary.violated') : $t('dashboard.monthlySummary.safe') }}
                         </span>
                       </td>
                       <td>
                         <span :class="summary.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
-                          {{ summary.capital_assessment.upgrade_eligible ? '合格' : '不合格' }}
+                          {{ summary.capital_assessment.upgrade_eligible ? $t('dashboard.monthlySummary.eligible') : $t('dashboard.monthlySummary.notEligible') }}
                         </span>
                       </td>
                       <td>
-                        <span :class="summary.happiness_incentive.eligible ? 'text-success' : (summary.happiness_incentive.status === '獲利保留補考' ? 'text-warning' : '')">
+                        <span :class="summary.happiness_incentive.eligible ? 'text-success' : (summary.happiness_incentive.status.includes('補考') ? 'text-warning' : '')">
                           {{ summary.happiness_incentive.eligible ? formatCurrency(summary.happiness_incentive.amount) : summary.happiness_incentive.status }}
                         </span>
                       </td>
@@ -277,17 +234,18 @@ import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const API_BASE_URL = 'http://localhost:8000';
 
 // --- Remote Logger ---
 const logToServer = async (level, message, context = {}) => {
   try {
-    await fetch('http://localhost:8000/api/log', {
+    await fetch(`${API_BASE_URL}/api/log`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ level, message, context }),
     });
   } catch (e) {
-    console.error("CRITICAL: Failed to send log to server:", e); // Fallback for when logger itself fails
+    console.error("CRITICAL: Failed to send log to server:", e);
   }
 };
 
@@ -298,19 +256,14 @@ const logger = {
 };
 
 // --- Refs and State ---
-const params = ref({
-  current_capital: null,
-  monthly_start_capital: null,
-  current_scale: 'S1',
-});
-const file = ref(null);
 const report = ref(null);
 const loading = ref(false);
 const error = ref(null);
 const errorMessage = ref('');
-const serverStatus = ref('offline'); // offline | online
-const selectedMonth = ref(null); // e.g., '2025-07'
-const upgradeCriteria = ref(null);
+const serverStatus = ref('offline');
+const selectedMonth = ref(null);
+const tradeFiles = ref([]);
+const selectedFile = ref('');
 
 // --- Computed Properties ---
 const errorDisplay = computed(() => {
@@ -327,91 +280,72 @@ const selectedMonthTrades = computed(() => {
   return report.value.detailed_trades[selectedMonth.value] || [];
 });
 
-
 // --- Lifecycle Hooks ---
 onMounted(() => {
   logger.info('Frontend application mounted and ready.');
   checkServerStatus();
-  setInterval(checkServerStatus, 10000); // Poll every 10 seconds
-  fetchUpgradeCriteria();
+  setInterval(checkServerStatus, 10000);
+  fetchTradeFiles();
 });
 
 // --- Methods ---
-const fetchUpgradeCriteria = async () => {
-  try {
-    const response = await fetch('http://localhost:8000/api/upgrade-criteria');
-    if (response.ok) {
-      upgradeCriteria.value = await response.json();
-      logger.info('Successfully fetched upgrade criteria.');
-    } else {
-      throw new Error('Failed to fetch upgrade criteria');
-    }
-  } catch (e) {
-    logger.error('Could not fetch upgrade criteria.', { error: e.message });
-  }
-};
-
 const checkServerStatus = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/status');
+    const response = await fetch(`${API_BASE_URL}/api/status`);
     serverStatus.value = response.ok ? 'online' : 'offline';
   } catch (e) {
     serverStatus.value = 'offline';
   }
 };
 
-const handleFileUpload = (event) => {
-  const selectedFile = event.target.files[0];
-  if (selectedFile) {
-    file.value = selectedFile;
-    logger.info(`File selected for upload: ${selectedFile.name}`, { size: selectedFile.size, type: selectedFile.type });
+const fetchTradeFiles = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/list_trade_files`);
+    if (!response.ok) throw new Error('Failed to fetch trade files list.');
+    
+    const data = await response.json();
+    tradeFiles.value = data.files || [];
+    logger.info(`Found ${tradeFiles.value.length} trade files.`);
+
+    if (tradeFiles.value.length > 0) {
+      selectedFile.value = tradeFiles.value[0]; // Select the newest file by default
+      await handleFileSelection(); // Automatically run audit for the default file
+    }
+  } catch (e) {
+    error.value = 'error.failed';
+    errorMessage.value = e.message;
+    logger.error('Could not fetch trade files.', { error: e.message });
   }
 };
 
-const runAudit = async () => {
-  if (!file.value) {
-    error.value = 'error.noFile';
-    logger.warn('Audit submission failed: No file selected.');
-    return;
-  }
+const handleFileSelection = async () => {
+  if (!selectedFile.value) return;
+
   loading.value = true;
   error.value = null;
   errorMessage.value = '';
-  report.value = null;
-  selectedMonth.value = null; // Reset details view on new audit
+  // Do not clear the report, so the old one stays visible until the new one loads
+  selectedMonth.value = null;
 
-  const formData = new FormData();
-  formData.append('current_capital', params.value.current_capital);
-  formData.append('monthly_start_capital', params.value.monthly_start_capital);
-  formData.append('current_scale', params.value.current_scale);
-  formData.append('file', file.value);
-  
-  logger.info('Starting audit run.', { 
-    params: { 
-      current_capital: params.value.current_capital, 
-      monthly_start_capital: params.value.monthly_start_capital,
-      current_scale: params.value.current_scale 
-    },
-    fileName: file.value.name 
-  });
+  logger.info(`Recalculating audit for file: ${selectedFile.value}`);
 
   try {
-    const response = await fetch('http://localhost:8000/api/audit', {
+    const response = await fetch(`${API_BASE_URL}/api/run_check`, {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: selectedFile.value }),
     });
     const data = await response.json();
-    console.log('Raw response from server:', data); // Added for debugging
     if (!response.ok) {
       throw new Error(data.detail || `HTTP error! status: ${response.status}`);
     }
     report.value = data;
-    console.log('Report object after assignment:', report.value); // Added for debugging
-    logger.info('Audit API call successful. Report data received.');
+    logger.info(`Audit recalculation successful for ${selectedFile.value}.`);
   } catch (e) {
     error.value = 'error.failed';
     errorMessage.value = e.message;
-    logger.error('Audit API call failed.', { error: e.message, stack: e.stack });
+    report.value = null; // Clear report on error
+    logger.error(`Audit recalculation failed for ${selectedFile.value}.`, { error: e.message, stack: e.stack });
   } finally {
     loading.value = false;
   }
@@ -455,6 +389,33 @@ const getKpiClass = (value, type) => {
 
 <style>
 /* --- New Styles for Features --- */
+.report-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+.meta-item {
+  color: #4b5563;
+}
+.meta-item span {
+  margin-right: 0.5rem;
+}
+.meta-item strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+.file-selection-note {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.75rem;
+  text-align: center;
+}
 .status-container {
   display: flex;
   align-items: center;
@@ -547,7 +508,117 @@ const getKpiClass = (value, type) => {
   background-color: #f9fafb;
 }
 
-/* --- Existing Styles --- */
+/* --- Existing & Updated Styles --- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  text-align: center;
+}
+.kpi-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+.kpi-card p {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+.card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+.card-header h2, .card-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.step {
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.card-body {
+  padding: 1.5rem;
+}
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+.status-item span {
+  color: #4b5563;
+}
+.status-item strong {
+  font-weight: 600;
+}
+.reason {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.75rem;
+}
+.incentive-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #16a34a;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+.violations {
+  margin-top: 1rem;
+  background-color: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+.violations h5 {
+  margin: 0 0 0.5rem 0;
+  color: #b91c1c;
+}
+.violations ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: #991b1b;
+}
+
+.text-success { color: #16a34a; }
+.text-danger { color: #dc2626; }
+.text-warning { color: #f59e0b; }
+
 .full-width-card {
   grid-column: 1 / -1;
 }
@@ -566,7 +637,106 @@ const getKpiClass = (value, type) => {
   font-weight: 600;
   background-color: #f9fafb;
 }
+.summary-table th:nth-child(n+6), .summary-table td:nth-child(n+6) {
+    text-align: center;
+}
 .summary-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* --- Base Layout & Form Styles --- */
+:root {
+  --bg-color: #f3f4f6;
+  --text-color: #1f2937;
+  --header-bg: #ffffff;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+}
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+}
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  margin: -1rem -2rem 2rem -2rem;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.container {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+.form-section {
+  position: sticky;
+  top: 100px; /* Adjust based on header height */
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.form-group input[type="file"] {
+  padding: 0.5rem;
+}
+button[type="submit"] {
+  width: 100%;
+  padding: 0.875rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+button[type="submit"]:hover {
+  background-color: #1d4ed8;
+}
+button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+.error-box, .loading-box, .placeholder-box {
+  padding: 2rem;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  text-align: center;
+  color: #6b7280;
+}
+.error-box {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
 }
 </style>

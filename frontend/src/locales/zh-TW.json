@@ -1,18 +1,21 @@
 {
   "header": {
-    "title": "D-Pro Protocol V7.3 - 自動化審計儀表板"
+    "title": "D-Pro Protocol V7.3 - 自動化審計儀表板",
+    "backendStatus": "後端狀態",
+    "online": "線上",
+    "offline": "離線"
   },
   "form": {
-    "paramsTitle": "系統參數",
-    "currentCapital": "目前權益數 (Current Capital)",
-    "monthlyStartCapital": "月初本金 (Monthly Start Capital)",
-    "scale": "操作規模 (Operating Scale)",
-    "uploadTitle": "上傳交易紀錄",
-    "transactionLog": "交易紀錄 (.csv, .xlsx)",
-    "runAudit": "執行審計",
-    "analyzing": "分析中..."
+    "selectFileTitle": "選擇交易檔案",
+    "transactionLog": "交易紀錄",
+    "loadingFiles": "讀取檔案中...",
+    "autoRecalculate": "選擇後將自動重新分析。"
   },
   "dashboard": {
+    "meta": {
+      "interval": "統計區間",
+      "generated": "報告產出時間"
+    },
     "reportTitle": "審計報告",
     "placeholder": "您的審計報告儀表板將會顯示在此處。",
     "upgradeCriteria": {
@@ -63,8 +66,19 @@
       "tradeCount": "交易筆數",
       "riskCheck": "風險檢查",
       "evaluation": "評估",
-      "incentive": "激勵"
+      "incentive": "激勵",
+      "violated": "違規",
+      "safe": "安全",
+      "eligible": "合格",
+      "notEligible": "不合格"
     }
+  },
+  "details": {
+    "title": "交易明細 - {month}",
+    "tradeTime": "成交時間",
+    "action": "買賣別",
+    "netPnl": "平倉損益淨額",
+    "noTrades": "這個月沒有交易紀錄。"
   },
   "error": {
     "title": "錯誤:",

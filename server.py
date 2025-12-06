@@ -4,7 +4,9 @@ import shutil
 import uvicorn
 import logging
 import configparser
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+import subprocess
+import json
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Body
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -13,21 +15,24 @@ from fastapi.encoders import jsonable_encoder
 import numpy as np
 
 # Import the existing auditor class and the logger
-from trade_check import TradeAuditor, logger, UPGRADE_CRITERIA
+from trade_check import TradeAuditor, logger, UPGRADE_CRITERIA, list_trade_files
 
 app = FastAPI()
 
-# --- Pydantic Model for Frontend Logs ---
+# --- Pydantic Models ---
 class LogMessage(BaseModel):
     level: str
     message: str
     context: Optional[dict] = None
 
+class RunCheckRequest(BaseModel):
+    filename: str
+
 # --- CORS Middleware ---
 # Allow requests from the Vue.js development server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Default port for Vite/Vue
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,6 +45,67 @@ def get_upgrade_criteria():
     """
     logger.info("Request received for upgrade criteria.")
     return JSONResponse(content=UPGRADE_CRITERIA)
+
+@app.get("/api/list_trade_files")
+def get_trade_files():
+    """
+    API endpoint to list all available trade files in the 'tradedata' directory.
+    """
+    logger.info("Request received for trade files list.")
+    try:
+        trade_data_directory = 'tradedata'
+        files = list_trade_files(trade_data_directory)
+        return JSONResponse(content={"files": files})
+    except Exception as e:
+        logger.error(f"Failed to list trade files: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve trade files from server.")
+
+@app.post("/api/run_check")
+async def run_check_for_file(request: RunCheckRequest):
+    """
+    Triggers a new audit based on a specific file from the 'tradedata' directory.
+    """
+    filename = request.filename
+    logger.info(f"Received request to run audit for file: {filename}")
+    
+    trade_file_path = os.path.join('tradedata', filename)
+    
+    if not os.path.exists(trade_file_path):
+        logger.error(f"File not found: {trade_file_path}")
+        raise HTTPException(status_code=404, detail=f"File '{filename}' not found in 'tradedata' directory.")
+        
+    try:
+        # Execute the trade_check.py script as a subprocess
+        command = ["python", "trade_check.py", "--file", trade_file_path]
+        logger.info(f"Executing command: {' '.join(command)}")
+        
+        process = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=True  # Raises CalledProcessError if the command returns a non-zero exit code
+        )
+        logger.info(f"Script stdout: {process.stdout}")
+        
+        # After successful execution, read the new report
+        report_path = 'audit_report.json'
+        if not os.path.exists(report_path):
+             logger.error(f"Audit script ran, but report '{report_path}' was not generated.")
+             raise HTTPException(status_code=500, detail="Audit ran but failed to produce a report.")
+
+        with open(report_path, 'r', encoding='utf-8') as f:
+            new_report = json.load(f)
+            
+        logger.info(f"Successfully ran audit and loaded new report for '{filename}'.")
+        return JSONResponse(content=new_report)
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error executing trade_check.py for {filename}: {e.stderr}")
+        raise HTTPException(status_code=500, detail=f"Error running audit script: {e.stderr}")
+    except Exception as e:
+        logger.critical(f"An unexpected server error occurred during check run for {filename}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {e}")
+
 
 # Custom encoder for numpy types
 custom_encoder = {
@@ -58,12 +124,12 @@ async def run_web_audit(
     file: UploadFile = File(...)
 ):
     """
-    API endpoint to run the trade audit.
+    (Legacy) API endpoint to run the trade audit from an uploaded file.
     Accepts system parameters and a transaction file.
     """
-    logger.info(f"Received audit request for file: {file.filename}")
+    logger.info(f"Received audit request for uploaded file: {file.filename}")
     
-    # Create a temporary directory to store the uploaded file
+    # This endpoint is now less critical but kept for potential direct uploads
     temp_dir = "temp_uploads"
     os.makedirs(temp_dir, exist_ok=True)
     temp_file_path = os.path.join(temp_dir, file.filename)
@@ -95,6 +161,11 @@ async def run_web_audit(
         
         logger.info(f"Audit successful for {file.filename}. Returning report.")
         json_compatible_report = jsonable_encoder(report, custom_encoder=custom_encoder)
+        
+        # Save the report to the main audit_report.json as well
+        with open('audit_report.json', 'w', encoding='utf-8') as f:
+            json.dump(json_compatible_report, f, ensure_ascii=False, indent=4)
+
         return JSONResponse(content=json_compatible_report)
 
     except (ValueError, FileNotFoundError) as e:
@@ -117,6 +188,7 @@ async def run_web_audit(
         if os.path.exists(temp_dir) and not os.listdir(temp_dir):
             os.rmdir(temp_dir)
             logger.info(f"Cleaned up temporary directory: {temp_dir}")
+
 
 @app.post("/api/log")
 async def log_frontend_message(log: LogMessage):

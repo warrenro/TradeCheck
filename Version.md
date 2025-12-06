@@ -1,5 +1,10 @@
 # 版本歷史 (Version History)
 
+## Version 1.4 (2025-12-06)
+
+### 🐞 錯誤修正 (Bug Fixes)
+- **修復後端序列化問題**: 解決了當 Pandas/Numpy 的數值型別 (如 `int64`) 無法被標準 `json` 函式庫序列化，導致後端在產生 `audit_report.json` 或 API 回應時崩潰的問題。已加入一個客製化的 JSON 編碼器來正確處理這些數值型別。
+
 ## Version 1.3 (2025-12-04)
 
 ### ✨ 新功能 (Features)

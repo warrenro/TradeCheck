@@ -1,18 +1,21 @@
 {
   "header": {
-    "title": "D-Pro Protocol V7.3 - Audit Dashboard"
+    "title": "D-Pro Protocol V7.3 - Audit Dashboard",
+    "backendStatus": "Backend Status",
+    "online": "Online",
+    "offline": "Offline"
   },
   "form": {
-    "paramsTitle": "System Parameters",
-    "currentCapital": "Current Capital",
-    "monthlyStartCapital": "Monthly Start Capital",
-    "scale": "Operating Scale",
-    "uploadTitle": "Upload Trades",
-    "transactionLog": "Transaction Log (.csv, .xlsx)",
-    "runAudit": "Run Audit",
-    "analyzing": "Analyzing..."
+    "selectFileTitle": "Select Trade File",
+    "transactionLog": "Transaction Log",
+    "loadingFiles": "Loading files...",
+    "autoRecalculate": "Analysis will automatically run upon selection."
   },
   "dashboard": {
+    "meta": {
+      "interval": "Statistic Interval",
+      "generated": "Report Generated"
+    },
     "reportTitle": "Audit Report",
     "placeholder": "Your audit report dashboard will be displayed here.",
     "upgradeCriteria": {
@@ -60,8 +63,22 @@
       "totalPnl": "Total PnL",
       "winRate": "Win Rate",
       "rr": "RR",
-      "tradeCount": "Trades"
+      "tradeCount": "Trades",
+      "riskCheck": "Risk Check",
+      "evaluation": "Evaluation",
+      "incentive": "Incentive",
+      "violated": "Violated",
+      "safe": "Safe",
+      "eligible": "Eligible",
+      "notEligible": "Not Eligible"
     }
+  },
+  "details": {
+    "title": "Trade Details for {month}",
+    "tradeTime": "Trade Time",
+    "action": "Action",
+    "netPnl": "Net PnL",
+    "noTrades": "No trades recorded for this month."
   },
   "error": {
     "title": "Error:",

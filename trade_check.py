@@ -8,6 +8,8 @@ import glob
 import logging
 import configparser
 import numpy as np
+import argparse
+import sys
 
 # --- Logging Setup ---
 # Configure logger to write to a file and the console
@@ -77,17 +79,18 @@ NIGHT_SESSION_VIOLATIONS = [
 MOAT_RULE_START = datetime.strptime("2026-01-01", "%Y-%m-%d")
 MOAT_RULE_END = datetime.strptime("2026-08-31", "%Y-%m-%d")
 
-def find_latest_trade_file(directory: str) -> str:
-    """Finds the most recently modified trade file (.csv or .xlsx) in a directory."""
+def list_trade_files(directory: str) -> List[str]:
+    """Lists all trade files (.csv or .xlsx) in a directory, sorted by modification time."""
     logger.info(f"Searching for trade files in directory: {directory}")
     list_of_files = glob.glob(os.path.join(directory, '*.csv')) + glob.glob(os.path.join(directory, '*.xlsx'))
     if not list_of_files:
-        logger.error(f"No trade files (.csv, .xlsx) found in directory: {directory}")
-        raise FileNotFoundError(f"No trade files (.csv, .xlsx) found in the directory: {directory}")
+        logger.warning(f"No trade files (.csv, .xlsx) found in directory: {directory}")
+        return []
     
-    latest_file = max(list_of_files, key=os.path.getmtime)
-    logger.info(f"Found latest trade file: {latest_file}")
-    return latest_file
+    # Sort by modification time, newest first
+    list_of_files.sort(key=os.path.getmtime, reverse=True)
+    logger.info(f"Found {len(list_of_files)} trade files. Newest: {os.path.basename(list_of_files[0]) if list_of_files else 'None'}")
+    return [os.path.basename(f) for f in list_of_files]
 
 class TradeAuditor:
     """
@@ -104,7 +107,7 @@ class TradeAuditor:
         self.monthly_start_capital = monthly_start_capital
         self.current_scale = current_scale
         self.operation_contracts = operation_contracts
-        self.report_date = datetime.now().strftime("%Y-%m-%d")
+        self.report_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def load_transactions(self, file_path: str) -> pd.DataFrame:
         """Loads transaction data from a CSV or Excel file."""
@@ -132,7 +135,7 @@ class TradeAuditor:
             }
             df.rename(columns=column_mapping, inplace=True)
 
-            df['trade_time'] = pd.to_datetime(df['trade_time'], format='mixed')
+            df['trade_time'] = pd.to_datetime(df['trade_time'])
             # Use pd.to_numeric for robust conversion, coercing errors to NaN, then filling with 0
             df['net_pnl'] = pd.to_numeric(df['net_pnl'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
             df['contracts'] = pd.to_numeric(df['contracts'], errors='coerce').fillna(0).astype(int)
@@ -477,7 +480,8 @@ class TradeAuditor:
             group_copy['trade_time'] = group_copy['trade_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
             
             if 'points' in group_copy.columns:
-                group_copy['points'] = group_copy['points'].round(2)
+                # Fill NaN values with 0 before rounding to prevent errors
+                group_copy['points'] = group_copy['points'].fillna(0).round(2)
             
             # Convert numpy int to python int for JSON serialization
             group_copy['contracts'] = group_copy['contracts'].apply(int)
@@ -518,6 +522,9 @@ class TradeAuditor:
             # --- Construct Final Report ---
             report = {
                 "report_date": self.report_date,
+                "generatedAt": self.report_date,
+                "startDate": trades['trade_time'].min().strftime('%Y-%m-%d'),
+                "endDate": trades['trade_time'].max().strftime('%Y-%m-%d'),
                 "account_summary": {
                     "scale": self.current_scale, 
                     "current_balance": self.current_capital, 
@@ -544,12 +551,26 @@ class TradeAuditor:
             logger.critical(f"A critical error occurred during the audit run: {e}", exc_info=True)
             raise
 
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
+
 # --- Main Execution ---
 if __name__ == '__main__':
     logger.info("="*50)
     logger.info("Executing TradeCheck Auditor as a standalone script.")
     logger.info("="*50)
     
+    parser = argparse.ArgumentParser(description="Run a trade audit on a given data file.")
+    parser.add_argument('--file', type=str, required=True, help='Path to the specific trade data file to audit.')
+    args = parser.parse_args()
+
     config = configparser.ConfigParser()
     config_file = 'config.ini'
     
@@ -572,10 +593,13 @@ if __name__ == '__main__':
         logger.info(f"  - Current Scale: {current_scale}")
         logger.info(f"  - Operation Contracts: {operation_contracts}")
 
-        # --- Find Latest Trade File ---
-        trade_data_directory = 'tradedata'
-        latest_file_path = find_latest_trade_file(trade_data_directory)
+        # --- Determine Trade File to Use ---
+        if not os.path.exists(args.file):
+            raise FileNotFoundError(f"The file specified via command line does not exist: {args.file}")
         
+        audit_file_path = args.file
+        logger.info(f"Using trade file specified from command line: {audit_file_path}")
+
         # --- Run Audit ---
         auditor = TradeAuditor(
             current_capital=current_capital,
@@ -583,12 +607,12 @@ if __name__ == '__main__':
             current_scale=current_scale,
             operation_contracts=operation_contracts
         )
-        report = auditor.run_audit(latest_file_path)
+        report = auditor.run_audit(audit_file_path)
         
         # --- Save Report ---
         output_filename = 'audit_report.json'
         with open(output_filename, 'w', encoding='utf-8') as f:
-            json.dump(report, f, indent=4, ensure_ascii=False)
+            json.dump(report, f, indent=4, ensure_ascii=False, cls=NpEncoder)
             
         logger.info(f"Successfully generated audit report: '{output_filename}'")
         print(f"\nAudit complete. Report saved to '{output_filename}'.")
@@ -602,3 +626,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.critical(f"An unexpected critical error occurred: {e}", exc_info=True)
         print(f"An unexpected error occurred: {e}")
+        sys.exit(1)
