@@ -34,6 +34,7 @@
     "accountStatus": {
       "title": "Account Status",
       "currentScale": "Current Scale:",
+      "monthlyStartCapital": "Monthly Start Capital:",
       "balance": "Account Balance:"
     },
     "safetyChecks": {

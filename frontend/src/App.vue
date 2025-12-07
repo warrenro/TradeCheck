@@ -86,6 +86,7 @@
               <div class="card-header"><h3>{{ $t('dashboard.accountStatus.title') }}</h3></div>
               <div class="card-body">
                 <div class="status-item"><span>{{ $t('dashboard.accountStatus.currentScale') }}</span> <strong>{{ report.account_summary.scale }}</strong></div>
+                <div class="status-item"><span>{{ $t('dashboard.accountStatus.monthlyStartCapital') }}</span> <strong>{{ formatCurrency(report.account_summary.monthly_start_capital) }}</strong></div>
                 <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong>{{ formatCurrency(report.account_summary.current_balance) }}</strong></div>
               </div>
             </div>

@@ -1,5 +1,10 @@
 # 版本歷史 (Version History)
 
+## Version 1.7 (2025-12-06)
+
+### ✨ 新功能 (Features)
+- **前端顯示月初本金**: 在網頁介面的「帳戶狀態」區塊，新增顯示 `config.ini` 中設定的 `monthly_start_capital` (月初本金)，提供更完整的帳戶起始資訊。
+
 ## Version 1.6 (2025-12-06)
 
 ### ✨ 新功能 (Features)

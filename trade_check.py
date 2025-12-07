@@ -538,6 +538,7 @@ class TradeAuditor:
                 "endDate": trades['trade_time'].max().strftime('%Y-%m-%d'),
                 "account_summary": {
                     "scale": self.current_scale, 
+                    "monthly_start_capital": self.monthly_start_capital,
                     "current_balance": self.current_capital, 
                     "monthly_pnl": float(total_pnl),
                     "kpi_metrics": {
