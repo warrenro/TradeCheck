@@ -28,15 +28,20 @@
           </div>
           <div class="card-body">
             <div class="form-group">
-              <label for="trade_file_select">{{ $t('form.transactionLog') }}</label>
-              <select id="trade_file_select" v-model="selectedFile" @change="handleFileSelection" :disabled="loading">
+              <label for="trade_file_select">{{ $t('form.selectFileTitle') }}</label>
+              <select id="trade_file_select" v-model="selectedFile" :disabled="loading">
                 <option v-if="tradeFiles.length === 0" disabled value="">{{ $t('form.loadingFiles') }}</option>
                 <option v-for="file in tradeFiles" :key="file" :value="file">
                   {{ file }}
                 </option>
               </select>
             </div>
-             <p v-if="!loading" class="file-selection-note">{{ $t('form.autoRecalculate') }}</p>
+            <div class="form-group">
+              <button @click="startAnalysis" :disabled="loading || !selectedFile" class="analyze-button">
+                {{ loading ? $t('form.analyzing') : $t('form.analyzeButton') }}
+              </button>
+            </div>
+             <p v-if="!loading" class="file-selection-note">{{ $t('form.clickToAnalyze') }}</p>
           </div>
         </div>
       </div>
@@ -186,6 +191,34 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- Annual Summary -->
+            <div class="card full-width-card">
+              <div class="card-header"><h3>{{ $t('dashboard.annualSummary.title') }}</h3></div>
+              <div class="card-body">
+                <div v-for="(yearSummary, year) in report.annual_summary" :key="year" class="annual-summary-year-block">
+                  <h4>{{ year }} {{ $t('dashboard.annualSummary.yearSuffix') }}</h4>
+                  <div class="kpi-grid">
+                    <div class="kpi-card">
+                      <h4>{{ $t('dashboard.kpi.pnl') }}</h4>
+                      <p :class="getPnlClass(yearSummary.total_pnl)">{{ formatCurrency(yearSummary.total_pnl) }}</p>
+                    </div>
+                    <div class="kpi-card">
+                      <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
+                      <p>{{ yearSummary.win_rate }}</p>
+                    </div>
+                    <div class="kpi-card">
+                      <h4>{{ $t('dashboard.kpi.rr') }}</h4>
+                      <p>{{ yearSummary.risk_reward_ratio }}</p>
+                    </div>
+                    <div class="kpi-card">
+                      <h4>{{ $t('dashboard.annualSummary.tradeCount') }}</h4>
+                      <p>{{ yearSummary.trade_count }}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -355,7 +388,6 @@ const fetchTradeFiles = async () => {
 
     if (tradeFiles.value.length > 0) {
       selectedFile.value = tradeFiles.value[0]; // Select the newest file by default
-      await handleFileSelection(); // Automatically run audit for the default file
     }
   } catch (e) {
     error.value = 'error.failed';
@@ -364,7 +396,7 @@ const fetchTradeFiles = async () => {
   }
 };
 
-const handleFileSelection = async () => {
+const startAnalysis = async () => {
   if (!selectedFile.value) return;
 
   loading.value = true;
@@ -552,6 +584,18 @@ const getKpiClass = (value, type) => {
 .details-table th {
   font-weight: 600;
   background-color: #f9fafb;
+}
+
+.annual-summary-year-block {
+  margin-top: 1rem; /* Add some space between yearly summary blocks */
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.annual-summary-year-block:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 /* --- Existing & Updated Styles --- */
@@ -753,6 +797,25 @@ header h1 {
 }
 .form-group input[type="file"] {
   padding: 0.5rem;
+}
+.analyze-button {
+  width: 100%;
+  padding: 0.875rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.analyze-button:hover {
+  background-color: #1d4ed8;
+}
+.analyze-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
 button[type="submit"] {
   width: 100%;

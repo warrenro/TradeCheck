@@ -439,6 +439,27 @@ class TradeAuditor:
             logger.info("Happiness Incentive not eligible: No profit this month.")
             return {"eligible": False, "amount": 0, "status": "Not profitable this month."}
 
+    def _calculate_annual_summary(self, trades: pd.DataFrame) -> Dict[str, Any]:
+        """Calculates annual summary statistics for each year in the trades data."""
+        logger.info("Calculating annual summary by year.")
+        annual_summaries = {}
+        if trades.empty:
+            return annual_summaries
+
+        trades['trade_year'] = trades['trade_time'].dt.year
+        yearly_groups = trades.groupby('trade_year')
+
+        for year, group in yearly_groups:
+            win_rate, risk_reward_ratio, total_pnl = self._calculate_kpis(group)
+            annual_summaries[str(year)] = {
+                "total_pnl": float(total_pnl),
+                "win_rate": f"{win_rate:.2%}",
+                "risk_reward_ratio": str(risk_reward_ratio),
+                "trade_count": int(len(group)),
+            }
+        logger.info(f"Generated annual summaries for {len(annual_summaries)} years.")
+        return annual_summaries
+
     def calculate_monthly_summary(self, trades: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, List[Dict[str, Any]]]]:
         """
         Groups all trades by month and calculates summary statistics and detailed trades.
@@ -530,6 +551,9 @@ class TradeAuditor:
             # --- Historical Summary ---
             monthly_summary, monthly_trades = self.calculate_monthly_summary(trades)
 
+            # --- Annual Summary ---
+            annual_summary = self._calculate_annual_summary(trades)
+
             # --- Construct Final Report ---
             report = {
                 "report_date": self.report_date,
@@ -551,6 +575,7 @@ class TradeAuditor:
                 "sop_risk_stress_test": stress_test,
                 "capital_assessment": capital_assessment,
                 "historical_summary": monthly_summary,
+                "annual_summary": annual_summary,
                 "detailed_trades": monthly_trades,
                 "static_rules": {
                     "upgrade_criteria": UPGRADE_CRITERIA,

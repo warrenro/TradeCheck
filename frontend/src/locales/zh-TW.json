@@ -8,8 +8,10 @@
   "form": {
     "selectFileTitle": "選擇交易檔案",
     "transactionLog": "交易紀錄",
-    "loadingFiles": "讀取檔案中...",
-    "autoRecalculate": "選擇後將自動重新分析。"
+    "loadingFiles": "正在載入檔案...",
+    "clickToAnalyze": "點擊按鈕以開始分析。",
+    "analyzeButton": "開始分析",
+    "analyzing": "分析中..."
   },
   "dashboard": {
     "meta": {
@@ -72,6 +74,11 @@
       "safe": "安全",
       "eligible": "合格",
       "notEligible": "不合格"
+    },
+    "annualSummary": {
+      "title": "年度總結",
+      "yearSuffix": "年總結",
+      "tradeCount": "總交易筆數"
     }
   },
    "sopRisk": {

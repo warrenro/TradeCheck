@@ -6,10 +6,12 @@
     "offline": "Offline"
   },
   "form": {
-    "selectFileTitle": "Select Trade File",
+    "selectFileTitle": "Select Transaction File",
     "transactionLog": "Transaction Log",
     "loadingFiles": "Loading files...",
-    "autoRecalculate": "Analysis will automatically run upon selection."
+    "clickToAnalyze": "Click the button to start the analysis.",
+    "analyzeButton": "Analyze",
+    "analyzing": "Analyzing..."
   },
   "dashboard": {
     "meta": {
@@ -72,6 +74,11 @@
       "safe": "Safe",
       "eligible": "Eligible",
       "notEligible": "Not Eligible"
+    },
+    "annualSummary": {
+      "title": "Annual Summary",
+      "yearSuffix": "Summary",
+      "tradeCount": "Total Trades"
     },
     "sopRisk": {
       "title": "SOP Risk Reference",
