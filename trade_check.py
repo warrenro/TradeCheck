@@ -10,6 +10,7 @@ import configparser
 import numpy as np
 import argparse
 import sys
+import hashlib
 
 # --- Logging Setup ---
 # Configure logger to write to a file and the console
@@ -178,6 +179,30 @@ class TradeAuditor:
 
         trades['points'] = trades.apply(calculate_points, axis=1)
         logger.info("Successfully calculated and added 'points' column.")
+        return trades
+
+    def _generate_trade_ids(self, trades: pd.DataFrame) -> pd.DataFrame:
+        """Generates a unique ID for each trade."""
+        if trades.empty:
+            return trades
+
+        logger.info("Generating unique trade IDs.")
+
+        def create_id(row):
+            # Ensure all parts are string to prevent hashing errors
+            trade_time_str = str(row['trade_time'])
+            product_name_str = str(row['product_name'])
+            net_pnl_str = str(row['net_pnl'])
+            contracts_str = str(row['contracts'])
+            
+            # Combine the elements into a single string
+            unique_string = f"{trade_time_str}-{product_name_str}-{net_pnl_str}-{contracts_str}"
+            
+            # Create a SHA256 hash
+            return hashlib.sha256(unique_string.encode()).hexdigest()
+
+        trades['trade_id'] = trades.apply(create_id, axis=1)
+        logger.info("Successfully added 'trade_id' column.")
         return trades
 
     def _calculate_kpis(self, trades: pd.DataFrame) -> Tuple[float, Any, float]:
@@ -527,6 +552,7 @@ class TradeAuditor:
         logger.info(f"--- Starting Full Audit for file: {file_path} ---")
         try:
             trades = self.load_transactions(file_path)
+            trades = self._generate_trade_ids(trades)
             trades = self._add_trade_points_column(trades)
 
             # Determine the month for the audit from the latest trade

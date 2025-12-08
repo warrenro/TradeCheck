@@ -10,14 +10,49 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Body
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
 from fastapi.encoders import jsonable_encoder
 import numpy as np
+import sqlite3
 
 # Import the existing auditor class and the logger
 from trade_check import TradeAuditor, logger, UPGRADE_CRITERIA, list_trade_files
 
 app = FastAPI()
+
+# --- Database Setup ---
+DB_FILE = "trade_notes.db"
+
+def init_database():
+    """Initializes the database and creates the notes table if it doesn't exist."""
+    try:
+        logger.info(f"Initializing database at '{DB_FILE}'...")
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Create table for trade notes
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trade_notes (
+                trade_id TEXT PRIMARY KEY,
+                note TEXT,
+                related_info TEXT,
+                last_updated DATETIME
+            )
+        ''')
+        
+        conn.commit()
+        conn.close()
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.critical(f"Failed to initialize database: {e}", exc_info=True)
+        # We might want to prevent the app from starting if the DB fails
+        raise
+
+@app.on_event("startup")
+async def startup_event():
+    """Run database initialization on server startup."""
+    init_database()
 
 # --- Pydantic Models ---
 class LogMessage(BaseModel):
@@ -28,6 +63,14 @@ class LogMessage(BaseModel):
 class RunCheckRequest(BaseModel):
     filename: str
 
+class TradeNote(BaseModel):
+    trade_id: str
+    note: Optional[str] = ""
+    related_info: Optional[str] = ""
+
+class TradeNoteList(BaseModel):
+    trade_ids: List[str]
+
 # --- CORS Middleware ---
 # Allow requests from the Vue.js development server
 app.add_middleware(
@@ -37,6 +80,57 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.post("/api/trade_note")
+async def save_trade_note(note: TradeNote):
+    """Saves or updates a note for a specific trade."""
+    logger.info(f"Received request to save note for trade_id: {note.trade_id}")
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Use INSERT OR REPLACE to handle both new notes and updates
+        cursor.execute("""
+            INSERT OR REPLACE INTO trade_notes (trade_id, note, related_info, last_updated)
+            VALUES (?, ?, ?, ?)
+        """, (note.trade_id, note.note, note.related_info, datetime.now()))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"Successfully saved note for trade_id: {note.trade_id}")
+        return {"status": "success", "trade_id": note.trade_id}
+    except Exception as e:
+        logger.error(f"Failed to save note for trade_id {note.trade_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to save trade note.")
+
+@app.post("/api/trade_notes")
+async def get_trade_notes(request: TradeNoteList):
+    """Retrieves all notes for a given list of trade IDs."""
+    logger.info(f"Received request to get notes for {len(request.trade_ids)} trades.")
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        conn.row_factory = sqlite3.Row # This allows accessing columns by name
+        cursor = conn.cursor()
+
+        # Use a parameterized query to avoid SQL injection
+        placeholders = ','.join('?' for _ in request.trade_ids)
+        if not placeholders:
+            return JSONResponse(content={})
+            
+        cursor.execute(f"SELECT * FROM trade_notes WHERE trade_id IN ({placeholders})", request.trade_ids)
+        
+        notes = cursor.fetchall()
+        conn.close()
+
+        # Convert list of rows to a dictionary keyed by trade_id
+        notes_dict = {row['trade_id']: dict(row) for row in notes}
+        
+        logger.info(f"Successfully retrieved {len(notes_dict)} notes.")
+        return JSONResponse(content=notes_dict)
+    except Exception as e:
+        logger.error(f"Failed to retrieve notes: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve trade notes.")
 
 @app.get("/api/upgrade-criteria")
 def get_upgrade_criteria():
@@ -60,10 +154,25 @@ def get_trade_files():
         logger.error(f"Failed to list trade files: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve trade files from server.")
 
+# Helper function to convert numpy types to standard Python types
+def convert_numpy_types(obj):
+    if isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(i) for i in obj]
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
+
 @app.post("/api/run_check")
 async def run_check_for_file(request: RunCheckRequest):
     """
     Triggers a new audit based on a specific file from the 'tradedata' directory.
+    This is the primary endpoint for the frontend.
     """
     filename = request.filename
     logger.info(f"Received request to run audit for file: {filename}")
@@ -75,36 +184,41 @@ async def run_check_for_file(request: RunCheckRequest):
         raise HTTPException(status_code=404, detail=f"File '{filename}' not found in 'tradedata' directory.")
         
     try:
-        # Execute the trade_check.py script as a subprocess
-        command = ["python", "trade_check.py", "--file", trade_file_path]
-        logger.info(f"Executing command: {' '.join(command)}")
+        # --- Read configuration from config.ini ---
+        config = configparser.ConfigParser()
+        config_file = 'config.ini'
+        if not os.path.exists(config_file):
+            raise FileNotFoundError(f"Configuration file '{config_file}' not found on server.")
+        config.read(config_file)
         
-        process = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True  # Raises CalledProcessError if the command returns a non-zero exit code
+        monthly_start_capital = config.getfloat('Account', 'monthly_start_capital')
+        current_scale = config.get('Account', 'current_scale')
+        operation_contracts = config.getint('Account', 'operation_contracts')
+
+        # --- Initialize and run the auditor ---
+        logger.info(f"Initializing auditor for scale {current_scale} with start capital {monthly_start_capital}")
+        auditor = TradeAuditor(
+            monthly_start_capital=monthly_start_capital,
+            current_scale=current_scale,
+            operation_contracts=operation_contracts
         )
-        logger.info(f"Script stdout: {process.stdout}")
+        report = auditor.run_audit(trade_file_path)
+
+        # --- Convert numpy types for JSON serialization ---
+        json_compatible_report = convert_numpy_types(report)
         
-        # After successful execution, read the new report
-        report_path = 'audit_report.json'
-        if not os.path.exists(report_path):
-             logger.error(f"Audit script ran, but report '{report_path}' was not generated.")
-             raise HTTPException(status_code=500, detail="Audit ran but failed to produce a report.")
+        logger.info(f"Successfully ran audit and generated report for '{filename}'.")
+        return JSONResponse(content=json_compatible_report)
 
-        with open(report_path, 'r', encoding='utf-8') as f:
-            new_report = json.load(f)
-            
-        logger.info(f"Successfully ran audit and loaded new report for '{filename}'.")
-        return JSONResponse(content=new_report)
-
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Error executing trade_check.py for {filename}: {e.stderr}")
-        raise HTTPException(status_code=500, detail=f"Error running audit script: {e.stderr}")
+    except (ValueError, FileNotFoundError) as e:
+        logger.error(f"Validation or file error during audit for {filename}: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail=str(e))
+    except (configparser.Error, KeyError) as e:
+        logger.error(f"Error parsing config file 'config.ini': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Server configuration error: Could not read 'config.ini'.")
     except Exception as e:
         logger.critical(f"An unexpected server error occurred during check run for {filename}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {str(e)}")
 
 
 # Custom encoder for numpy types

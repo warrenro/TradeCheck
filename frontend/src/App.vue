@@ -91,8 +91,8 @@
               <div class="card-header"><h3>{{ $t('dashboard.accountStatus.title') }}</h3></div>
               <div class="card-body">
                 <div class="status-item"><span>{{ $t('dashboard.accountStatus.currentScale') }}</span> <strong>{{ report.account_summary.scale }}</strong></div>
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.monthlyStartCapital') }}</span> <strong>{{ formatCurrency(report.account_summary.monthly_start_capital) }}</strong></div>
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong>{{ formatCurrency(report.account_summary.current_balance) }}</strong></div>
+                <div class="status-item"><span>{{ $t('dashboard.accountStatus.monthlyStartCapital') }}</span> <strong :class="getPnlClass(report.account_summary.monthly_start_capital)">{{ formatCurrency(report.account_summary.monthly_start_capital) }}</strong></div>
+                <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong :class="getPnlClass(report.account_summary.current_balance)">{{ formatCurrency(report.account_summary.current_balance) }}</strong></div>
               </div>
             </div>
             <!-- Safety Checks -->
@@ -207,11 +207,11 @@
                     </div>
                     <div class="kpi-card">
                       <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
-                      <p>{{ yearSummary.win_rate }}</p>
+                      <p :class="getKpiClass(yearSummary.win_rate, 'wr')">{{ yearSummary.win_rate }}</p>
                     </div>
                     <div class="kpi-card">
                       <h4>{{ $t('dashboard.kpi.rr') }}</h4>
-                      <p>{{ yearSummary.risk_reward_ratio }}</p>
+                      <p :class="getKpiClass(yearSummary.risk_reward_ratio, 'rr')">{{ yearSummary.risk_reward_ratio }}</p>
                     </div>
                     <div class="kpi-card">
                       <h4>{{ $t('dashboard.annualSummary.tradeCount') }}</h4>
@@ -241,9 +241,9 @@
                     <tr v-for="row in sopRiskData" :key="row.scale">
                       <td>{{ row.scale }}</td>
                       <td>{{ row.capital }}</td>
-                      <td>{{ row.sopA_loss }}</td>
+                      <td class="text-danger">{{ row.sopA_loss }}</td>
                       <td>{{ row.sopA_risk }}</td>
-                      <td>{{ row.sopB_loss }}</td>
+                      <td class="text-danger">{{ row.sopB_loss }}</td>
                       <td>{{ row.sopB_risk }}</td>
                     </tr>
                   </tbody>
@@ -273,19 +273,42 @@
                 <th>{{ $t('details.tradeTime') }}</th>
                 <th>{{ $t('details.action') }}</th>
                 <th>{{ $t('details.netPnl') }}</th>
+                <th style="width: 40%;">{{ $t('details.note') }}</th>
+                <th>{{ $t('details.edit') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="selectedMonthTrades.length === 0">
-                <td colspan="3">{{ $t('details.noTrades') }}</td>
+                <td colspan="5">{{ $t('details.noTrades') }}</td>
               </tr>
-              <tr v-for="(trade, index) in selectedMonthTrades" :key="index">
+              <tr v-for="trade in selectedMonthTrades" :key="trade.trade_id">
                 <td>{{ trade.trade_time }}</td>
                 <td>{{ trade.action }}</td>
                 <td :class="getPnlClass(trade.net_pnl)">{{ formatCurrency(trade.net_pnl) }}</td>
+                <td class="note-cell">{{ tradeNotes[trade.trade_id]?.note }}</td>
+                <td>
+                  <button @click="openEditNoteModal(trade)" class="edit-note-button">{{ $t('details.edit') }}</button>
+                </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Note Modal -->
+    <div v-if="editingTrade" class="modal-overlay" @click.self="closeEditNoteModal">
+      <div class="modal-content edit-note-modal">
+        <div class="modal-header">
+          <h3>{{ $t('details.editNoteTitle') }}</h3>
+          <button @click="closeEditNoteModal" class="close-button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <textarea v-model="editingNote" class="note-textarea" rows="5"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button @click="closeEditNoteModal" class="button-secondary">{{ $t('details.cancel') }}</button>
+          <button @click="saveNote" class="button-primary">{{ $t('details.save') }}</button>
         </div>
       </div>
     </div>
@@ -327,6 +350,9 @@ const serverStatus = ref('offline');
 const selectedMonth = ref(null);
 const tradeFiles = ref([]);
 const selectedFile = ref('');
+const tradeNotes = ref({}); // To store notes for trades: { [trade_id]: note }
+const editingTrade = ref(null); // The trade being edited
+const editingNote = ref(''); // The note content being edited
 const upgradeCriteria = ref(null);
 const sopRiskData = ref([
   { scale: 'S1', capital: '100,000 (起始)', sopA_loss: '75,000', sopA_risk: '75.0%', sopB_loss: '75,000', sopB_risk: '75.0%' },
@@ -343,6 +369,50 @@ const sopRiskData = ref([
   { scale: 'S12', capital: '20,000,000', sopA_loss: '300,000', sopA_risk: '1.5%', sopB_loss: '600,000', sopB_risk: '3.0%' },
   { scale: 'S13', capital: '33,600,000', sopA_loss: '300,000', sopA_risk: '0.9%', sopB_loss: '900,000', sopB_risk: '2.7%' },
 ]);
+
+const openEditNoteModal = (trade) => {
+  editingTrade.value = trade;
+  editingNote.value = tradeNotes.value[trade.trade_id]?.note || '';
+};
+
+const closeEditNoteModal = () => {
+  editingTrade.value = null;
+  editingNote.value = '';
+};
+
+const saveNote = async () => {
+  if (!editingTrade.value) return;
+
+  const trade = editingTrade.value;
+  const noteContent = editingNote.value;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/trade_note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trade_id: trade.trade_id,
+        note: noteContent,
+        related_info: '' // Not used for now
+      }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to save note.');
+    }
+    // Update local state
+    if (!tradeNotes.value[trade.trade_id]) {
+      tradeNotes.value[trade.trade_id] = {};
+    }
+    tradeNotes.value[trade.trade_id].note = noteContent;
+    
+    logger.info(`Successfully saved note for trade ${trade.trade_id}.`);
+    closeEditNoteModal();
+
+  } catch (e) {
+    logger.error(`Failed to save note for trade ${trade.trade_id}.`, { error: e.message });
+    // Optionally show an error to the user
+  }
+};
 
 // --- Computed Properties ---
 const errorDisplay = computed(() => {
@@ -429,13 +499,39 @@ const startAnalysis = async () => {
   }
 };
 
-const showMonthDetails = (month) => {
+const fetchTradeNotes = async (trade_ids) => {
+  if (!trade_ids || trade_ids.length === 0) return;
+  try {
+    logger.info(`Fetching notes for ${trade_ids.length} trades.`);
+    const response = await fetch(`${API_BASE_URL}/api/trade_notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trade_ids: trade_ids }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch trade notes.');
+    }
+    const notes = await response.json();
+    tradeNotes.value = notes;
+    logger.info(`Successfully fetched ${Object.keys(notes).length} notes.`);
+  } catch (e) {
+    logger.error('Could not fetch trade notes.', { error: e.message });
+    // Do not show an error to the user, just log it.
+  }
+};
+
+const showMonthDetails = async (month) => {
   logger.info(`User requested details for month: ${month}`);
   selectedMonth.value = month;
+  
+  // Fetch notes for the trades in this month
+  const trade_ids = selectedMonthTrades.value.map(t => t.trade_id);
+  await fetchTradeNotes(trade_ids);
 };
 
 const closeMonthDetails = () => {
   selectedMonth.value = null;
+  tradeNotes.value = {}; // Clear notes when closing
 };
 
 const formatCurrency = (value) => {
@@ -580,10 +676,70 @@ const getKpiClass = (value, type) => {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
 }
-.details-table th {
-  font-weight: 600;
+.note-cell {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+.edit-note-button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  border: 1px solid #d1d5db;
   background-color: #f9fafb;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.edit-note-button:hover {
+  background-color: #f3f4f6;
+}
+.edit-note-modal {
+  max-width: 500px;
+}
+.note-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+.button-primary {
+  padding: 0.6rem 1.2rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.button-secondary {
+  padding: 0.6rem 1.2rem;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.button-primary:hover {
+  background-color: #1d4ed8;
+}
+.button-secondary:hover {
+  background-color: #e5e7eb;
 }
 
 .annual-summary-year-block {

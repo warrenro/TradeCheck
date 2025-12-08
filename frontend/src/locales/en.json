@@ -95,7 +95,12 @@
     "tradeTime": "Trade Time",
     "action": "Action",
     "netPnl": "Net PnL",
-    "noTrades": "No trades recorded for this month."
+    "note": "Note",
+    "edit": "Edit",
+    "noTrades": "No trades recorded for this month.",
+    "editNoteTitle": "Edit Note for Trade",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "error": {
     "title": "Error:",

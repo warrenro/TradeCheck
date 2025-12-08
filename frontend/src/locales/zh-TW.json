@@ -95,7 +95,12 @@
     "tradeTime": "成交時間",
     "action": "買賣別",
     "netPnl": "平倉損益淨額",
-    "noTrades": "這個月沒有交易紀錄。"
+    "note": "備註",
+    "edit": "編輯",
+    "noTrades": "這個月沒有交易紀錄。",
+    "editNoteTitle": "編輯交易備註",
+    "save": "儲存",
+    "cancel": "取消"
   },
   "error": {
     "title": "錯誤:",
