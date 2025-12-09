@@ -150,6 +150,17 @@ const setupChart = (data) => {
   if (chart) {
     chart.remove();
     chart = null;
+    // Null out series refs after chart is destroyed
+    candlestickSeries = null;
+    lineSeries = null;
+    volumeSeries = null;
+    ma5Series = null;
+    ma10Series = null;
+    ma20Series = null;
+    ma60Series = null;
+    bbandsUpperSeries = null;
+    bbandsMiddleSeries = null;
+    bbandsLowerSeries = null;
   }
 
   chart = createChart(chartContainer.value, {

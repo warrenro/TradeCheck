@@ -1647,3 +1647,131 @@
 2025-12-09 22:00:14,314 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
 2025-12-09 22:00:34,795 - trade_check - INFO - Request received for K-line data with timeframe: 5T
 2025-12-09 22:00:36,258 - trade_check - INFO - Successfully retrieved and formatted 36595 K-line data points for timeframe: 5T.
+2025-12-09 22:07:42,755 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:07:42,759 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:10:14,561 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:10:14,569 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:10:26,223 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-09 22:10:26,231 - trade_check - INFO - Request received for KData files list.
+2025-12-09 22:10:26,235 - trade_check - INFO - Request received for trade files list.
+2025-12-09 22:10:26,236 - trade_check - INFO - Searching for trade files in directory: /Users/weiyuanlo/Downloads/code/TradeCheck/tradedata
+2025-12-09 22:10:26,245 - trade_check - INFO - Found 7 trade files. Newest: 給審計程式用的交易資料(TradeCheck) - 2024-2025.csv
+2025-12-09 22:10:26,542 - trade_check - INFO - [Frontend] Found 2 K-Data files.
+2025-12-09 22:10:26,546 - trade_check - INFO - [Frontend] Found 7 trade files.
+2025-12-09 22:10:29,281 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:10:30,280 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:10:33,407 - trade_check - INFO - Request received for K-line data with timeframe: 5T
+2025-12-09 22:10:34,111 - trade_check - INFO - Successfully retrieved and formatted 69469 K-line data points for timeframe: 5T.
+2025-12-09 22:10:34,111 - trade_check - ERROR - Failed to get K-line data: Out of range float values are not JSON compliant
+Traceback (most recent call last):
+  File "/Users/weiyuanlo/Downloads/code/TradeCheck/server.py", line 106, in get_kline_data
+    return JSONResponse(content=chart_data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/starlette/responses.py", line 192, in render
+    return json.dumps(
+           ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/json/encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+ValueError: Out of range float values are not JSON compliant
+2025-12-09 22:12:35,361 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:12:35,423 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:15:09,971 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-09 22:15:09,982 - trade_check - INFO - Request received for KData files list.
+2025-12-09 22:15:10,006 - trade_check - INFO - Request received for trade files list.
+2025-12-09 22:15:10,010 - trade_check - INFO - Searching for trade files in directory: /Users/weiyuanlo/Downloads/code/TradeCheck/tradedata
+2025-12-09 22:15:10,039 - trade_check - INFO - Found 7 trade files. Newest: 給審計程式用的交易資料(TradeCheck) - 2024-2025.csv
+2025-12-09 22:15:10,104 - trade_check - INFO - [Frontend] Found 2 K-Data files.
+2025-12-09 22:15:10,563 - trade_check - INFO - [Frontend] Found 7 trade files.
+2025-12-09 22:15:12,013 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:15:13,291 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:15:17,440 - trade_check - INFO - Request received for K-line data with timeframe: 5T
+2025-12-09 22:15:19,076 - trade_check - INFO - Successfully retrieved and formatted 36595 K-line data points for timeframe: 5T.
+2025-12-09 22:15:26,006 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:15:26,839 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:21:43,776 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:21:43,785 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:24:43,346 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:24:43,350 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:24:43,350 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:24:43,351 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:26:57,203 - trade_check - INFO - Request received for KData files list.
+2025-12-09 22:26:57,220 - trade_check - INFO - Request received for trade files list.
+2025-12-09 22:26:57,227 - trade_check - INFO - Searching for trade files in directory: /Users/weiyuanlo/Downloads/code/TradeCheck/tradedata
+2025-12-09 22:26:57,228 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-09 22:26:57,237 - trade_check - INFO - Found 7 trade files. Newest: 給審計程式用的交易資料(TradeCheck) - 2024-2025.csv
+2025-12-09 22:26:57,268 - trade_check - INFO - [Frontend] Found 2 K-Data files.
+2025-12-09 22:26:57,610 - trade_check - INFO - [Frontend] Found 7 trade files.
+2025-12-09 22:26:59,072 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:26:59,913 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:27:05,566 - trade_check - INFO - Request received for K-line data with timeframe: 5T
+2025-12-09 22:27:06,294 - trade_check - INFO - Successfully retrieved and formatted 36595 K-line data points for timeframe: 5T.
+2025-12-09 22:27:11,049 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:27:11,750 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:29:48,889 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:29:48,892 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:29:48,892 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:29:48,893 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:29:57,133 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-09 22:29:57,204 - trade_check - INFO - Request received for KData files list.
+2025-12-09 22:29:57,211 - trade_check - INFO - Request received for trade files list.
+2025-12-09 22:29:57,212 - trade_check - INFO - Searching for trade files in directory: /Users/weiyuanlo/Downloads/code/TradeCheck/tradedata
+2025-12-09 22:29:57,214 - trade_check - INFO - Found 7 trade files. Newest: 給審計程式用的交易資料(TradeCheck) - 2024-2025.csv
+2025-12-09 22:29:57,264 - trade_check - INFO - [Frontend] Found 2 K-Data files.
+2025-12-09 22:29:57,272 - trade_check - INFO - [Frontend] Found 7 trade files.
+2025-12-09 22:29:59,003 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:29:59,774 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:30:03,019 - trade_check - INFO - Request received for K-line data with timeframe: 5T
+2025-12-09 22:30:03,732 - trade_check - INFO - Successfully retrieved and formatted 36595 K-line data points for timeframe: 5T.
+2025-12-09 22:30:07,112 - trade_check - INFO - Request received for K-line data with timeframe: 15T
+2025-12-09 22:30:07,715 - trade_check - INFO - Successfully retrieved and formatted 12419 K-line data points for timeframe: 15T.
+2025-12-09 22:30:28,184 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-09 22:30:28,187 - trade_check - INFO - Request received for KData files list.
+2025-12-09 22:30:28,190 - trade_check - INFO - Request received for trade files list.
+2025-12-09 22:30:28,190 - trade_check - INFO - Searching for trade files in directory: /Users/weiyuanlo/Downloads/code/TradeCheck/tradedata
+2025-12-09 22:30:28,202 - trade_check - INFO - Found 7 trade files. Newest: 給審計程式用的交易資料(TradeCheck) - 2024-2025.csv
+2025-12-09 22:30:28,259 - trade_check - INFO - [Frontend] Found 2 K-Data files.
+2025-12-09 22:30:28,273 - trade_check - INFO - [Frontend] Found 7 trade files.
+2025-12-09 22:30:34,534 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:30:35,245 - trade_check - INFO - Successfully retrieved and formatted 179668 K-line data points for timeframe: 1T.
+2025-12-09 22:33:32,141 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:33:32,147 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:33:32,148 - trade_check - INFO - Initializing database at /Users/weiyuanlo/Downloads/code/TradeCheck/trade_notes.db...
+2025-12-09 22:33:32,151 - trade_check - INFO - Database initialized successfully with all tables.
+2025-12-09 22:33:51,971 - trade_check - INFO - Request received for K-line data with timeframe: 5T
+2025-12-09 22:33:52,272 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-09 22:33:52,656 - trade_check - INFO - K-line trace: Resampled to 69469 rows before dropping NA.
+2025-12-09 22:33:52,658 - trade_check - INFO - K-line trace: 36595 rows remain after dropping rows with no OHLC.
+2025-12-09 22:33:52,681 - trade_check - INFO - K-line trace: Final chart_data has 36595 records.
+2025-12-09 22:34:58,756 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:34:59,195 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-09 22:34:59,819 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-09 22:35:00,213 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-09 22:35:00,419 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-09 22:35:00,880 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-09 22:36:24,302 - trade_check - INFO - Request received for K-line data with timeframe: 5T
+2025-12-09 22:36:24,582 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-09 22:36:24,978 - trade_check - INFO - K-line trace: Resampled to 69469 rows before dropping NA.
+2025-12-09 22:36:24,983 - trade_check - INFO - K-line trace: 36595 rows remain after dropping rows with no OHLC.
+2025-12-09 22:36:25,007 - trade_check - INFO - K-line trace: Final chart_data has 36595 records.
+2025-12-09 22:36:30,423 - trade_check - INFO - Request received for K-line data with timeframe: 15T
+2025-12-09 22:36:30,720 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-09 22:36:31,131 - trade_check - INFO - K-line trace: Resampled to 23157 rows before dropping NA.
+2025-12-09 22:36:31,136 - trade_check - INFO - K-line trace: 12419 rows remain after dropping rows with no OHLC.
+2025-12-09 22:36:31,187 - trade_check - INFO - K-line trace: Final chart_data has 12419 records.
+2025-12-09 22:36:42,159 - trade_check - INFO - Request received for K-line data with timeframe: 1H
+2025-12-09 22:36:42,439 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-09 22:36:42,820 - trade_check - INFO - K-line trace: Resampled to 5790 rows before dropping NA.
+2025-12-09 22:36:42,822 - trade_check - INFO - K-line trace: 3345 rows remain after dropping rows with no OHLC.
+2025-12-09 22:36:42,826 - trade_check - INFO - K-line trace: Final chart_data has 3345 records.

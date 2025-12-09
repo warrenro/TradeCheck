@@ -1,127 +1,128 @@
-# K-line Chart Display Specification
+# TradeCheck K線圖功能規格書
 
-## 1. Overview
-This document specifies the behavior and functionality of the K-line (candlestick) chart display within the TradeCheck application, focusing on data fitting, zoom capabilities, and dynamic Y-axis scaling. The chart utilizes the `lightweight-charts` library.
+- **版本**: v2.4
+- **最後更新日期**: 2025-12-09
 
-## 2. Core Requirements
+## 1. 總覽
 
-### 2.1 Data Fitting
-*   **Initial Display:** Upon loading or refreshing the K-line chart, all available historical data for the selected timeframe must be displayed, fitting entirely within the chart container's width. The chart should automatically adjust its visible range to encompass the full dataset.
-*   **Responsive Resizing:** If the browser window or the chart's container size changes, the chart must automatically resize and re-fit all available data to the new dimensions.
+本文件旨在詳細說明 `TradeCheck` 應用程式中 K 線圖（Candlestick Chart）功能的行為與規格，重點涵蓋資料處理、圖表互動、以及各項分析工具的技術實現。此圖表功能主要基於 `lightweight-charts` 函式庫建構。
 
-### 2.2 Time-Scale (X-Axis) Zoom Functionality
-The chart will provide both button-based and intuitive mouse-based zoom and pan functionalities for the time axis.
+## 2. 核心需求
 
-#### 2.2.1 Button Controls
-*   **Zoom In Button:** A dedicated "Zoom In" button will allow users to magnify the chart, reducing the visible time range.
-    *   Each click will reduce the visible range by a predefined factor (e.g., 20%).
-    *   The zoom should center around the currently visible middle point of the chart.
-    *   There is a reasonable minimum number of visible bars (e.g., 5 bars) to prevent excessive zooming into individual data points where bars might become indistinguishable.
-*   **Zoom Out Button:** A dedicated "Zoom Out" button will allow users to de-magnify the chart, expanding the visible time range.
-    *   Each click will increase the visible range by a predefined factor (e.g., 20%).
-    *   The zoom should center around the currently visible middle point of the chart.
-    *   The chart will not zoom out beyond displaying all available data.
-*   **Reset Zoom Button:** A "Reset Zoom" button will instantly restore the chart to its initial state, fitting all available data within the container as described in Section 2.1.
+### 2.1 資料載入與適配
+*   **初次載入**: 當使用者首次開啟「行情圖表」分頁時，系統應自動向後端請求預設時間週期（1分鐘）的 K 線資料。載入完成後，圖表應自動調整其時間軸與價格軸，以將所有歷史資料完整地顯示在圖表容器的寬度內。
+*   **響應式縮放**: 當瀏覽器視窗或圖表容器的大小改變時，圖表必須能自動調整其尺寸，並重新縮放以適配所有資料。
 
-#### 2.2.2 Mouse Interaction (Intuitive Controls)
-*   **Mouse Wheel Zoom:** Users can zoom in and out of the chart using the mouse wheel.
-    *   Scrolling up (away from the user) will zoom in, and scrolling down (towards the user) will zoom out.
-    *   The zoom action is centered on the mouse cursor's position.
-*   **Drag-to-Pan:** Users can pan (scroll horizontally) the chart by clicking and dragging with the mouse.
-    *   Clicking and dragging left will move the chart view to older data.
-    *   Clicking and dragging right will move the chart view to newer data.
+### 2.2 時間軸 (X軸) 功能
+圖表提供基於按鈕和滑鼠的直觀操作，以進行時間軸的縮放與平移。
 
-### 2.3 Price-Scale (Y-Axis) Management
-The Y-axis scaling ensures clear data visualization and provides manual control options.
+#### 2.2.1 按鈕控制
+*   **放大按鈕**: 點擊「放大」按鈕，使用者可以縮小可見的時間範圍，以檢視更細節的 K 線。
+    *   每次點擊會將可見範圍縮小一個預設係數（例如 20%）。
+    *   縮放應以當前可見範圍的中心點為基準。
+    *   為防止過度放大，縮放設有最小可見 K 棒數量的下限（例如 5 根），避免圖表變得難以辨識。
+*   **縮小按鈕**: 點擊「縮小」按鈕，使用者可以擴大可見的時間範圍，以瀏覽更長期的趨勢。
+    *   每次點擊會將可見範圍擴大一個預設係數（例如 20%）。
+    *   縮放同樣以當前可見範圍的中心點為基準。
+    *   縮放範圍不會超過所有可用資料的總時間跨度。
+*   **重置縮放按鈕**: 點擊「重置縮放」按鈕，圖表將立即恢復到其初始狀態，將所有資料完整顯示於容器內。
 
-*   **Automatic Data Adaptation (Auto-scaling):**
-    *   When manual Y-axis range is not active, the Y-axis will automatically adjust its visible range to closely fit the high and low price points of the data currently displayed in the time-scale (X-axis) view. This ensures optimal vertical data representation, adapting dynamically as the user zooms or pans the time axis.
-    *   Initial Y-axis display, and after resetting manual settings, will be auto-scaled.
-*   **Manual Range Setting:**
-    *   Users can manually define the minimum and maximum values for the Y-axis via dedicated input fields in the toolbar.
-    *   An "Apply" button (labelled "設定Y軸範圍") will set the Y-axis to the specified minimum and maximum values, disabling automatic scaling.
-    *   Validation will ensure that both inputs are valid numbers, and the maximum value is greater than the minimum.
-*   **Reset Manual Range:**
-    *   A "Reset" button (labelled "重設Y軸範圍") will revert the Y-axis back to its automatic scaling behavior, clearing any manually set minimum and maximum values.
-*   **K-Bar Display Optimization:**
-    *   To ensure K-bars are always displayed in a normal, visible size and do not collapse into thin lines, especially when zooming in, an explicit `barSpacing` is set for the `timeScale`. This helps maintain visual clarity even at higher zoom levels.
+#### 2.2.2 滑鼠互動 (直覺控制)
+*   **滾輪縮放**: 使用者可透過滑鼠滾輪進行縮放。
+    *   向上滾動（遠離使用者）為放大；向下滾動（朝向使用者）為縮小。
+    *   縮放中心點為滑鼠游標所在的位置。
+*   **拖曳平移**: 使用者可透過點擊並拖曳圖表來水平捲動時間軸。
+    - 向左拖曳可檢視更早的歷史資料。
+    - 向右拖曳可檢視較新的資料。
 
-## 3. Technical Implementation Details (Internal)
+### 2.3 價格軸 (Y軸) 管理
+Y 軸的縮放管理確保了價格資訊的清晰可見，並提供手動控制選項。
 
-*   Utilize `lightweight-charts` built-in `timeScale().fitContent()` for initial data fit and reset of X-axis zoom.
-*   Leverage `lightweight-charts` `timeScale().setVisibleRange()` for programmatic X-axis zoom adjustments.
-*   Configure `lightweight-charts` chart options (`handleScroll`, `handleScale`) to enable mouse wheel zoom and drag-to-pan for the X-axis.
-*   `priceScale` global options within `createChart` explicitly set `autoScale: true` and `scaleMargins` for the default Y-axis behavior.
-*   `priceScale().applyOptions()` on individual series (`candlestickSeries`, `lineSeries`) is used to apply manual min/max settings (`autoScale: false`, `minimum`, `maximum`) or revert to auto-scaling (`autoScale: true`, `minimum: undefined`, `maximum: undefined`).
-*   `timeScale` options within `createChart` include `barSpacing` (e.g., `barSpacing: 6`) to maintain K-bar visibility.
-*   Ensure `currentChartData` is consistently updated and used for all calculations.
-*   Implement robust error handling and input validation for data fetching, chart rendering, and user inputs.
+*   **自動縮放 (Auto-scaling)**:
+    *   在未啟用手動範圍設定時，Y 軸會自動調整其可見範圍，以緊密貼合當前時間範圍內資料的最高價與最低價。這確保了無論如何縮放或平移，價格的垂直顯示都是最佳化的。
+*   **手動範圍設定**:
+    *   使用者可透過工具列中的「Y軸最小值」和「Y軸最大值」輸入框，手動指定 Y 軸的顯示範圍。
+    *   點擊「設定Y軸範圍」按鈕後，Y 軸將固定在指定的範圍內，自動縮放功能會暫時停用。
+    *   系統會驗證輸入值是否為有效數字，且最大值必須大於最小值。
+*   **重置手動範圍**:
+    *   點擊「重設Y軸範圍」按鈕，將清除手動設定，使 Y 軸恢復為自動縮放模式。
 
-## 4. User Interface Considerations
+### 2.4 K棒顯示優化
+*   為確保 K 棒在任何縮放級別下都能清晰可見，而不是被壓縮成細線，`timeScale` 被設置了明確的 `barSpacing`（例如 `6`）。
 
-*   All zoom buttons, Y-axis range input fields, and related action buttons are clearly labeled and positioned within the chart toolbar for easy access.
-*   Alert messages are provided for invalid Y-axis range inputs.
-*   Mouse-based interactions are standard charting behaviors, requiring no additional UI elements.
+---
 
-## 5. Testing
-*   Verify that the chart loads with all data fitted correctly and K-bars are displayed in a normal, visible size.
-*   Test "Zoom In", "Zoom Out", and "Reset Zoom" buttons for correct behavior and boundary conditions.
-*   Test mouse wheel zoom (in and out) and drag-to-pan functionality.
-*   Verify responsive behavior when resizing the browser window, ensuring `fitContent` and Y-axis scaling (auto/manual) are maintained.
-*   Verify initial Y-axis auto-scaling and its dynamic adjustment with time-scale zoom/pan.
-*   Test manual Y-axis min/max input: set values, validate input, and observe interaction with X-axis zoom.
-*   Test "Reset Y-Axis Range" button: verify return to auto-scaling and clearing of input fields.
-*   Ensure that all chart interactions do not negatively impact the performance or stability of the application.
+## 3. 功能工具列規格
 
-## 6. Layer Management Feature Specification
+圖表上方提供一個功能工具列，整合了多項分析與操作功能。
 
-### 6.1 Feature Description
-This feature allows users to overlay different data series or visual elements onto the K-line chart, such as trading signals, indicator lines, and event markers. Each layer can be independently toggled on/off, styled, or configured.
+### 3.1 時間週期切換 (Timeframe Selection)
+- **UI**: 一個下拉式選單。
+- **選項**: 1分鐘 (1T), 5分鐘 (5T), 15分鐘 (15T), 1小時 (1H), 日線 (1D)。
+- **行為**: 選擇新的時間週期後，前端會向後端 `/api/kline_data` 端點發出帶有 `timeframe` 參數的新請求。後端收到後，會利用 Pandas 的 `resample()` 功能將原始資料聚合成目標週期，並回傳給前端進行圖表刷新。
 
-### 6.2 Initial Options
-*   **Default Layer**: The K-line chart itself serves as the base layer.
-*   **Selectable Layer Types**:
-    *   **交易資料圖層 (Trade Data Layer)**: 在 K 線圖上顯示買入/賣出交易點，以特定圖示（例如：箭頭）標示，並可顯示相關資訊（如價格、數量、備註）。
-    *   **移動平均線 (MA)**: 不同週期的移動平均線。
-    *   **成交量 (Volume)**: 顯示在圖表底部的獨立成交量圖。
-    *   **布林通道 (Bollinger Bands)**: 顯示布林通道的上下軌和中軌。
-    *   **自訂指標 (Custom Indicators)**: 未來可擴展用於其他技術指標（例如：RSI, MACD）。
-    *   **事件標記 (Event Markers)**: 用於特定日期或時間點的文字/圖示標記。
+### 3.2 技術指標圖層 (Technical Indicators)
+- **UI**: 一組核取方塊 (Checkbox)。
+- **已實作選項**:
+    - **移動平均線 (MA)**: 提供 MA5, MA10, MA20, MA60 四個週期的開關。
+    - **布林通道 (Bollinger Bands)**: 提供一個開關，顯示上、中、下三條軌道線 (20週期, 2個標準差)。
+- **行為**: 指標計算完全在前端 (`KlineChart.vue`) 進行。當使用者勾選某個指標時，前端會根據當前的 K 線資料即時計算指標數據，並使用 `addLineSeries` 將其繪製到圖表上。
 
-### 6.3 User Interface (UI) Design
-*   **Layer Control Panel**: Add an expandable/collapsible panel above or to the side of the chart, listing all available layers.
-*   **Layer Toggles**: Each layer should have a checkbox or toggle switch to control its visibility.
-*   **Layer Settings**: A gear icon or dropdown menu next to each layer can provide options to adjust its style (e.g., line color, thickness, marker icon) or parameters (e.g., MA period).
+### 3.3 交易資料圖層 (Trade Data Layer)
+- **UI**: 一個「交易資料」核取方塊。
+- **行為**:
+    - 勾選後，前端會向後端 `/api/trade_data` 請求在當前圖表時間範圍內的交易紀錄。
+    - 後端會回傳包含時間、價格、買賣方向等資訊的標記 (Marker) 資料。
+    - 前端使用 `setMarkers()` API，將買點（綠色向上箭頭）和賣點（紅色向下箭頭）繪製在對應的 K 棒上。
 
-### 6.4 Implementation Details (Internal)
-*   **Data Structure Definition**: Define a data structure for layers, including `id`, `name`, `type`, `isVisible`, and `settings` (e.g., `color`, `period`).
-*   **Layer State Management**: Manage the state of active layers and their configurations within `KlineChart.vue` or a state management solution (if used).
-*   **UI Component Development**: Create a new Vue component (e.g., `LayerControl.vue`) to display the layer list and control options. This component will emit events to `KlineChart.vue` when layer states change.
-*   **`lightweight-charts` API Integration**: `KlineChart.vue` will dynamically create, update, or remove layers using the `lightweight-charts` API based on the state received from `LayerControl.vue`.
-    *   **Base K-line Chart**: Serves as the main series and cannot be turned off.
-    *   **Overlay Series**: New `series` (e.g., `chart.addLineSeries()`, `chart.addHistogramSeries()`) will be created for moving averages, trading signals, etc. Series properties (e.g., color, line width) will be configured dynamically based on layer settings. Trading signals might use `chart.timeScale().createPriceLine()` or `series.setMarkers()`.
-    *   **Data Loading**: Ensure that data required for different layers (e.g., MA calculation results, trading signal data) is correctly loaded and passed to `lightweight-charts`.
-    *   **6.4.1 交易資料圖層實作細節 (Trading Data Layer Implementation Details)**
-        *   **後端 API (`server.py`)**:
-            *   新增 `/api/trade_data` 端點，接收 `start_time` 和 `end_time` (Unix timestamp) 參數。
-            *   查詢 `trade_notes.db` 中的 `trades` 表，根據時間範圍篩選交易記錄。
-            *   為每個交易記錄，結合 `market_data` 表獲取該時間點的 `close` 價格作為標記的價格位置。若無精確匹配，則取最近的 K 線收盤價。
-            *   返回資料格式包含 `time` (Unix timestamp), `price`, `action` (buy/sell), 及 `text` (顯示內容)。
-        *   **前端實作 (`KlineChart.vue`)**:
-            *   引入 `showTradeData` (boolean) 和 `tradeData` (array) 響應式變數。
-            *   在圖表工具列新增「交易資料」Checkbox，綁定 `showTradeData`。
-            *   實作 `fetchTradeData(startTime, endTime)` 非同步函數，呼叫後端 `/api/trade_data`。
-            *   實作 `drawTradeData()` 函數：
-                *   根據 `showTradeData` 狀態決定是否顯示交易標記。
-                *   將 `tradeData` 轉換為 `lightweight-charts` 的 `marker` 格式。
-                *   使用 `candlestickSeries.setMarkers()` 來設置買入（綠色箭頭向上, `belowBar`）和賣出（紅色箭頭向下, `aboveBar`）標記。
-            *   在 `setupChart()`、`updateChartData()` 和 `onMounted()` 中適時呼叫 `fetchTradeData` 和 `drawTradeData` 以確保資料載入與顯示同步。
-    *   **Styling and Interactivity**: Ensure the layer control panel's styling is consistent with the existing interface and that real-time chart updates occur when layer toggles or settings are changed.*   **Backend (if applicable)**: If some complex indicators require backend calculation, new API endpoints will be defined for frontend consumption.
+### 3.4 圖表類型切換 (Chart Type)
+- **UI**: 一組按鈕（例如「K線圖」、「線圖」）。
+- **選項**:
+    - K 線圖 (Candlestick) - 預設
+    - 線圖 (Line) - 基於收盤價
+- **行為**: 點擊按鈕後，前端會移除當前的 K 線或線圖序列，並使用相同的資料重新建立一個新類型的序列。
 
-### 6.5 Testing
-*   Verify that new layers can be added and removed from the chart.
-*   Test toggling the visibility of each layer.
-*   Verify that changing layer settings (e.g., MA period, color) correctly updates the chart.
-*   Ensure that multiple layers can be displayed simultaneously without conflicts.
-*   Test the performance implications of adding multiple layers.
-*   Confirm data consistency across layers when the underlying K-line data changes.
+### 3.5 匯出圖表 (Export Chart)
+- **UI**: 一個「匯出圖表」按鈕。
+- **行為**: 利用 `lightweight-charts` 的 `takeScreenshot()` API 獲取當前圖表畫面的圖片，並觸發瀏覽器下載為 `.png` 檔案。
+
+---
+
+## 4. 後端 API (`/api/kline_data`) 資料處理規格
+
+### 4.1 資料來源
+- 從 `trade_notes.db` 資料庫的 `market_data` 表中讀取所有 K 線資料。
+
+### 4.2 時間週期處理 (Resampling)
+- 當 API 收到 `timeframe` 參數時（非 `1T`），執行以下聚合邏輯：
+  ```python
+  df.resample(timeframe).agg({
+      'open': 'first',
+      'high': 'max',
+      'low': 'min',
+      'close': 'last',
+      'volume': 'sum'
+  })
+  ```
+- **空值處理 (關鍵修復)**:
+  1.  **移除無效 K 棒**: 在聚合後，立即執行 `dropna(subset=['open', 'high', 'low', 'close'], how='all')`。此步驟會移除那些因原始資料不足而導致連 OHLC 都湊不齊的 K 棒（例如，一個時間區間內完全沒有交易），這是解決圖表消失問題的核心。
+  2.  **替換剩餘 NaN**: 在最後回傳前，執行 `replace({np.nan: None})`，將剩餘的 `NaN` 值（例如 `volume` 在某些情況下可能為 `NaN`）替換為 JSON 相容的 `null`，避免序列化錯誤。
+
+### 4.3 回傳格式
+- 資料被格式化為符合 `lightweight-charts` 的 JSON 陣列，每個物件包含 `time` (Unix 時間戳), `open`, `high`, `low`, `close`, `value` (成交量)。
+
+---
+
+## 5. 前端圖表更新邏輯規格
+
+### 5.1 元件 `KlineChart.vue`
+- **狀態管理**: 透過 Vue 3 的 `ref` 來管理圖表實例、各個序列 (Series) 的引用、指標可見性等狀態。
+
+### 5.2 圖表重建邏輯 (關鍵修復)
+- **問題描述**: 當切換時間週期時，舊的圖表更新邏輯會錯誤地在一個全新的圖表實例上，嘗試移除一個屬於舊圖表實例的序列，導致 JavaScript 執行階段錯誤，中斷渲染。
+- **修正後邏輯**:
+  1. 在 `setupChart` 函式中，當需要重建圖表時 (例如切換圖表類型)，會先呼叫 `chart.remove()`。此方法會將圖表實例及其**所有**相關的子序列一併完整銷毀。
+  2. 接著，將所有本地儲存的圖表及序列變數 (如 `chart`, `candlestickSeries`, `volumeSeries` 等) 手動設為 `null`。
+  3. **移除所有多餘且錯誤的 `chart.removeSeries(...)` 呼叫**。
+  4. 最後，才使用 `createChart()` 建立一個全新的、乾淨的圖表實例，並在上面新增序列。
+- **結果**: 此修正確保了圖表在資料更新或類型切換時，能夠乾淨、無誤地銷毀與重建，徹底解決了圖表消失的問題。

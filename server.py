@@ -30,6 +30,62 @@ CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.ini')
 
 app = FastAPI()
 
+
+def init_database():
+    """Initializes the database and creates tables if they don't exist."""
+    try:
+        logger.info(f"Initializing database at {DB_FILE}...")
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+
+        # Create table for trade notes
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trade_notes (
+                trade_id TEXT PRIMARY KEY,
+                note TEXT,
+                related_info TEXT,
+                last_updated TIMESTAMP
+            )
+        ''')
+
+        # Create table for trades
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trades (
+                trade_id TEXT PRIMARY KEY,
+                trade_time DATETIME,
+                action TEXT,
+                net_pnl REAL,
+                contracts INTEGER,
+                product_name TEXT,
+                source_file TEXT
+            )
+        ''')
+
+        # Create table for market data (K-line)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS market_data (
+                datetime TEXT PRIMARY KEY,
+                open REAL NOT NULL,
+                high REAL NOT NULL,
+                low REAL NOT NULL,
+                close REAL NOT NULL,
+                volume INTEGER NOT NULL
+            )
+        ''')
+        
+        conn.commit()
+        conn.close()
+        logger.info("Database initialized successfully with all tables.")
+    except Exception as e:
+        logger.critical(f"Failed to initialize database: {e}", exc_info=True)
+        # We might want to prevent the app from starting if the DB fails
+        raise
+
+@app.on_event("startup")
+async def startup_event():
+    """Run database initialization on server startup."""
+    init_database()
+
 # --- Database Setup ---
 
 @app.get("/api/kdata-files")
@@ -56,31 +112,31 @@ async def get_kline_data(timeframe: Optional[str] = '1T'): # Default to 1-minute
     logger.info(f"Request received for K-line data with timeframe: {timeframe}")
     try:
         conn = sqlite3.connect(DB_FILE)
-        # Read data into a pandas DataFrame
-        # The query orders by datetime to ensure the data is sequential.
         query = "SELECT datetime, open, high, low, close, volume FROM market_data ORDER BY datetime ASC"
         df = pd.read_sql_query(query, conn)
         conn.close()
+        logger.info(f"K-line trace: Read {len(df)} rows from database.")
 
         if df.empty:
             logger.warning("No K-line data found in 'market_data' table.")
             return JSONResponse(content=[])
 
-        # Convert 'datetime' string to datetime objects
         df['datetime'] = pd.to_datetime(df['datetime'])
         df = df.set_index('datetime')
 
-        # Resample data if a timeframe is provided and not 1T (1-minute)
         if timeframe and timeframe != '1T':
             try:
-                # Aggregate to the desired timeframe
                 df_resampled = df.resample(timeframe).agg({
                     'open': 'first',
                     'high': 'max',
                     'low': 'min',
                     'close': 'last',
                     'volume': 'sum'
-                }).dropna() # Drop any rows that might have been created by resampling with no data
+                })
+                logger.info(f"K-line trace: Resampled to {len(df_resampled)} rows before dropping NA.")
+
+                df_resampled.dropna(subset=['open', 'high', 'low', 'close'], how='all', inplace=True)
+                logger.info(f"K-line trace: {len(df_resampled)} rows remain after dropping rows with no OHLC.")
 
                 if df_resampled.empty:
                     logger.warning(f"No K-line data found after resampling to {timeframe}.")
@@ -92,21 +148,18 @@ async def get_kline_data(timeframe: Optional[str] = '1T'): # Default to 1-minute
                 raise HTTPException(status_code=400, detail=f"Invalid timeframe or resampling error: {timeframe}")
 
         df = df.reset_index()
-        # --- Data Formatting for lightweight-charts ---
-        # 1. Convert 'datetime' objects to UNIX timestamp (seconds)
-        df['time'] = df['datetime'].astype('int64') // 10**9
+
+        df.replace({np.nan: None}, inplace=True)
         
-        # 2. Rename columns to match the expected format
+        df['time'] = df['datetime'].astype('int64') // 10**9
         df.rename(columns={'volume': 'value'}, inplace=True)
         
-        # 3. Select the required columns
         chart_data = df[['time', 'open', 'high', 'low', 'close', 'value']].to_dict(orient='records')
         
-        logger.info(f"Successfully retrieved and formatted {len(chart_data)} K-line data points for timeframe: {timeframe}.")
+        logger.info(f"K-line trace: Final chart_data has {len(chart_data)} records.")
         return JSONResponse(content=chart_data)
         
     except sqlite3.OperationalError as e:
-        # This error likely means the 'market_data' table does not exist.
         logger.warning(f"Could not retrieve K-line data, table might not exist yet: {e}")
         return JSONResponse(content=[]) # Return empty list so frontend doesn't break
     except Exception as e:
