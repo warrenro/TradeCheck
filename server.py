@@ -15,17 +15,95 @@ from datetime import datetime
 from fastapi.encoders import jsonable_encoder
 import numpy as np
 import sqlite3
+import pandas as pd
 
 # Import the existing auditor class and the logger
 from trade_check import TradeAuditor, logger, UPGRADE_CRITERIA, list_trade_files
+from import_kdata import run_kdata_import
+
+# --- Dynamic Path Configuration ---
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(SCRIPT_DIR, "trade_notes.db")
+KDATA_DIRECTORY = os.path.join(SCRIPT_DIR, "KData")
+TRADEDATA_DIRECTORY = os.path.join(SCRIPT_DIR, "tradedata")
+CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.ini')
 
 app = FastAPI()
 
 # --- Database Setup ---
-DB_FILE = "trade_notes.db"
+
+@app.get("/api/kdata-files")
+async def get_kdata_files():
+    """API endpoint to list all available .csv files in the 'KData' directory."""
+    logger.info("Request received for KData files list.")
+    try:
+        if not os.path.isdir(KDATA_DIRECTORY):
+            logger.warning(f"'{KDATA_DIRECTORY}' directory not found.")
+            return JSONResponse(content={"files": []})
+            
+        files = [f for f in os.listdir(KDATA_DIRECTORY) if f.endswith('.csv') and os.path.isfile(os.path.join(KDATA_DIRECTORY, f))]
+        return JSONResponse(content={"files": sorted(files)})
+    except Exception as e:
+        logger.error(f"Failed to list KData files: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve KData files from server.")
+
+@app.get("/api/kline_data")
+async def get_kline_data():
+    """
+    API endpoint to retrieve K-line data from the database, formatted for charting.
+    """
+    logger.info("Request received for K-line data.")
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        # Read data into a pandas DataFrame
+        # The query orders by datetime to ensure the data is sequential.
+        query = "SELECT datetime, open, high, low, close, volume FROM market_data ORDER BY datetime ASC"
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+
+        if df.empty:
+            logger.warning("No K-line data found in 'market_data' table.")
+            return JSONResponse(content=[])
+
+        # --- Data Formatting for lightweight-charts ---
+        # 1. Convert 'datetime' string to datetime objects, then to UNIX timestamp (seconds)
+        df['time'] = pd.to_datetime(df['datetime']).astype('int64') // 10**9
+        
+        # 2. Rename columns to match the expected format
+        df.rename(columns={'volume': 'value'}, inplace=True)
+        
+        # 3. Select the required columns
+        chart_data = df[['time', 'open', 'high', 'low', 'close', 'value']].to_dict(orient='records')
+        
+        logger.info(f"Successfully retrieved and formatted {len(chart_data)} K-line data points.")
+        return JSONResponse(content=chart_data)
+        
+    except sqlite3.OperationalError as e:
+        # This error likely means the 'market_data' table does not exist.
+        logger.warning(f"Could not retrieve K-line data, table might not exist yet: {e}")
+        return JSONResponse(content=[]) # Return empty list so frontend doesn't break
+    except Exception as e:
+        logger.error(f"Failed to get K-line data: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve K-line data.")
+
+class KDataImportRequest(BaseModel):
+    filename: str
+
+@app.post("/api/import-kdata")
+async def import_kdata_endpoint(request: KDataImportRequest):
+    """Endpoint to trigger the K-line data import process for a specific file."""
+    filename = request.filename
+    logger.info(f"Received request to import K-line data from file: {filename}")
+    try:
+        summary_message = run_kdata_import(filename)
+        logger.info(f"K-line data import process finished for {filename}. {summary_message}")
+        return {"status": "success", "message": summary_message}
+    except Exception as e:
+        logger.critical(f"An unexpected error occurred during K-line data import for {filename}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {str(e)}")
 
 def init_database():
-    """Initializes the database and creates the notes table if it doesn't exist."""
+    """Initializes the database and creates tables if they don't exist."""
     try:
         logger.info(f"Initializing database at '{DB_FILE}'...")
         conn = sqlite3.connect(DB_FILE)
@@ -41,9 +119,34 @@ def init_database():
             )
         ''')
         
+        # Create table for trades
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trades (
+                trade_id TEXT PRIMARY KEY,
+                trade_time DATETIME,
+                action TEXT,
+                net_pnl REAL,
+                contracts INTEGER,
+                product_name TEXT,
+                source_file TEXT
+            )
+        ''')
+
+        # Create table for market data (K-line)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS market_data (
+                datetime TEXT PRIMARY KEY,
+                open REAL NOT NULL,
+                high REAL NOT NULL,
+                low REAL NOT NULL,
+                close REAL NOT NULL,
+                volume INTEGER NOT NULL
+            )
+        ''')
+        
         conn.commit()
         conn.close()
-        logger.info("Database initialized successfully.")
+        logger.info("Database initialized successfully with all tables.")
     except Exception as e:
         logger.critical(f"Failed to initialize database: {e}", exc_info=True)
         # We might want to prevent the app from starting if the DB fails
@@ -61,6 +164,9 @@ class LogMessage(BaseModel):
     context: Optional[dict] = None
 
 class RunCheckRequest(BaseModel):
+    filename: str
+
+class ImportRequest(BaseModel):
     filename: str
 
 class TradeNote(BaseModel):
@@ -132,6 +238,67 @@ async def get_trade_notes(request: TradeNoteList):
         logger.error(f"Failed to retrieve notes: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve trade notes.")
 
+@app.post("/api/import_trades")
+async def import_trades_from_file(request: ImportRequest):
+    """Imports trades from a specified CSV file into the database."""
+    filename = request.filename
+    logger.info(f"Received request to import trades from file: {filename}")
+    
+    trade_file_path = os.path.join(TRADEDATA_DIRECTORY, filename)
+    
+    if not os.path.exists(trade_file_path):
+        logger.error(f"File not found for import: {trade_file_path}")
+        raise HTTPException(status_code=404, detail=f"File '{filename}' not found in 'tradedata' directory.")
+
+    try:
+        # Use a dummy auditor instance to process the file
+        # We need to provide some dummy config values, although they are not used for loading
+        temp_auditor = TradeAuditor(monthly_start_capital=0, current_scale="S1", operation_contracts=1)
+        trades_df = temp_auditor.load_transactions_from_csv(trade_file_path)
+        trades_df = temp_auditor._generate_trade_ids(trades_df)
+        
+        # Add source file information
+        trades_df['source_file'] = filename
+        
+        # --- Insert into database ---
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        inserted_count = 0
+        for _, row in trades_df.iterrows():
+            try:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, product_name, source_file)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    row['trade_id'],
+                    row['trade_time'].isoformat(),
+                    row['action'],
+                    row['net_pnl'],
+                    row['contracts'],
+                    row['product_name'],
+                    row['source_file']
+                ))
+                if cursor.rowcount > 0:
+                    inserted_count += 1
+            except sqlite3.IntegrityError:
+                # This can happen in rare race conditions, INSERT OR IGNORE is preferred
+                logger.warning(f"Trade with ID {row['trade_id']} already exists. Skipping.")
+
+        conn.commit()
+        conn.close()
+        
+        total_rows = len(trades_df)
+        skipped_count = total_rows - inserted_count
+        
+        summary_message = f"Import completed for '{filename}'. New trades: {inserted_count}, Skipped duplicates: {skipped_count}."
+        logger.info(summary_message)
+        return {"status": "success", "message": summary_message, "new": inserted_count, "skipped": skipped_count}
+        
+    except Exception as e:
+        logger.error(f"Failed to import trades from {filename}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to import trades: {str(e)}")
+
 @app.get("/api/upgrade-criteria")
 def get_upgrade_criteria():
     """
@@ -147,8 +314,7 @@ def get_trade_files():
     """
     logger.info("Request received for trade files list.")
     try:
-        trade_data_directory = 'tradedata'
-        files = list_trade_files(trade_data_directory)
+        files = list_trade_files(TRADEDATA_DIRECTORY)
         return JSONResponse(content={"files": files})
     except Exception as e:
         logger.error(f"Failed to list trade files: {e}", exc_info=True)
@@ -177,7 +343,7 @@ async def run_check_for_file(request: RunCheckRequest):
     filename = request.filename
     logger.info(f"Received request to run audit for file: {filename}")
     
-    trade_file_path = os.path.join('tradedata', filename)
+    trade_file_path = os.path.join(TRADEDATA_DIRECTORY, filename)
     
     if not os.path.exists(trade_file_path):
         logger.error(f"File not found: {trade_file_path}")
@@ -186,10 +352,9 @@ async def run_check_for_file(request: RunCheckRequest):
     try:
         # --- Read configuration from config.ini ---
         config = configparser.ConfigParser()
-        config_file = 'config.ini'
-        if not os.path.exists(config_file):
-            raise FileNotFoundError(f"Configuration file '{config_file}' not found on server.")
-        config.read(config_file)
+        if not os.path.exists(CONFIG_FILE):
+            raise FileNotFoundError(f"Configuration file '{CONFIG_FILE}' not found on server.")
+        config.read(CONFIG_FILE)
         
         monthly_start_capital = config.getfloat('Account', 'monthly_start_capital')
         current_scale = config.get('Account', 'current_scale')
@@ -202,7 +367,7 @@ async def run_check_for_file(request: RunCheckRequest):
             current_scale=current_scale,
             operation_contracts=operation_contracts
         )
-        report = auditor.run_audit(trade_file_path)
+        report = auditor.run_audit(filename)
 
         # --- Convert numpy types for JSON serialization ---
         json_compatible_report = convert_numpy_types(report)
@@ -250,10 +415,9 @@ async def run_web_audit(
     try:
         # --- Read operation_contracts from config.ini ---
         config = configparser.ConfigParser()
-        config_file = 'config.ini'
-        if not os.path.exists(config_file):
-            raise FileNotFoundError(f"Configuration file '{config_file}' not found on server.")
-        config.read(config_file)
+        if not os.path.exists(CONFIG_FILE):
+            raise FileNotFoundError(f"Configuration file '{CONFIG_FILE}' not found on server.")
+        config.read(CONFIG_FILE)
         operation_contracts = config.getint('DEFAULT', 'operation_contracts', fallback=1)
         logger.info(f"Loaded operation_contracts '{operation_contracts}' from {config_file}")
 

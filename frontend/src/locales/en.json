@@ -11,7 +11,13 @@
     "loadingFiles": "Loading files...",
     "clickToAnalyze": "Click the button to start the analysis.",
     "analyzeButton": "Analyze",
-    "analyzing": "Analyzing..."
+    "analyzing": "Analyzing...",
+    "importButton": "Import this file",
+    "importing": "Importing...",
+    "kdataImportButton": "Import K-Data",
+    "kdataImporting": "Importing K-Data...",
+    "selectKdataFileTitle": "Select K-Line Data File",
+    "noKdataFiles": "No K-Line files found"
   },
   "dashboard": {
     "meta": {
@@ -107,5 +113,8 @@
     "noFile": "Please select a transaction file.",
     "failed": "Failed to run audit: {message}"
   },
-  "loading": "Running audit, please wait..."
+  "loading": "Running audit, please wait...",
+  "kline_chart_title": "Market Data (K-Line Chart)",
+  "loading_data": "Loading Chart Data...",
+  "no_kline_data": "No K-Line data found in database. Please import a K-Data file first."
 }

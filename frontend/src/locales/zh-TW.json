@@ -11,7 +11,13 @@
     "loadingFiles": "正在載入檔案...",
     "clickToAnalyze": "點擊按鈕以開始分析。",
     "analyzeButton": "開始分析",
-    "analyzing": "分析中..."
+    "analyzing": "分析中...",
+    "importButton": "匯入此檔案",
+    "importing": "匯入中...",
+    "kdataImportButton": "匯入K棒資料",
+    "kdataImporting": "正在匯入K棒資料...",
+    "selectKdataFileTitle": "選擇K棒資料檔案",
+    "noKdataFiles": "沒有找到任何K棒檔案"
   },
   "dashboard": {
     "meta": {
@@ -107,5 +113,8 @@
     "noFile": "請選擇一個交易紀錄檔案。",
     "failed": "執行審計失敗: {message}"
   },
-  "loading": "審計執行中，請稍候..."
+  "loading": "審計執行中，請稍候...",
+  "kline_chart_title": "行情圖表 (K線圖)",
+  "loading_data": "正在載入圖表資料...",
+  "no_kline_data": "資料庫中找不到K線資料，請先匯入K線圖檔案。"
 }

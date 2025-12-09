@@ -11,6 +11,7 @@ import numpy as np
 import argparse
 import sys
 import hashlib
+import sqlite3
 
 # --- Logging Setup ---
 # Configure logger to write to a file and the console
@@ -24,6 +25,8 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+DB_FILE = "trade_notes.db"
 
 # --- Constants based on spec.md ---
 
@@ -110,9 +113,9 @@ class TradeAuditor:
         self.operation_contracts = operation_contracts
         self.report_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def load_transactions(self, file_path: str) -> pd.DataFrame:
+    def load_transactions_from_csv(self, file_path: str) -> pd.DataFrame:
         """Loads transaction data from a CSV or Excel file."""
-        logger.info(f"Loading transactions from file: {file_path}")
+        logger.info(f"Loading transactions from file for import: {file_path}")
         try:
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path, thousands=',')
@@ -121,37 +124,54 @@ class TradeAuditor:
             else:
                 raise ValueError("Unsupported file type. Please use CSV or Excel.")
 
-            # --- Data Validation and Transformation ---
             required_columns = {'成交時間', '買賣別', '平倉損益淨額', '口數', '商品名稱'}
             if not required_columns.issubset(df.columns):
                 missing = required_columns - set(df.columns)
-                raise ValueError(f"Missing required columns: {missing}. Found: {df.columns}.")
+                raise ValueError(f"Missing required columns: {missing}")
 
             column_mapping = {
-                '成交時間': 'trade_time',
-                '買賣別': 'action',
-                '平倉損益淨額': 'net_pnl',
-                '口數': 'contracts',
-                '商品名稱': 'product_name'
+                '成交時間': 'trade_time', '買賣別': 'action',
+                '平倉損益淨額': 'net_pnl', '口數': 'contracts', '商品名稱': 'product_name'
             }
             df.rename(columns=column_mapping, inplace=True)
 
             df['trade_time'] = pd.to_datetime(df['trade_time'])
-            # Use pd.to_numeric for robust conversion, coercing errors to NaN, then filling with 0
             df['net_pnl'] = pd.to_numeric(df['net_pnl'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
             df['contracts'] = pd.to_numeric(df['contracts'], errors='coerce').fillna(0).astype(int)
             df['product_name'] = df['product_name'].astype(str).str.strip()
 
-            logger.info(f"Successfully loaded and processed {len(df)} transactions.")
+            logger.info(f"Successfully loaded and processed {len(df)} transactions from file.")
             return df
-        except FileNotFoundError:
-            logger.error(f"Transaction file not found at path: {file_path}", exc_info=True)
-            raise
-        except ValueError as e:
-            logger.error(f"Error processing transaction file: {e}", exc_info=True)
-            raise
         except Exception as e:
-            logger.error(f"An unexpected error occurred during transaction loading: {e}", exc_info=True)
+            logger.error(f"An error occurred during CSV loading: {e}", exc_info=True)
+            raise
+
+    def load_transactions_from_db(self, source_file: str) -> pd.DataFrame:
+        """Loads transaction data from the SQLite database for a specific source file."""
+        logger.info(f"Loading transactions from database for source_file: {source_file}")
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            # Read data into a pandas DataFrame
+            df = pd.read_sql_query(
+                "SELECT * FROM trades WHERE source_file = ?", 
+                conn, 
+                params=(source_file,)
+            )
+            conn.close()
+
+            if df.empty:
+                logger.warning(f"No trades found in database for source_file: {source_file}")
+                return pd.DataFrame()
+
+            # --- Data Type Conversion ---
+            df['trade_time'] = pd.to_datetime(df['trade_time'])
+            df['net_pnl'] = pd.to_numeric(df['net_pnl'], errors='coerce').fillna(0)
+            df['contracts'] = pd.to_numeric(df['contracts'], errors='coerce').fillna(0).astype(int)
+
+            logger.info(f"Successfully loaded {len(df)} transactions from the database.")
+            return df
+        except Exception as e:
+            logger.error(f"An unexpected error occurred during database transaction loading: {e}", exc_info=True)
             raise
 
     def _add_trade_points_column(self, trades: pd.DataFrame) -> pd.DataFrame:
@@ -547,11 +567,24 @@ class TradeAuditor:
         sorted_summary = sorted(summary_list, key=lambda x: x['month'], reverse=True)
         return sorted_summary, monthly_trades_dict
 
-    def run_audit(self, file_path: str) -> Dict[str, Any]:
-        """Executes the full audit process and returns a JSON report."""
-        logger.info(f"--- Starting Full Audit for file: {file_path} ---")
+    def run_audit(self, source_file: str) -> Dict[str, Any]:
+        """Executes the full audit process on data from the DB and returns a JSON report."""
+        logger.info(f"--- Starting Full Audit for source_file: {source_file} ---")
         try:
-            trades = self.load_transactions(file_path)
+            trades = self.load_transactions_from_db(source_file)
+
+            if trades.empty:
+                logger.warning(f"No trade data for '{source_file}', cannot generate a report.")
+                return {
+                    "report_date": self.report_date,
+                    "error": f"No trade data found in the database for the file '{source_file}'. Please import the file first."
+                }
+            
+            # The CSV loading logic also needs to be available for the import process
+            # but is not used in the main audit flow anymore.
+            # We keep it for the server's import endpoint.
+            
+            # The rest of the audit process remains largely the same
             trades = self._generate_trade_ids(trades)
             trades = self._add_trade_points_column(trades)
 
@@ -627,11 +660,11 @@ class NpEncoder(json.JSONEncoder):
 # --- Main Execution ---
 if __name__ == '__main__':
     logger.info("="*50)
-    logger.info("Executing TradeCheck Auditor as a standalone script.")
+    logger.info("Executing TradeCheck Auditor as a standalone script from database.")
     logger.info("="*50)
     
-    parser = argparse.ArgumentParser(description="Run a trade audit on a given data file.")
-    parser.add_argument('--file', type=str, required=True, help='Path to the specific trade data file to audit.')
+    parser = argparse.ArgumentParser(description="Run a trade audit on previously imported data.")
+    parser.add_argument('--source', type=str, required=True, help='The source filename of the trade data to audit from the database.')
     args = parser.parse_args()
 
     config = configparser.ConfigParser()
@@ -645,7 +678,6 @@ if __name__ == '__main__':
         
         # --- Load Parameters from Config ---
         account_section = config['Account']
-        # current_capital is now dynamically calculated within TradeAuditor.run_audit
         monthly_start_capital = account_section.getfloat('monthly_start_capital')
         current_scale = account_section.get('current_scale')
         operation_contracts = account_section.getint('operation_contracts')
@@ -655,27 +687,20 @@ if __name__ == '__main__':
         logger.info(f"  - Current Scale: {current_scale}")
         logger.info(f"  - Operation Contracts: {operation_contracts}")
 
-        # --- Determine Trade File to Use ---
-        if not os.path.exists(args.file):
-            raise FileNotFoundError(f"The file specified via command line does not exist: {args.file}")
-        
-        audit_file_path = args.file
-        logger.info(f"Using trade file specified from command line: {audit_file_path}")
-
-        # --- Run Audit ---
+        # --- Run Audit from DB ---
         auditor = TradeAuditor(
             monthly_start_capital=monthly_start_capital,
             current_scale=current_scale,
             operation_contracts=operation_contracts
         )
-        report = auditor.run_audit(audit_file_path)
+        report = auditor.run_audit(args.source)
         
         # --- Save Report ---
         output_filename = 'audit_report.json'
         with open(output_filename, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=4, ensure_ascii=False, cls=NpEncoder)
             
-        logger.info(f"Successfully generated audit report: '{output_filename}'")
+        logger.info(f"Successfully generated audit report for source '{args.source}': '{output_filename}'")
         print(f"\nAudit complete. Report saved to '{output_filename}'.")
 
     except FileNotFoundError as e:

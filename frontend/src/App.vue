@@ -41,6 +41,26 @@
                 {{ loading ? $t('form.analyzing') : $t('form.analyzeButton') }}
               </button>
             </div>
+            <div class="form-group">
+              <button @click="importTrades" :disabled="importing || !selectedFile" class="import-button">
+                {{ importing ? $t('form.importing') : $t('form.importButton') }}
+              </button>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+              <label for="kdata_file_select">{{ $t('form.selectKdataFileTitle') }}</label>
+              <select id="kdata_file_select" v-model="selectedKdataFile" :disabled="kdataImporting">
+                <option v-if="kdataFiles.length === 0" disabled value="">{{ $t('form.noKdataFiles') }}</option>
+                <option v-for="file in kdataFiles" :key="file" :value="file">
+                  {{ file }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button @click="importKData" :disabled="kdataImporting || !selectedKdataFile" class="import-button-secondary">
+                {{ kdataImporting ? $t('form.kdataImporting') : $t('form.kdataImportButton') }}
+              </button>
+            </div>
              <p v-if="!loading" class="file-selection-note">{{ $t('form.clickToAnalyze') }}</p>
           </div>
         </div>
@@ -48,213 +68,232 @@
 
       <!-- Right side: Dashboard Display -->
       <div class="dashboard-section">
+        <div class="view-switcher">
+            <button 
+                :class="{ 'active': currentView === 'audit' }" 
+                @click="currentView = 'audit'">
+                {{ $t('dashboard.reportTitle') }}
+            </button>
+            <button 
+                :class="{ 'active': currentView === 'kline' }" 
+                @click="currentView = 'kline'">
+                {{ $t('kline_chart_title') }}
+            </button>
+        </div>
+
         <div v-if="error" class="error-box">
           <strong>{{ $t('error.title') }}</strong> {{ errorDisplay }}
         </div>
-        <div v-if="loading" class="loading-box">
+        <div v-if="loading && currentView === 'audit'" class="loading-box">
           <p>{{ $t('loading') }}</p>
         </div>
 
-        <div v-if="report" id="report-dashboard">
-          <!-- Report Metadata -->
-          <div class="card full-width-card report-meta">
-            <div class="meta-item">
-              <span>{{ $t('dashboard.meta.interval') }}:</span>
-              <strong>{{ report.startDate }} &mdash; {{ report.endDate }}</strong>
-            </div>
-            <div class="meta-item">
-              <span>{{ $t('dashboard.meta.generated') }}:</span>
-              <strong>{{ new Date(report.generatedAt).toLocaleString() }}</strong>
-            </div>
-          </div>
-
-          <!-- KPI Metrics Row -->
-          <div class="kpi-grid">
-            <div class="kpi-card">
-              <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
-              <p :class="getKpiClass(report.account_summary.kpi_metrics.win_rate, 'wr')">{{ report.account_summary.kpi_metrics.win_rate }}</p>
-            </div>
-            <div class="kpi-card">
-              <h4>{{ $t('dashboard.kpi.rr') }}</h4>
-              <p :class="getKpiClass(report.account_summary.kpi_metrics.risk_reward_ratio, 'rr')">{{ report.account_summary.kpi_metrics.risk_reward_ratio }}</p>
-            </div>
-            <div class="kpi-card">
-              <h4>{{ $t('dashboard.kpi.pnl') }}</h4>
-              <p :class="getPnlClass(report.account_summary.monthly_pnl)">{{ formatCurrency(report.account_summary.monthly_pnl) }}</p>
-            </div>
-          </div>
-
-          <!-- Other Cards -->
-          <div class="card-grid">
-            <!-- Account Status -->
-            <div class="card">
-              <div class="card-header"><h3>{{ $t('dashboard.accountStatus.title') }}</h3></div>
-              <div class="card-body">
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.currentScale') }}</span> <strong>{{ report.account_summary.scale }}</strong></div>
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.monthlyStartCapital') }}</span> <strong :class="getPnlClass(report.account_summary.monthly_start_capital)">{{ formatCurrency(report.account_summary.monthly_start_capital) }}</strong></div>
-                <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong :class="getPnlClass(report.account_summary.current_balance)">{{ formatCurrency(report.account_summary.current_balance) }}</strong></div>
+        <div v-if="currentView === 'audit'">
+          <div v-if="report" id="report-dashboard">
+            <!-- Report Metadata -->
+            <div class="card full-width-card report-meta">
+              <div class="meta-item">
+                <span>{{ $t('dashboard.meta.interval') }}:</span>
+                <strong>{{ report.startDate }} &mdash; {{ report.endDate }}</strong>
               </div>
-            </div>
-            <!-- Safety Checks -->
-            <div class="card">
-              <div class="card-header"><h3>{{ $t('dashboard.safetyChecks.title') }}</h3></div>
-              <div class="card-body">
-                <div class="status-item">
-                  <span>{{ $t('dashboard.safetyChecks.dailyStop') }}</span>
-                  <strong :class="report.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
-                    {{ report.risk_audit.daily_stop_violated_days > 0 ? $t('dashboard.safetyChecks.violations.violated') : $t('dashboard.safetyChecks.violations.safe') }}
-                  </strong>
-                </div>
-                <div class="status-item">
-                  <span>{{ $t('dashboard.safetyChecks.monthlyBreaker') }}</span>
-                  <strong :class="report.risk_audit.capital_circuit_breaker_status === 'BREACHED' ? 'text-danger' : 'text-success'">
-                    {{ report.risk_audit.capital_circuit_breaker_status === 'BREACHED' ? $t('dashboard.safetyChecks.violations.breached') : $t('dashboard.safetyChecks.violations.safe') }}
-                  </strong>
-                </div>
-                 <div v-if="report.risk_audit.night_session_violations.length > 0" class="violations">
-                  <h5>{{ $t('dashboard.safetyChecks.violations.title') }}</h5>
-                  <ul>
-                    <li v-for="(v, i) in report.risk_audit.night_session_violations" :key="i">
-                      {{ v.rule }} at {{ v.violation_time }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <!-- Evaluation -->
-            <div class="card">
-              <div class="card-header"><h3>{{ $t('dashboard.evaluation.title') }}</h3></div>
-              <div class="card-body">
-                <div class="status-item">
-                  <span>{{ $t('dashboard.evaluation.upgradeEligible') }}</span>
-                  <strong :class="report.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
-                    {{ report.capital_assessment.upgrade_eligible ? $t('dashboard.evaluation.yes') : $t('dashboard.evaluation.no') }}
-                  </strong>
-                </div>
-                <p class="reason"><strong>{{ $t('dashboard.evaluation.reason') }}</strong> {{ report.capital_assessment.reason }}</p>
-                <hr>
-                <div class="status-item">
-                  <span>{{ $t('dashboard.evaluation.incentive') }}</span>
-                   <strong :class="report.capital_assessment.happiness_incentive.eligible ? 'text-success' : 'text-warning'">
-                     {{ report.capital_assessment.happiness_incentive.eligible ? $t('dashboard.evaluation.eligible') : $t('dashboard.evaluation.notEligible') }}
-                   </strong>
-                </div>
-                <div v-if="report.capital_assessment.happiness_incentive.eligible">
-                  <p class="incentive-amount">{{ formatCurrency(report.capital_assessment.happiness_incentive.amount) }}</p>
-                  <p class="reason">{{ report.capital_assessment.happiness_incentive.distribution }}</p>
-                </div>
-                 <div v-else>
-                  <p class="reason">{{ report.capital_assessment.happiness_incentive.status }}</p>
-                </div>
+              <div class="meta-item">
+                <span>{{ $t('dashboard.meta.generated') }}:</span>
+                <strong>{{ new Date(report.generatedAt).toLocaleString() }}</strong>
               </div>
             </div>
 
-            <!-- Monthly Summary -->
-            <div class="card full-width-card">
-              <div class="card-header"><h3>{{ $t('dashboard.monthlySummary.title') }}</h3></div>
-              <div class="card-body">
-                <table class="summary-table">
-                  <thead>
-                    <tr>
-                      <th>{{ $t('dashboard.monthlySummary.month') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.totalPnl') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.winRate') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.rr') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.tradeCount') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.riskCheck') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.evaluation') }}</th>
-                      <th>{{ $t('dashboard.monthlySummary.incentive') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="summary in report.historical_summary" :key="summary.month" @click="showMonthDetails(summary.month)" class="clickable-row">
-                      <td>{{ summary.month }}</td>
-                      <td :class="getPnlClass(summary.total_pnl)">{{ formatCurrency(summary.total_pnl) }}</td>
-                      <td>{{ summary.win_rate }}</td>
-                      <td>{{ summary.risk_reward_ratio }}</td>
-                      <td>{{ summary.trade_count }}</td>
-                      <td>
-                        <span :class="summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
-                          {{ summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? $t('dashboard.monthlySummary.violated') : $t('dashboard.monthlySummary.safe') }}
-                        </span>
-                      </td>
-                      <td>
-                        <span :class="summary.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
-                          {{ summary.capital_assessment.upgrade_eligible ? $t('dashboard.monthlySummary.eligible') : $t('dashboard.monthlySummary.notEligible') }}
-                        </span>
-                      </td>
-                      <td>
-                        <span :class="summary.happiness_incentive.eligible ? 'text-success' : (summary.happiness_incentive.status.includes('補考') ? 'text-warning' : '')">
-                          {{ summary.happiness_incentive.eligible ? formatCurrency(summary.happiness_incentive.amount) : summary.happiness_incentive.status }}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            <!-- KPI Metrics Row -->
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
+                <p :class="getKpiClass(report.account_summary.kpi_metrics.win_rate, 'wr')">{{ report.account_summary.kpi_metrics.win_rate }}</p>
+              </div>
+              <div class="kpi-card">
+                <h4>{{ $t('dashboard.kpi.rr') }}</h4>
+                <p :class="getKpiClass(report.account_summary.kpi_metrics.risk_reward_ratio, 'rr')">{{ report.account_summary.kpi_metrics.risk_reward_ratio }}</p>
+              </div>
+              <div class="kpi-card">
+                <h4>{{ $t('dashboard.kpi.pnl') }}</h4>
+                <p :class="getPnlClass(report.account_summary.monthly_pnl)">{{ formatCurrency(report.account_summary.monthly_pnl) }}</p>
               </div>
             </div>
 
-            <!-- Annual Summary -->
-            <div class="card full-width-card">
-              <div class="card-header"><h3>{{ $t('dashboard.annualSummary.title') }}</h3></div>
-              <div class="card-body">
-                <div v-for="(yearSummary, year) in report.annual_summary" :key="year" class="annual-summary-year-block">
-                  <h4>{{ year }} {{ $t('dashboard.annualSummary.yearSuffix') }}</h4>
-                  <div class="kpi-grid">
-                    <div class="kpi-card">
-                      <h4>{{ $t('dashboard.kpi.pnl') }}</h4>
-                      <p :class="getPnlClass(yearSummary.total_pnl)">{{ formatCurrency(yearSummary.total_pnl) }}</p>
-                    </div>
-                    <div class="kpi-card">
-                      <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
-                      <p :class="getKpiClass(yearSummary.win_rate, 'wr')">{{ yearSummary.win_rate }}</p>
-                    </div>
-                    <div class="kpi-card">
-                      <h4>{{ $t('dashboard.kpi.rr') }}</h4>
-                      <p :class="getKpiClass(yearSummary.risk_reward_ratio, 'rr')">{{ yearSummary.risk_reward_ratio }}</p>
-                    </div>
-                    <div class="kpi-card">
-                      <h4>{{ $t('dashboard.annualSummary.tradeCount') }}</h4>
-                      <p>{{ yearSummary.trade_count }}</p>
+            <!-- Other Cards -->
+            <div class="card-grid">
+              <!-- Account Status -->
+              <div class="card">
+                <div class="card-header"><h3>{{ $t('dashboard.accountStatus.title') }}</h3></div>
+                <div class="card-body">
+                  <div class="status-item"><span>{{ $t('dashboard.accountStatus.currentScale') }}</span> <strong>{{ report.account_summary.scale }}</strong></div>
+                  <div class="status-item"><span>{{ $t('dashboard.accountStatus.monthlyStartCapital') }}</span> <strong :class="getPnlClass(report.account_summary.monthly_start_capital)">{{ formatCurrency(report.account_summary.monthly_start_capital) }}</strong></div>
+                  <div class="status-item"><span>{{ $t('dashboard.accountStatus.balance') }}</span> <strong :class="getPnlClass(report.account_summary.current_balance)">{{ formatCurrency(report.account_summary.current_balance) }}</strong></div>
+                </div>
+              </div>
+              <!-- Safety Checks -->
+              <div class="card">
+                <div class="card-header"><h3>{{ $t('dashboard.safetyChecks.title') }}</h3></div>
+                <div class="card-body">
+                  <div class="status-item">
+                    <span>{{ $t('dashboard.safetyChecks.dailyStop') }}</span>
+                    <strong :class="report.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
+                      {{ report.risk_audit.daily_stop_violated_days > 0 ? $t('dashboard.safetyChecks.violations.violated') : $t('dashboard.safetyChecks.violations.safe') }}
+                    </strong>
+                  </div>
+                  <div class="status-item">
+                    <span>{{ $t('dashboard.safetyChecks.monthlyBreaker') }}</span>
+                    <strong :class="report.risk_audit.capital_circuit_breaker_status === 'BREACHED' ? 'text-danger' : 'text-success'">
+                      {{ report.risk_audit.capital_circuit_breaker_status === 'BREACHED' ? $t('dashboard.safetyChecks.violations.breached') : $t('dashboard.safetyChecks.violations.safe') }}
+                    </strong>
+                  </div>
+                   <div v-if="report.risk_audit.night_session_violations.length > 0" class="violations">
+                    <h5>{{ $t('dashboard.safetyChecks.violations.title') }}</h5>
+                    <ul>
+                      <li v-for="(v, i) in report.risk_audit.night_session_violations" :key="i">
+                        {{ v.rule }} at {{ v.violation_time }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <!-- Evaluation -->
+              <div class="card">
+                <div class="card-header"><h3>{{ $t('dashboard.evaluation.title') }}</h3></div>
+                <div class="card-body">
+                  <div class="status-item">
+                    <span>{{ $t('dashboard.evaluation.upgradeEligible') }}</span>
+                    <strong :class="report.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
+                      {{ report.capital_assessment.upgrade_eligible ? $t('dashboard.evaluation.yes') : $t('dashboard.evaluation.no') }}
+                    </strong>
+                  </div>
+                  <p class="reason"><strong>{{ $t('dashboard.evaluation.reason') }}</strong> {{ report.capital_assessment.reason }}</p>
+                  <hr>
+                  <div class="status-item">
+                    <span>{{ $t('dashboard.evaluation.incentive') }}</span>
+                     <strong :class="report.capital_assessment.happiness_incentive.eligible ? 'text-success' : 'text-warning'">
+                       {{ report.capital_assessment.happiness_incentive.eligible ? $t('dashboard.evaluation.eligible') : $t('dashboard.evaluation.notEligible') }}
+                     </strong>
+                  </div>
+                  <div v-if="report.capital_assessment.happiness_incentive.eligible">
+                    <p class="incentive-amount">{{ formatCurrency(report.capital_assessment.happiness_incentive.amount) }}</p>
+                    <p class="reason">{{ report.capital_assessment.happiness_incentive.distribution }}</p>
+                  </div>
+                   <div v-else>
+                    <p class="reason">{{ report.capital_assessment.happiness_incentive.status }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Monthly Summary -->
+              <div class="card full-width-card">
+                <div class="card-header"><h3>{{ $t('dashboard.monthlySummary.title') }}</h3></div>
+                <div class="card-body">
+                  <table class="summary-table">
+                    <thead>
+                      <tr>
+                        <th>{{ $t('dashboard.monthlySummary.month') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.totalPnl') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.winRate') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.rr') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.tradeCount') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.riskCheck') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.evaluation') }}</th>
+                        <th>{{ $t('dashboard.monthlySummary.incentive') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="summary in report.historical_summary" :key="summary.month" @click="showMonthDetails(summary.month)" class="clickable-row">
+                        <td>{{ summary.month }}</td>
+                        <td :class="getPnlClass(summary.total_pnl)">{{ formatCurrency(summary.total_pnl) }}</td>
+                        <td>{{ summary.win_rate }}</td>
+                        <td>{{ summary.risk_reward_ratio }}</td>
+                        <td>{{ summary.trade_count }}</td>
+                        <td>
+                          <span :class="summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? 'text-danger' : 'text-success'">
+                            {{ summary.risk_audit.capital_circuit_breaker_status === 'BREACHED' || summary.risk_audit.daily_stop_violated_days > 0 ? $t('dashboard.monthlySummary.violated') : $t('dashboard.monthlySummary.safe') }}
+                          </span>
+                        </td>
+                        <td>
+                          <span :class="summary.capital_assessment.upgrade_eligible ? 'text-success' : 'text-warning'">
+                            {{ summary.capital_assessment.upgrade_eligible ? $t('dashboard.monthlySummary.eligible') : $t('dashboard.monthlySummary.notEligible') }}
+                          </span>
+                        </td>
+                        <td>
+                          <span :class="summary.happiness_incentive.eligible ? 'text-success' : (summary.happiness_incentive.status.includes('補考') ? 'text-warning' : '')">
+                            {{ summary.happiness_incentive.eligible ? formatCurrency(summary.happiness_incentive.amount) : summary.happiness_incentive.status }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Annual Summary -->
+              <div class="card full-width-card">
+                <div class="card-header"><h3>{{ $t('dashboard.annualSummary.title') }}</h3></div>
+                <div class="card-body">
+                  <div v-for="(yearSummary, year) in report.annual_summary" :key="year" class="annual-summary-year-block">
+                    <h4>{{ year }} {{ $t('dashboard.annualSummary.yearSuffix') }}</h4>
+                    <div class="kpi-grid">
+                      <div class="kpi-card">
+                        <h4>{{ $t('dashboard.kpi.pnl') }}</h4>
+                        <p :class="getPnlClass(yearSummary.total_pnl)">{{ formatCurrency(yearSummary.total_pnl) }}</p>
+                      </div>
+                      <div class="kpi-card">
+                        <h4>{{ $t('dashboard.kpi.winRate') }}</h4>
+                        <p :class="getKpiClass(yearSummary.win_rate, 'wr')">{{ yearSummary.win_rate }}</p>
+                      </div>
+                      <div class="kpi-card">
+                        <h4>{{ $t('dashboard.kpi.rr') }}</h4>
+                        <p :class="getKpiClass(yearSummary.risk_reward_ratio, 'rr')">{{ yearSummary.risk_reward_ratio }}</p>
+                      </div>
+                      <div class="kpi-card">
+                        <h4>{{ $t('dashboard.annualSummary.tradeCount') }}</h4>
+                        <p>{{ yearSummary.trade_count }}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- SOP Risk Reference -->
-            <div class="card full-width-card">
-              <div class="card-header"><h3>{{ $t('dashboard.sopRisk.title') }}</h3></div>
-              <div class="card-body">
-                <table class="summary-table">
-                  <thead>
-                    <tr>
-                      <th>{{ $t('dashboard.sopRisk.scale') }}</th>
-                      <th>{{ $t('dashboard.sopRisk.capital') }}</th>
-                      <th>{{ $t('dashboard.sopRisk.sopA_loss') }}</th>
-                      <th>{{ $t('dashboard.sopRisk.sopA_risk') }}</th>
-                      <th>{{ $t('dashboard.sopRisk.sopB_loss') }}</th>
-                      <th>{{ $t('dashboard.sopRisk.sopB_risk') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in sopRiskData" :key="row.scale">
-                      <td>{{ row.scale }}</td>
-                      <td>{{ row.capital }}</td>
-                      <td class="text-danger">{{ row.sopA_loss }}</td>
-                      <td>{{ row.sopA_risk }}</td>
-                      <td class="text-danger">{{ row.sopB_loss }}</td>
-                      <td>{{ row.sopB_risk }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <!-- SOP Risk Reference -->
+              <div class="card full-width-card">
+                <div class="card-header"><h3>{{ $t('dashboard.sopRisk.title') }}</h3></div>
+                <div class="card-body">
+                  <table class="summary-table">
+                    <thead>
+                      <tr>
+                        <th>{{ $t('dashboard.sopRisk.scale') }}</th>
+                        <th>{{ $t('dashboard.sopRisk.capital') }}</th>
+                        <th>{{ $t('dashboard.sopRisk.sopA_loss') }}</th>
+                        <th>{{ $t('dashboard.sopRisk.sopA_risk') }}</th>
+                        <th>{{ $t('dashboard.sopRisk.sopB_loss') }}</th>
+                        <th>{{ $t('dashboard.sopRisk.sopB_risk') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="row in sopRiskData" :key="row.scale">
+                        <td>{{ row.scale }}</td>
+                        <td>{{ row.capital }}</td>
+                        <td class="text-danger">{{ row.sopA_loss }}</td>
+                        <td>{{ row.sopA_risk }}</td>
+                        <td class="text-danger">{{ row.sopB_loss }}</td>
+                        <td>{{ row.sopB_risk }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
+          
+          <div v-if="!report && !loading && !error" class="placeholder-box">
+            <p>{{ $t('dashboard.placeholder') }}</p>
+          </div>
         </div>
-        
-        <div v-if="!report && !loading && !error" class="placeholder-box">
-          <p>{{ $t('dashboard.placeholder') }}</p>
+
+        <div v-if="currentView === 'kline'">
+            <KlineChart />
         </div>
       </div>
     </div>
@@ -318,6 +357,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import KlineChart from './KlineChart.vue';
 
 const { t } = useI18n();
 const API_BASE_URL = 'http://localhost:8000';
@@ -342,14 +382,19 @@ const logger = {
 };
 
 // --- Refs and State ---
+const currentView = ref('audit'); // 'audit' or 'kline'
 const report = ref(null);
 const loading = ref(false);
+const importing = ref(false);
+const kdataImporting = ref(false);
 const error = ref(null);
 const errorMessage = ref('');
 const serverStatus = ref('offline');
 const selectedMonth = ref(null);
 const tradeFiles = ref([]);
 const selectedFile = ref('');
+const kdataFiles = ref([]);
+const selectedKdataFile = ref('');
 const tradeNotes = ref({}); // To store notes for trades: { [trade_id]: note }
 const editingTrade = ref(null); // The trade being edited
 const editingNote = ref(''); // The note content being edited
@@ -415,6 +460,10 @@ const saveNote = async () => {
 };
 
 // --- Computed Properties ---
+const dashboardTitle = computed(() => {
+    return currentView.value === 'kline' ? t('kline_chart_title') : t('dashboard.reportTitle');
+});
+
 const errorDisplay = computed(() => {
   if (error.value === 'error.failed') {
     return t('error.failed', { message: errorMessage.value });
@@ -435,6 +484,7 @@ onMounted(() => {
   checkServerStatus();
   setInterval(checkServerStatus, 10000);
   fetchTradeFiles();
+  fetchKdataFiles();
 });
 
 // --- Methods ---
@@ -444,6 +494,24 @@ const checkServerStatus = async () => {
     serverStatus.value = response.ok ? 'online' : 'offline';
   } catch (e) {
     serverStatus.value = 'offline';
+  }
+};
+
+const fetchKdataFiles = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/kdata-files`);
+    if (!response.ok) throw new Error('Failed to fetch K-Data files list.');
+    
+    const data = await response.json();
+    kdataFiles.value = data.files || [];
+    logger.info(`Found ${kdataFiles.value.length} K-Data files.`);
+
+    if (kdataFiles.value.length > 0) {
+      selectedKdataFile.value = kdataFiles.value[0];
+    }
+  } catch (e) {
+    errorMessage.value = e.message;
+    logger.error('Could not fetch K-Data files.', { error: e.message });
   }
 };
 
@@ -498,6 +566,58 @@ const startAnalysis = async () => {
     loading.value = false;
   }
 };
+
+const importTrades = async () => {
+  if (!selectedFile.value) return;
+  importing.value = true;
+  try {
+    logger.info(`Importing trades from file: ${selectedFile.value}`);
+    const response = await fetch(`${API_BASE_URL}/api/import_trades`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: selectedFile.value }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to import trades.');
+    }
+    alert(data.message);
+    logger.info(`Import successful: ${data.message}`);
+  } catch (e) {
+    logger.error(`Failed to import trades: ${e.message}`);
+    alert(`Error importing trades: ${e.message}`);
+  } finally {
+    importing.value = false;
+  }
+};
+
+const importKData = async () => {
+  if (!selectedKdataFile.value) {
+    alert('Please select a K-line data file to import.');
+    return;
+  }
+  kdataImporting.value = true;
+  try {
+    logger.info(`Importing K-line data from file: ${selectedKdataFile.value}.`);
+    const response = await fetch(`${API_BASE_URL}/api/import-kdata`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: selectedKdataFile.value }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to import K-line data.');
+    }
+    alert(data.message);
+    logger.info(`K-line data import successful: ${data.message}`);
+  } catch (e) {
+    logger.error(`Failed to import K-line data: ${e.message}`);
+    alert(`Error importing K-line data: ${e.message}`);
+  } finally {
+    kdataImporting.value = false;
+  }
+};
+
 
 const fetchTradeNotes = async (trade_ids) => {
   if (!trade_ids || trade_ids.length === 0) return;
@@ -563,6 +683,34 @@ const getKpiClass = (value, type) => {
 
 <style>
 /* --- New Styles for Features --- */
+
+.view-switcher {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    background-color: #e5e7eb;
+    padding: 4px;
+}
+
+.view-switcher button {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4b5563;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.view-switcher button.active {
+    background-color: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 .report-meta {
   grid-column: 1 / -1;
   display: flex;
@@ -973,6 +1121,49 @@ header h1 {
   background-color: #9ca3af;
   cursor: not-allowed;
 }
+.import-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #16a34a; /* Green */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+.import-button:hover {
+  background-color: #15803d;
+}
+.import-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.import-button-secondary {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+.import-button-secondary:hover {
+  background-color: #f3f4f6;
+}
+.import-button-secondary:disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
 button[type="submit"] {
   width: 100%;
   padding: 0.875rem;

@@ -1,8 +1,45 @@
 # TradeCheck 系統實作與設計決策
-- **版本**: v1.8
-- **最後更新日期**: 2025-12-06
+- **版本**: v2.3
+- **最後更新日期**: 2025-12-09
 
 本文檔旨在記錄 `TradeCheck` 專案在根據 `spec.md` 進行功能開發時，其核心功能的實作摘要、關鍵的設計決策與問題修正過程。它並非鉅細靡遺的步驟紀錄，而是為了幫助未來的維護者快速理解系統的設計思路與重要權衡。
+
+---
+(Sections 1 to 4 remain unchanged)
+...
+---
+
+## 5. K線圖顯示功能實作 (Candlestick Chart Display Implementation)
+
+為了將 K 線資料視覺化，我們引入了 `lightweight-charts` 函式庫來顯示互動式圖表。
+
+### 5.1 後端 API 設計 (`server.py`)
+
+- **新增 `GET /api/kline_data` API**:
+  - **目的**: 提供格式化後的 K 線資料給前端圖表使用。
+  - **實作**:
+    1. API 連線至 `trade_notes.db` 資料庫。
+    2. 查詢 `market_data` 資料表，選取 `Datetime`, `Open`, `High`, `Low`, `Close`, `Volume` 欄位。
+    3. 將查詢結果的 `Datetime` 欄位轉換為 UNIX 時間戳（秒），並將欄位重命名為 `time`, `open`, `high`, `low`, `close`, `value` 以符合 `lightweight-charts` 的資料格式。
+    4. 回傳一個 JSON 陣列給前端。
+
+### 5.2 前端實作 (`frontend/src/`)
+
+- **安裝圖表庫**:
+  - 於 `frontend` 目錄下執行 `npm install lightweight-charts`。
+
+- **新增 `KlineChart` 元件**:
+  - 建立一個新的 Vue 元件 `KlineChart.vue`。
+  - 此元件負責：
+    1.  在掛載時 (`onMounted`) 呼叫後端的 `/api/kline_data` API 來獲取圖表資料。
+    2.  使用 `lightweight-charts` API 來初始化圖表，設定圖表外觀（如背景色、格線）。
+    3.  建立一個 K 線序列 (Candlestick Series) 並將獲取到的價格資料設定進去。
+    4.  建立一個成交量序列 (Histogram Series) 並將獲取到的成交量資料設定進去。
+    5.  處理圖表容器的 resizing，確保圖表在視窗大小改變時能自適應。
+
+- **整合至主畫面 (`App.vue`)**:
+  - 在 `App.vue` 中新增一個「行情圖表」的分頁標籤。
+  - 當使用者切換到此分頁時，渲染 `KlineChart.vue` 元件。
 
 ---
 
@@ -23,7 +60,8 @@
   - 負責讀取 `tradedata/` 目錄下的交易紀錄，並驗證 `成交時間`, `買賣別`, `平倉損益淨額`, `口數`, `商品名稱` 等必要欄位是否存在。
 
 - **`_add_trade_points_column` (計算交易點數)**:
-  - 根據 `商品名稱` 決定點值 (50/10/200)，計算每筆交易的「點數」 (`points`)，作為交易 DNA 診斷的基礎。
+  - 根據 `商品名稱` 決定點值 (50/10/200)，計算每筆交易的「點數」 (`points`)，作為交易 DNA 診
+斷的基礎。
 
 - **`_run_trading_dna_diagnosis` (交易 DNA 診斷)**:
   - 依據 `points` 將交易劃分為「噪音區」(`<=40點`) 與「波段區」(`>40點`)。
@@ -92,13 +130,6 @@
 - **解決方案**:
     1.  **定位問題**: 檢查瀏覽器開發者主控台，發現 Vue 的渲染錯誤，指向 `App.vue` 範本中的一個屬性存取問題。
     2.  **修正路徑**: 將範本中的 `formatCurrency(summary.incentive.amount)` 修改為 `formatCurrency(summary.happiness_incentive.amount)`，使其與 `historical_summary` 物件的資料結構保持一致。
-    ```vue
-    <!-- 錯誤的程式碼 -->
-    {{ summary.happiness_incentive.eligible ? formatCurrency(summary.incentive.amount) : summary.happiness_incentive.status }}
-
-    <!-- 修正後的程式碼 -->
-    {{ summary.happiness_incentive.eligible ? formatCurrency(summary.happiness_incentive.amount) : summary.happiness_incentive.status }}
-    ```
 - **影響**: 此修正恢復了前端的渲染能力，確保 API 回傳的報告能夠被正確地呈現在使用者介面中。
 
 ### 2.6 錯誤五：後端資料處理與序列化錯誤
@@ -111,42 +142,99 @@
 - **解決方案一**:
     在 `calculate_points` 函式中，對傳入的 `product_name` 進行型別檢查與轉換。在進行迭代匹配之前，先確保它是一個字串。如果值為 `NaN` 或其他非字串類型，則將其視為空字串，避免了迭代錯誤，並使其能夠安全地走完流程（雖然可能找不到對應的點值）。
 
-    ```python
-    # trade_check.py - calculate_points 修正
-    product_name = row['product_name']
-    # 確保 product_name 是字串
-    if not isinstance(product_name, str):
-        product_name = ""
-    
-    # 後續的迭代匹配...
-    point_value = next((p['point'] for p in self.product_points if any(keyword in product_name for keyword in p['keywords'])), None)
-    ```
-
 - **錯誤現象二**: API 呼叫日誌顯示 `ValueError: [TypeError("'numpy.int64' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]`。
 - **根本原因二**:
     此錯誤發生在 `server.py` 將審計報告回傳給前端的過程中。Pandas 在進行數據聚合時，產生的數值（如交易筆數、總損益等）其資料型別通常是 NumPy 的特定型別，例如 `numpy.int64` 或 `numpy.float64`。FastAPI 預設的 `jsonable_encoder` 無法直接將這些 NumPy 特有的數字型別序列化為標準的 JSON 格式，從而導致轉換失敗。
 - **解決方案二**:
     在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），並轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
-
-    ```python
-    # server.py - 新增遞迴轉換函式
-    def convert_numpy_types(obj):
-        if isinstance(obj, dict):
-            return {k: convert_numpy_types(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [convert_numpy_types(i) for i in obj]
-        elif isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return obj
-
-    # 在 API 端點中呼叫
-    report = auditor.run_audit(temp_file_path)
-    # 在序列化前回傳前進行轉換
-    json_compatible_report = convert_numpy_types(report)
-    return json_compatible_report
-    ```
 - **影響**: 這兩項修正強化了系統的穩定性（魯棒性），使其能夠應對不乾淨的輸入資料（如缺失的商品名稱）以及處理 Python 生態系統中常見的 NumPy 資料型別，確保了 API 的正常回應與前後端資料流的順暢。經過這些修正，後端系統的核心錯誤皆已解決，應用程式現已進入穩定狀態。
+
+---
+
+## 3. 架構演進：資料庫化與備註功能 (Architectural Evolution: Databasing and Annotation Feature)
+
+為了支援更複雜的跨檔案查詢與交易備註功能，專案架構進行了一次重大升級，從「每次分析時動態讀取 CSV」演變為「以 SQLite 資料庫為核心資料來源」。
+
+### 3.1 資料庫初始化 (`server.py`)
+- **啟動時檢查**: 伺服器在啟動時 (`@app.on_event("startup")`) 會自動執行 `init_database` 函式。
+- **建立資料表**: 該函式會檢查並建立 `trade_notes.db` 資料庫檔案，並確保其中包含兩個核心資料表：
+  - `trades`: 用於儲存從 CSV 匯入的所有交易紀錄。
+  - `trade_notes`: 用於儲存使用者為每筆交易新增的備註。
+
+### 3.2 核心邏輯重構 (`trade_check.py`)
+- **資料來源變更**: `TradeAuditor` 類別的核心方法 `run_audit` 不再接收檔案路徑，而是接收 `source_file` (來源檔名) 作為篩選條件。
+- **新增資料庫讀取方法**: `run_audit` 內部不再呼叫 `load_transactions` (從 CSV 讀取)，而是呼叫新的 `load_transactions_from_db` 方法。
+- **`load_transactions_from_db`**: 此方法負責連接到 SQLite 資料庫，並根據傳入的 `source_file` 參數，`SELECT` 出對應的交易紀錄，再將其轉換為與舊版輸出格式完全一致的 Pandas DataFrame。這個設計確保了下游的所有計算函式 (`_calculate_kpis`, `_check_safety_valves` 等) 無需任何修改即可繼續運作。
+
+### 3.3 後端 API 設計 (`server.py`)
+
+#### a. `POST /api/import_trades` (匯入交易)
+- **目的**: 提供一個標準化流程，將 CSV 檔案中的交易紀錄匯入資料庫。
+- **實作**: 
+  1. 後端接收到帶有 `filename` 的請求。
+  2. 為了重用 `trade_check.py` 中成熟的資料清洗與 `trade_id` 生成邏輯，API 內部會建立一個暫時的 `TradeAuditor` 實例來處理 CSV 檔案。
+  3. API 遍歷處理後的 DataFrame，並使用 `INSERT OR IGNORE INTO trades ...` SQL 指令將交易寫入資料庫。`OR IGNORE` 確保了如果 `trade_id` 已存在（代表這筆交易之前已被匯入），資料庫會直接忽略，從而避免了重複紀錄的問題。
+  4. 回傳包含新增及跳過筆數的摘要給前端。
+
+#### b. `POST /api/trade_note` & `POST /api/trade_notes` (備註管理)
+- **儲存備註**: 前端呼叫 `POST /api/trade_note`，後端使用 `INSERT OR REPLACE` 語法，這使得同一筆交易的備註可以被多次新增或覆蓋更新，操作上更為直覺。
+- **讀取備註**: 前端在開啟月度明細時，會收集該月所有交易的 `trade_id`，並一次性透過 `POST /api/trade_notes` 請求所有備註。後端回傳一個以 `trade_id` 為鍵的字典，供前端快速查找與顯示，避免了逐筆請求的效能問題。
+
+### 3.4 前端互動流程 (`App.vue`)
+- **雙按鈕設計**: 在檔案選擇器下方，設計了「匯入此檔案」和「開始分析」兩個獨立按鈕，讓使用者可以明確控制操作流程。
+- **匯入流程**: 使用者點擊「匯入」，觸發 `/api/import_trades` API，並透過 `alert` 接收簡單的結果回饋。
+- **分析流程**: 使用者點擊「開始分析」，觸發 `/api/run_check` API。後端 `run_check` 現在會從資料庫撈取資料進行分析。
+- **備註流程**:
+  1. 使用者在月度總結表格點擊某個月，觸發 `showMonthDetails`。
+  2. `showMonthDetails` 收集該月所有 `trade_id`，呼叫 `/api/trade_notes` 取得備註資料。
+  3. 使用者在明細彈窗中點擊「編輯」，觸發 `openEditNoteModal`，並在編輯視窗中修改內容。
+  4. 點擊「儲存」觸發 `saveNote` 函式，呼叫 `/api/trade_note` 將備註儲存至後端資料庫，並在成功後即時更新前端畫面。
+  5. `closeMonthDetails` 函式會清空 `tradeNotes` 狀態，確保下次開啟其他月份時不會顯示舊資料。
+
+---
+
+## 4. K線資料匯入功能實作 (K-Line Data Import Implementation)
+
+為了將交易紀錄與市場行情資料結合，系統新增了 K 線資料的匯入與儲存功能，並採用了前後端分離的互動模式。
+
+### 4.1 資料庫擴充 (`init_database` in `server.py`)
+- **新增 `market_data` 資料表**: 在 `init_database` 函式中，新增了建立 `market_data` 資料表的邏輯。
+  - **結構**: 包含 `Datetime`, `Open`, `High`, `Low`, `Close`, `Volume` 等標準 K 線欄位。
+  - **主鍵**: `Datetime` 欄位被設為 `PRIMARY KEY`，利用 `INSERT OR IGNORE` 指令來防止重複的行情資料被寫入。
+
+### 4.2 後端 API 設計 (`server.py`)
+
+#### a. `GET /api/kdata_files` (獲取 K 線檔案列表)
+- **目的**: 讓前端能動態獲取 `KData/` 目錄下所有可用的 K 線資料檔案。
+- **實作**: 
+  1. 此 API 端點會掃描 `KData/` 目錄。
+  2. 回傳一個包含所有 `.csv` 檔名的 JSON 列表給前端。
+
+#### b. `POST /api/import_kdata` (匯入指定的 K 線檔案)
+- **目的**: 接收前端傳來的特定檔名，並執行該檔案的匯入作業。
+- **實作**:
+  1. API 接收一個包含 `filename` 的 JSON payload。
+  2. 為了安全性，會驗證 `filename` 是否為一個合法的檔名且存在於 `KData/` 目錄下。
+  3. API 調用 `import_kdata.py` 腳本中的核心匯入函式，並將 `filename` 作為參數傳入。
+  4. 執行完成後，回傳一個 JSON 響應，告知前端成功匯入的檔案名稱與新增的資料筆數。
+
+### 4.3 後端腳本 (`import_kdata.py`)
+- **由掃描改為接收參數**: 腳本的核心匯入函式被重構，不再自行掃描目錄，而是接收一個 `file_path` 作為參數。
+- **讀取與標準化**: 
+  - 腳本根據傳入的 `file_path` 讀取指定的 CSV 檔案。
+  - 為了提高彈性，它會嘗試將常見的中文欄位名 (如 `時間`, `開盤價`) 對應到標準的英文欄位名 (`Datetime`, `Open`)。
+- **寫入資料庫**:
+  - 使用 Pandas 讀取 CSV 檔案後，透過 `to_sql` 方法並設定 `if_exists='append'` 和 `index=False`，將標準化後的 DataFrame 高效地寫入 `market_data` 資料表中。
+  - 資料庫的 `PRIMARY KEY` 約束會自動處理重複資料的過濾。
+
+### 4.4 前端整合 (`App.vue`)
+- **新增按鈕與互動流程**:
+  1. 在 `index.html` 的操作區塊，新增一個「匯入K棒資料」按鈕。
+  2. 點擊按鈕觸發 `showKDataModal` 函式。
+- **檔案選擇彈窗**:
+  1. `showKDataModal` 首先呼叫 `/api/kdata_files` API，獲取檔案列表。
+  2. 獲取成功後，將檔案列表顯示在一個彈出視窗(Modal)中，讓使用者選擇。
+- **觸發匯入 API**:
+  1. 使用者從列表中選擇一個檔案並點擊「確認匯入」。
+  2. 前端觸發 `importKData` 函式，該函式會向後端的 `/api/import_kdata` 端點發送一個 `POST` 請求，並在請求主體中附上使用者選擇的檔名。
+  3. 請求成功後，會使用 `alert` 彈窗向使用者顯示後端回傳的匯入結果訊息。
