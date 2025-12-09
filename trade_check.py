@@ -13,14 +13,72 @@ import sys
 import hashlib
 import sqlite3
 
+import shutil
+
 # --- Logging Setup ---
-# Configure logger to write to a file and the console
-log_file = os.path.join(os.path.dirname(__file__), 'trade_audit.log')
+def archive_old_logs():
+    """Archives log files older than today into the LOG/ directory."""
+    log_dir = "LOG"
+    # A temporary basic logger for the archival process itself.
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    archiver_logger = logging.getLogger("LogArchiver")
+    
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+        archiver_logger.info(f"Created log directory: {log_dir}")
+
+    # Use glob to find all potential log files
+    potential_log_files = glob.glob('trade_audit*.log')
+    today = datetime.now().date()
+
+    for file_path in potential_log_files:
+        try:
+            # Handle legacy log file
+            if file_path == 'trade_audit.log':
+                timestamp = int(os.path.getmtime(file_path))
+                destination = os.path.join(log_dir, f"trade_audit.log.archived.{timestamp}")
+                archiver_logger.info(f"Archiving legacy log file: {file_path} to {destination}")
+                shutil.move(file_path, destination)
+                continue
+
+            # Handle date-stamped files
+            if file_path.startswith('trade_audit_') and file_path.endswith('.log'):
+                date_str = file_path.replace('trade_audit_', '').replace('.log', '')
+                try:
+                    file_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                    if file_date < today:
+                        destination = os.path.join(log_dir, os.path.basename(file_path))
+                        if os.path.exists(destination):
+                            # Avoid overwriting, create unique name
+                            base, ext = os.path.splitext(os.path.basename(file_path))
+                            destination = os.path.join(log_dir, f"{base}_{int(datetime.now().timestamp())}{ext}")
+                        
+                        archiver_logger.info(f"Archiving old log file: {file_path} to {destination}")
+                        shutil.move(file_path, destination)
+                except ValueError:
+                    # Ignore files that don't match the date format, e.g., trade_audit.log.bak
+                    archiver_logger.warning(f"Skipping file with non-date pattern: {file_path}")
+                    continue
+        except Exception as e:
+            archiver_logger.error(f"An unexpected error occurred while archiving {file_path}: {e}")
+
+# --- Run Archiving and Set Up Main Logger ---
+archive_old_logs()
+
+# Configure main logger to write to a date-stamped file and the console
+today_str = datetime.now().strftime('%Y-%m-%d')
+log_file = os.path.join(os.path.dirname(__file__), f'trade_audit_{today_str}.log')
+
+# Reconfigure logging for the main application
+# This removes the temporary handler and sets up the final ones
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(log_file),
+        logging.FileHandler(log_file, mode='a', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )

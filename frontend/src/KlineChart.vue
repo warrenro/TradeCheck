@@ -13,6 +13,7 @@ import { createChart } from 'lightweight-charts';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const API_BASE_URL = 'http://localhost:8000'; // Define the correct API base URL
 const chartContainer = ref(null);
 let chart = null;
 const isLoading = ref(true);
@@ -21,7 +22,7 @@ const hasData = ref(false);
 const fetchData = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch('/api/kline_data');
+    const response = await fetch(`${API_BASE_URL}/api/kline_data`);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
@@ -85,7 +86,7 @@ const setupChart = (data) => {
     priceFormat: {
       type: 'volume',
     },
-    priceScaleId: '', // set as an overlay
+    pane: 0, // Explicitly set to the main chart pane
   });
 
   volumeSeries.priceScale().applyOptions({

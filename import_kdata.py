@@ -142,8 +142,18 @@ def run_kdata_import(filename: str = None):
                 logging.warning(warning_msg)
                 return warning_msg
         else:
-            # Original behavior: process all CSV files
-            files_to_process = glob.glob(os.path.join(KDATA_DIR, '*.csv'))
+            # New, more robust file discovery
+            try:
+                all_items = os.listdir(KDATA_DIR)
+                files_to_process = [
+                    os.path.join(KDATA_DIR, f) 
+                    for f in all_items 
+                    if f.endswith('.csv') and os.path.isfile(os.path.join(KDATA_DIR, f))
+                ]
+            except FileNotFoundError:
+                logging.error(f"KData directory not found at '{KDATA_DIR}'.")
+                files_to_process = []
+
 
         total_files = len(files_to_process)
         
@@ -152,7 +162,7 @@ def run_kdata_import(filename: str = None):
             logging.warning(warning_msg)
             return warning_msg
 
-        logging.info(f"Found {total_files} CSV file(s) to import.")
+        logging.info(f"Found {total_files} CSV file(s) to import: {[os.path.basename(f) for f in files_to_process]}")
         
         for csv_file in sorted(files_to_process):
             new, skipped = import_csv_to_db(conn, csv_file)
