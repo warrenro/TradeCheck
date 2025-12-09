@@ -1,205 +1,127 @@
-# TradeCheck 交易審計系統規格書
-- **版本**: v2.3
-- **最後更新日期**: 2025-12-08
+# K-line Chart Display Specification
 
----
+## 1. Overview
+This document specifies the behavior and functionality of the K-line (candlestick) chart display within the TradeCheck application, focusing on data fitting, zoom capabilities, and dynamic Y-axis scaling. The chart utilizes the `lightweight-charts` library.
 
-## 1. 專案概述 (Project Overview)
-**TradeCheck** 是一個專為短線交易者設計的交易紀錄分析與風險控管工具。它能讀取用户的交易歷史（支援 `.csv` 或 `.xlsx` 格式），並根據 **D-Pro** 風控規則進行審計與 **交易 DNA 診斷**，最終生成一份綜合報告，幫助使用者評估其交易表現並識別潛在風險。
+## 2. Core Requirements
 
----
+### 2.1 Data Fitting
+*   **Initial Display:** Upon loading or refreshing the K-line chart, all available historical data for the selected timeframe must be displayed, fitting entirely within the chart container's width. The chart should automatically adjust its visible range to encompass the full dataset.
+*   **Responsive Resizing:** If the browser window or the chart's container size changes, the chart must automatically resize and re-fit all available data to the new dimensions.
 
-## 2. 核心功能 (Core Features)
-(Sections 2.1 to 2.4 remain unchanged)
-...
+### 2.2 Time-Scale (X-Axis) Zoom Functionality
+The chart will provide both button-based and intuitive mouse-based zoom and pan functionalities for the time axis.
 
-### 2.5 前端呈現 (Frontend Presentation)
-- **月初本金顯示**: 在網頁介面的「帳戶狀態」區塊，新增顯示 `config.ini` 中設定的 `monthly_start_capital` (月初本金)。
-- **年度總結區塊**: 在「月度總結」下方新增「年度總結」區塊，顯示審計期間各年份的總體交易表現，包括總損益、整體勝率、賺賠比和總交易筆數。
-- **手動觸發分析**: 網頁介面的分析流程改為手動觸發。使用者需在選擇檔案後，點擊「開始分析」按鈕以啟動審計。
-- **負值突顯**: 為了視覺上快速識別虧損，所有顯示為負數的損益或指標（例如：單筆損益、總損益）都會以紅色字體呈現。
+#### 2.2.1 Button Controls
+*   **Zoom In Button:** A dedicated "Zoom In" button will allow users to magnify the chart, reducing the visible time range.
+    *   Each click will reduce the visible range by a predefined factor (e.g., 20%).
+    *   The zoom should center around the currently visible middle point of the chart.
+    *   There is a reasonable minimum number of visible bars (e.g., 5 bars) to prevent excessive zooming into individual data points where bars might become indistinguishable.
+*   **Zoom Out Button:** A dedicated "Zoom Out" button will allow users to de-magnify the chart, expanding the visible time range.
+    *   Each click will increase the visible range by a predefined factor (e.g., 20%).
+    *   The zoom should center around the currently visible middle point of the chart.
+    *   The chart will not zoom out beyond displaying all available data.
+*   **Reset Zoom Button:** A "Reset Zoom" button will instantly restore the chart to its initial state, fitting all available data within the container as described in Section 2.1.
 
-### 2.6 交易備註功能 (Trade Annotation Feature)
-為了讓使用者能記錄每筆交易的決策背景或心得，系統新增了交易備註功能。
+#### 2.2.2 Mouse Interaction (Intuitive Controls)
+*   **Mouse Wheel Zoom:** Users can zoom in and out of the chart using the mouse wheel.
+    *   Scrolling up (away from the user) will zoom in, and scrolling down (towards the user) will zoom out.
+    *   The zoom action is centered on the mouse cursor's position.
+*   **Drag-to-Pan:** Users can pan (scroll horizontally) the chart by clicking and dragging with the mouse.
+    *   Clicking and dragging left will move the chart view to older data.
+    *   Clicking and dragging right will move the chart view to newer data.
 
-- **資料儲存**:
-  - **儲存方式**: 使用者為交易所新增的備註將會儲存在本地端的 `trade_notes.db` (SQLite) 檔案中，不會修改原始的交易紀錄檔案。
-  - **唯一識別**: 系統會為每一筆交易（基於成交時間、商品、損益等資訊）生成一個唯一的 `trade_id`，用於將備註與交易進行關聯。
+### 2.3 Price-Scale (Y-Axis) Management
+The Y-axis scaling ensures clear data visualization and provides manual control options.
 
-- **前端互動**:
-  - **檢視備註**: 在網頁介面的「月度詳細資料」彈窗中，新增「備註」欄位，顯示已儲存的備註。
-  - **編輯備註**:
-    - 在每一筆交易明細旁，提供一個「編輯」按鈕。
-    - 點擊按鈕後，會彈出一個獨立的編輯視窗，使用者可在其中輸入或修改備註文字。
-    - 儲存後，備註會寫入本地資料庫，並即時更新在明細表格中。
+*   **Automatic Data Adaptation (Auto-scaling):**
+    *   When manual Y-axis range is not active, the Y-axis will automatically adjust its visible range to closely fit the high and low price points of the data currently displayed in the time-scale (X-axis) view. This ensures optimal vertical data representation, adapting dynamically as the user zooms or pans the time axis.
+    *   Initial Y-axis display, and after resetting manual settings, will be auto-scaled.
+*   **Manual Range Setting:**
+    *   Users can manually define the minimum and maximum values for the Y-axis via dedicated input fields in the toolbar.
+    *   An "Apply" button (labelled "設定Y軸範圍") will set the Y-axis to the specified minimum and maximum values, disabling automatic scaling.
+    *   Validation will ensure that both inputs are valid numbers, and the maximum value is greater than the minimum.
+*   **Reset Manual Range:**
+    *   A "Reset" button (labelled "重設Y軸範圍") will revert the Y-axis back to its automatic scaling behavior, clearing any manually set minimum and maximum values.
+*   **K-Bar Display Optimization:**
+    *   To ensure K-bars are always displayed in a normal, visible size and do not collapse into thin lines, especially when zooming in, an explicit `barSpacing` is set for the `timeScale`. This helps maintain visual clarity even at higher zoom levels.
 
-- **後端 API**:
-  - `POST /api/trade_note`: 用於儲存或更新單筆交易的備註。
-  - `POST /api/trade_notes`: 用於一次性獲取多筆交易的備註，以優化前端載入速度。
+## 3. Technical Implementation Details (Internal)
 
-### 2.7 資料匯入與資料庫化 (Data Import and Databasing)
-為了支援未來更複雜的跨檔案查詢與分析，系統的資料處理流程將從直接讀取 CSV 檔案，轉變為以 SQLite 資料庫為核心。
+*   Utilize `lightweight-charts` built-in `timeScale().fitContent()` for initial data fit and reset of X-axis zoom.
+*   Leverage `lightweight-charts` `timeScale().setVisibleRange()` for programmatic X-axis zoom adjustments.
+*   Configure `lightweight-charts` chart options (`handleScroll`, `handleScale`) to enable mouse wheel zoom and drag-to-pan for the X-axis.
+*   `priceScale` global options within `createChart` explicitly set `autoScale: true` and `scaleMargins` for the default Y-axis behavior.
+*   `priceScale().applyOptions()` on individual series (`candlestickSeries`, `lineSeries`) is used to apply manual min/max settings (`autoScale: false`, `minimum`, `maximum`) or revert to auto-scaling (`autoScale: true`, `minimum: undefined`, `maximum: undefined`).
+*   `timeScale` options within `createChart` include `barSpacing` (e.g., `barSpacing: 6`) to maintain K-bar visibility.
+*   Ensure `currentChartData` is consistently updated and used for all calculations.
+*   Implement robust error handling and input validation for data fetching, chart rendering, and user inputs.
 
-- **核心架構轉變**:
-  - **交易資料儲存**: 所有交易紀錄將從 `tradedata/` 目錄下的 CSV 檔案匯入至 `trade_notes.db` 資料庫的 `trades` 資料表中。
-  - **分析資料來源**: `trade_check.py` 的核心審計邏輯將改為從 `trades` 資料表讀取指定來源檔案的資料進行分析，而非直接讀取 CSV。
+## 4. User Interface Considerations
 
-- **匯入功能 (Import Feature)**:
-  - **前端觸發**: 網頁介面提供「匯入此檔案」按鈕。
-  - **後端 API**: 建立 `POST /api/import_trades` 端點來處理匯入請求。
-  - **重複性檢查**: 匯入過程中，系統會使用 `trade_id` 來判斷交易是否已存在於資料庫中。已存在的交易將被忽略，確保資料不重複。
-  - **結果回饋**: 匯入完成後，前端會顯示成功匯入的新增交易筆數及因重複而被跳過的筆數。
+*   All zoom buttons, Y-axis range input fields, and related action buttons are clearly labeled and positioned within the chart toolbar for easy access.
+*   Alert messages are provided for invalid Y-axis range inputs.
+*   Mouse-based interactions are standard charting behaviors, requiring no additional UI elements.
 
-### 2.8 K線資料匯入功能 (K-Line Data Import)
-為了進行更深入的價量分析與策略回測，系統將新增匯入 K 線行情資料的功能。
+## 5. Testing
+*   Verify that the chart loads with all data fitted correctly and K-bars are displayed in a normal, visible size.
+*   Test "Zoom In", "Zoom Out", and "Reset Zoom" buttons for correct behavior and boundary conditions.
+*   Test mouse wheel zoom (in and out) and drag-to-pan functionality.
+*   Verify responsive behavior when resizing the browser window, ensuring `fitContent` and Y-axis scaling (auto/manual) are maintained.
+*   Verify initial Y-axis auto-scaling and its dynamic adjustment with time-scale zoom/pan.
+*   Test manual Y-axis min/max input: set values, validate input, and observe interaction with X-axis zoom.
+*   Test "Reset Y-Axis Range" button: verify return to auto-scaling and clearing of input fields.
+*   Ensure that all chart interactions do not negatively impact the performance or stability of the application.
 
-- **資料來源**:
-  - 使用者可從 `KData/` 資料夾中選擇一個符合特定格式的 CSV 檔案進行匯入 (例如 `TXF_1m_data_2025-08-01_to_2025-08-31.csv`)。
-  - CSV 檔案需包含 `時間 (Datetime)`, `開盤價 (Open)`, `最高價 (High)`, `最低價 (Low)`, `收盤價 (Close)`, `成交量 (Volume)` 等標準行情欄位。
+## 6. Layer Management Feature Specification
 
-- **資料儲存**:
-  - **儲存方式**: K 線資料將被匯入至 `trade_notes.db` 資料庫中的一個新資料表，命名為 `market_data`。
-  - **主鍵**: `market_data` 表將以 `時間 (Datetime)` 欄位作為主鍵，以確保資料的唯一性並方便時間序列分析。
+### 6.1 Feature Description
+This feature allows users to overlay different data series or visual elements onto the K-line chart, such as trading signals, indicator lines, and event markers. Each layer can be independently toggled on/off, styled, or configured.
 
-- **執行方式**:
-  - **前端互動**:
-    - 網頁介面提供一個「匯入K棒資料」按鈕。
-    - 點擊按鈕後，會顯示一個檔案選擇器，列出 `KData/` 目錄下所有可用的 CSV 檔案。
-    - 使用者選擇檔案並確認後，前端會向後端發送匯入請求。
-  - **後端**: 收到請求後，`import_kdata.py` 腳本會讀取指定的 CSV 檔案，進行欄位標準化，並將資料寫入 `market_data` 資料表。
+### 6.2 Initial Options
+*   **Default Layer**: The K-line chart itself serves as the base layer.
+*   **Selectable Layer Types**:
+    *   **交易資料圖層 (Trade Data Layer)**: 在 K 線圖上顯示買入/賣出交易點，以特定圖示（例如：箭頭）標示，並可顯示相關資訊（如價格、數量、備註）。
+    *   **移動平均線 (MA)**: 不同週期的移動平均線。
+    *   **成交量 (Volume)**: 顯示在圖表底部的獨立成交量圖。
+    *   **布林通道 (Bollinger Bands)**: 顯示布林通道的上下軌和中軌。
+    *   **自訂指標 (Custom Indicators)**: 未來可擴展用於其他技術指標（例如：RSI, MACD）。
+    *   **事件標記 (Event Markers)**: 用於特定日期或時間點的文字/圖示標記。
 
-- **後端 API**:
-  - `GET /api/kdata_files`: 用於獲取 `KData/` 目錄下的檔案列表。
-  - `POST /api/import_kdata`: 用於觸發指定 K 線資料檔案的匯入流程。請求中會包含要匯入的檔案名稱。成功後回傳匯入的檔案名稱與新增的資料筆數。
+### 6.3 User Interface (UI) Design
+*   **Layer Control Panel**: Add an expandable/collapsible panel above or to the side of the chart, listing all available layers.
+*   **Layer Toggles**: Each layer should have a checkbox or toggle switch to control its visibility.
+*   **Layer Settings**: A gear icon or dropdown menu next to each layer can provide options to adjust its style (e.g., line color, thickness, marker icon) or parameters (e.g., MA period).
 
-- **目標**:
-  - 將交易紀錄與市場行情資料整合在同一個資料庫中，為未來實現更複雜的查詢分析（例如：分析特定交易發生時的市場價量狀態）奠定基礎。
+### 6.4 Implementation Details (Internal)
+*   **Data Structure Definition**: Define a data structure for layers, including `id`, `name`, `type`, `isVisible`, and `settings` (e.g., `color`, `period`).
+*   **Layer State Management**: Manage the state of active layers and their configurations within `KlineChart.vue` or a state management solution (if used).
+*   **UI Component Development**: Create a new Vue component (e.g., `LayerControl.vue`) to display the layer list and control options. This component will emit events to `KlineChart.vue` when layer states change.
+*   **`lightweight-charts` API Integration**: `KlineChart.vue` will dynamically create, update, or remove layers using the `lightweight-charts` API based on the state received from `LayerControl.vue`.
+    *   **Base K-line Chart**: Serves as the main series and cannot be turned off.
+    *   **Overlay Series**: New `series` (e.g., `chart.addLineSeries()`, `chart.addHistogramSeries()`) will be created for moving averages, trading signals, etc. Series properties (e.g., color, line width) will be configured dynamically based on layer settings. Trading signals might use `chart.timeScale().createPriceLine()` or `series.setMarkers()`.
+    *   **Data Loading**: Ensure that data required for different layers (e.g., MA calculation results, trading signal data) is correctly loaded and passed to `lightweight-charts`.
+    *   **6.4.1 交易資料圖層實作細節 (Trading Data Layer Implementation Details)**
+        *   **後端 API (`server.py`)**:
+            *   新增 `/api/trade_data` 端點，接收 `start_time` 和 `end_time` (Unix timestamp) 參數。
+            *   查詢 `trade_notes.db` 中的 `trades` 表，根據時間範圍篩選交易記錄。
+            *   為每個交易記錄，結合 `market_data` 表獲取該時間點的 `close` 價格作為標記的價格位置。若無精確匹配，則取最近的 K 線收盤價。
+            *   返回資料格式包含 `time` (Unix timestamp), `price`, `action` (buy/sell), 及 `text` (顯示內容)。
+        *   **前端實作 (`KlineChart.vue`)**:
+            *   引入 `showTradeData` (boolean) 和 `tradeData` (array) 響應式變數。
+            *   在圖表工具列新增「交易資料」Checkbox，綁定 `showTradeData`。
+            *   實作 `fetchTradeData(startTime, endTime)` 非同步函數，呼叫後端 `/api/trade_data`。
+            *   實作 `drawTradeData()` 函數：
+                *   根據 `showTradeData` 狀態決定是否顯示交易標記。
+                *   將 `tradeData` 轉換為 `lightweight-charts` 的 `marker` 格式。
+                *   使用 `candlestickSeries.setMarkers()` 來設置買入（綠色箭頭向上, `belowBar`）和賣出（紅色箭頭向下, `aboveBar`）標記。
+            *   在 `setupChart()`、`updateChartData()` 和 `onMounted()` 中適時呼叫 `fetchTradeData` 和 `drawTradeData` 以確保資料載入與顯示同步。
+    *   **Styling and Interactivity**: Ensure the layer control panel's styling is consistent with the existing interface and that real-time chart updates occur when layer toggles or settings are changed.*   **Backend (if applicable)**: If some complex indicators require backend calculation, new API endpoints will be defined for frontend consumption.
 
-### 2.9 K線圖顯示功能 (Candlestick Chart Display)
-為了將匯入的 K 線資料進行視覺化呈現，提供使用者直觀的市場分析工具，系統將新增 K 線圖顯示功能。
-
-- **功能目標**:
-  - 提供一個互動式的圖表介面，包含標準的 K 線圖（顯示開盤、最高、最低、收盤價）以及成交量柱狀圖。
-
-- **前端 (Frontend)**:
-  - **圖表庫整合**: 引入一個適用於 React 的輕量級金融圖表庫（建議：`lightweight-charts`）。
-  - **新元件開發**: 建立一個新的 React 元件，專門用於渲染與互動。
-  - **介面整合**:
-    - 在主頁面新增一個「行情圖表」分頁。
-    - 使用者進入此分頁後，前端向後端請求 K 線資料並渲染圖表。
-  - **圖表呈現**:
-    - 上半部為 K 線圖，紅棒代表上漲，綠棒代表下跌。
-    - 下半部為成交量圖，使用柱狀圖顯示。
-    - X 軸為時間，Y 軸為價格/成交量，支援縮放與拖曳。
-
-- **後端 (Backend)**:
-  - **新 API 端點**: `GET /api/kline_data`
-    - **用途**: 提供前端所需的 K 線圖表資料。
-    - **回應資料**: 回傳一個 JSON 陣列，其中每個物件包含 `time` (時間戳), `open`, `high`, `low`, `close`, `value` (成交量)。
-  - **資料查詢**: 此 API 會從 `market_data` 資料表中查詢所有行情資料並回傳。
-
----
-
-## 3. 指令碼模式 (Script Mode)
-... (The rest of the document remains unchanged) ...
-
----
-
-## 3. 指令碼模式 (Script Mode)
-
-### 3.1 執行方式
-使用者可透過執行 `trade_check.py` 指令碼來啟動分析。
-
-- **指令**: `python trade_check.py`
-- **配置文件**: 腳本會讀取 `config.ini` 以獲取 `月初本金` 及 `操作規模` 等參數。`目前權益數` 會根據 `月初本金` 和當月損益動態計算。
-- **交易資料**: 腳本會自動讀取 `tradedata/` 目錄下的交易紀錄檔案。
-
-### 3.2 輸出結果
-執行完成後，會在根目錄生成一份 `audit_report.json`，包含完整的分析指標與審計結果。報告的 JSON 結構將擴充，以包含所有新增的分析結果，例如：
-- `trading_dna_diagnosis`:
-  - `noise_zone_verdict`: "陷入泥淖" 或 "防守得宜" 等文字評價。
-  - `trend_zone_verdict`: "獲利核心" 或 "錯失行情" 等文字評價。
-  - `monthly_point_target_progress`: 點數進度。
-- `sop_risk_stress_test`:
-  - `risk_ratio`: 風險率百分比。
-  - `warning`: "高風險警告" 或空值。
-- `risk_audit`:
-  - `night_session_violation`: 布林值，表示是否違反夜盤避險規則。
-- `capital_assessment`:
-  - `quarterly_cost_deducted`: 實際扣除的固定成本金額。
-
----
-
-## 4. 伺服器模式 (Server Mode)
-... (伺服器模式章節維持不變) ...
-
----
-
-## 7. 資料格式要求 (Data Format Requirements)
-
-### 7.1 交易紀錄檔案 (Transaction Record File)
-為了讓指令碼模式能順利執行，交易紀錄檔案（支援 `.csv` 或 `.xlsx`）需放置在 `tradedata/` 目錄下，且必須包含以下 **五個欄位**:
-
-1.  **成交時間**: 交易發生的完整時間，格式需為 `YYYY/MM/DD HH:MM:SS`。
-2.  **買賣別**: 交易的類型。
-3.  **平倉損益淨額**: 該筆交易的淨損益，需為數值格式。
-4.  **口數**: 交易的合約數量，需為數值格式。
-5.  **商品名稱**: 用於判斷合約類型（e.g., `小型期`, `微型台指期`）。
-
-**注意**: 腳本會自動將這些中文欄位名稱映射到內部處理所用的英文名稱。
-
-### 7.2 K線行情資料檔案 (K-Line Data File)
-K 線行情資料 (CSV) 必須包含以下標準欄位 (或對應的中文名稱)：
-
-1.  `Datetime` 或 `時間`: `YYYY-MM-DD HH:MM:SS` 格式
-2.  `Open` 或 `開盤價`
-3.  `High` 或 `最高價`
-4.  `Low` 或 `最低價`
-5.  `Close` 或 `收盤價`
-6.  `Volume` 或 `成交量`
-
----
-
-## 8. 運維特性 (Operational Features)
-... (運維特性章節維持不變) ...
----
-
-## 附錄：帳戶升級資格計算方法
-
-本系統會根據以下規則，評估帳戶是否符合升級資格。所有規則皆定義於 `trade_check.py`。
-
-### 1. 升級標準 (Upgrade Criteria)
-... (此表格維持不變) ...
-
-### 2. 關鍵績效指標 (KPI) 計算方式
-... (此章節維持不變) ...
-
-### 3. 資格綜合評估
-在 `_evaluate_capital_management` 函式中，系統會將您目前的 **資本額** 與計算出的 **KPI 指標** 與 `UPGRADE_CRITERIA` 中的標準進行比對。
-
-一筆帳戶必須 **同時滿足** 以下兩個條件，才能獲得升級資格：
-
-1.  **資本額達標 (Capital OK)**:
-    -   `您目前的資本額 (經季末成本調整後) >= 該級別的資本額要求`
-
-2.  **交易表現達標 (Performance OK)**:
-    -   `您的風報比 >= 該級別的風報比要求`
-    -   **且** `您的勝率 >= 該級別的勝率要求`
-
-如果其中任何一項不滿足，系統將判定為不符合升級資格，並在報告中明確指出未達標的項目。
-
-### 4. 新增：特殊計算規則說明
-
-- **交易點數 (Points) 計算**:
-  - 為了進行 DNA 診斷，系統會將每筆交易的 `平倉損益淨額` 轉換為「點數」。
-  - **公式**: `點數 = 平倉損益淨額 / (口數 * 點值)`
-  - **點值**: 根據交易紀錄中的 `商品名稱` 決定。
-    - `小型期` (Mini-Taiex): 50 TWD/點
-    - `微型台指期` (Micro-Taiex): 10 TWD/點
-    - `大台` (Taiex): 200 TWD/點 (若適用)
-
-- **固定成本扣除 (中哥費 / Brother Chung Cost)**:
-  - **目的**: 模擬真實世界中的固定營運成本 (e.g., 軟體、資訊源費用)。
-  - **觸發時機**: 當升級審查的月份為 **3月、6月、9月、或12月** 時觸發。
-  - **計算方式**: `調整後資本額 = 目前權益數 - 25,000`。
-  - **應用**: 此`調整後資本額`專門用於升級資格的「資本額達標」判斷。系統報告需明確列出「固定成本扣除」項目，確保使用者了解淨值調整細節。
+### 6.5 Testing
+*   Verify that new layers can be added and removed from the chart.
+*   Test toggling the visibility of each layer.
+*   Verify that changing layer settings (e.g., MA period, color) correctly updates the chart.
+*   Ensure that multiple layers can be displayed simultaneously without conflicts.
+*   Test the performance implications of adding multiple layers.
+*   Confirm data consistency across layers when the underlying K-line data changes.

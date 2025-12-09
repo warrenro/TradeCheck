@@ -1,5 +1,5 @@
 # TradeCheck 系統實作與設計決策
-- **版本**: v2.3
+- **版本**: v2.4
 - **最後更新日期**: 2025-12-09
 
 本文檔旨在記錄 `TradeCheck` 專案在根據 `spec.md` 進行功能開發時，其核心功能的實作摘要、關鍵的設計決策與問題修正過程。它並非鉅細靡遺的步驟紀錄，而是為了幫助未來的維護者快速理解系統的設計思路與重要權衡。
@@ -29,7 +29,6 @@
   - 於 `frontend` 目錄下執行 `npm install lightweight-charts`。
 
 - **新增 `KlineChart` 元件**:
-  - 建立一個新的 Vue 元件 `KlineChart.vue`。
   - 此元件負責：
     1.  在掛載時 (`onMounted`) 呼叫後端的 `/api/kline_data` API 來獲取圖表資料。
     2.  使用 `lightweight-charts` API 來初始化圖表，設定圖表外觀（如背景色、格線）。
@@ -40,6 +39,43 @@
 - **整合至主畫面 (`App.vue`)**:
   - 在 `App.vue` 中新增一個「行情圖表」的分頁標籤。
   - 當使用者切換到此分頁時，渲染 `KlineChart.vue` 元件。
+
+### 5.3 交易資料圖層實作 (Trade Data Layer Implementation)
+
+為了在 K 線圖上疊加顯示交易資料，我們在後端新增了 API 並在前端 `KlineChart.vue` 中進行了整合。
+
+- **後端 API (`server.py`)**:
+  - **新增 `GET /api/trade_data` API**:
+    - **目的**: 提供指定時間範圍內的交易紀錄給前端，並包含標記所需的價格資訊。
+    - **實作**:
+      1. API 接收 `start_time` 和 `end_time` (Unix timestamp) 參數。
+      2. 連接至 `trade_notes.db` 資料庫，查詢 `trades` 表以獲取在時間範圍內的交易紀錄。
+      3. 為了獲取每個交易發生時的價格，API 會嘗試將 `trades` 表與 `market_data` 表透過 `trade_time` 進行 `LEFT JOIN`。若沒有精確匹配的 K 線資料，則會尋找最接近該交易時間點的 K 線 `close` 價格。
+      4. 將交易時間轉換為 UNIX 時間戳（秒）。
+      5. 返回一個 JSON 陣列，每個元素都是一個 `lightweight-charts` 格式的 Marker 物件，包含 `time`, `price`, `action` (用於決定箭頭方向和顏色), 以及 `text` (顯示交易詳情，如買賣別、數量和價格)。
+
+- **前端實作 (`KlineChart.vue`)**:
+  - **狀態管理**:
+    - 新增 `showTradeData` (boolean ref) 用於控制交易圖層的顯示/隱藏。
+    - 新增 `tradeData` (array ref) 用於儲存從後端獲取的交易資料。
+  - **工具列整合**:
+    - 在圖表工具列新增一個「交易資料」Checkbox，綁定 `showTradeData`。
+  - **資料獲取**:
+    - 實作 `fetchTradeData(startTime, endTime)` 非同步函數，專責呼叫後端 `/api/trade_data` API。
+  - **圖層繪製**:
+    - 實作 `drawTradeData()` 函數：
+      - 判斷 `showTradeData.value` 和 `tradeData.value.length > 0`。
+      - 將 `tradeData` 映射成 `lightweight-charts` 所需的 `marker` 格式：
+        - `time`: 交易時間的 UNIX 時間戳。
+        - `position`: 根據買賣別 (`buy` 為 `belowBar`，`sell` 為 `aboveBar`) 決定標記位置。
+        - `color`: 根據買賣別設定綠色 (買) 或紅色 (賣)。
+        - `shape`: 根據買賣別設定向上 (`arrowUp`) 或向下 (`arrowDown`) 箭頭。
+        - `text`: 後端提供的交易詳情文字。
+      - 使用 `candlestickSeries.setMarkers(markers)` (或 `lineSeries.setMarkers(markers)`) 將標記繪製到主圖系列上。
+      - 若 `showTradeData.value` 為 `false` 或 `tradeData` 為空，則呼叫 `setMarkers([])` 清空標記。
+  - **生命週期與資料更新**:
+    - 在 `onMounted` 鉤子中，初始化圖表後，首次呼叫 `fetchTradeData` 和 `drawTradeData`。
+    - 在 `updateChartData` 函數中，每次時間週期改變或 K 線資料更新後，重新呼叫 `fetchTradeData` 和 `drawTradeData`，確保交易資料與 K 線資料同步更新。
 
 ---
 
@@ -282,3 +318,136 @@
 
 ### 結論
 K 線圖無法顯示的問題，是由**圖表渲染選項錯誤**、**資料導入流程誤解**、**前端 API 位址寫死錯誤**三個獨立問題串連疊加導致的。透過逐層分析、添加日誌、正反驗證，最終定位並解決了所有問題。
+
+---
+
+## 7. K線圖工具列功能規格 (Specification for K-Line Chart Toolbar)
+
+此章節記錄了為 K 線圖增加進階分析工具列的設計規格。
+
+### 7.1 整體設計 (Overall Design)
+
+- **位置**: 在「行情圖表」分頁的 K 線圖正上方，新增一個水平的工具列區域。
+- **風格**: 工具列將採用簡潔、現代的設計，按鈕和下拉選單會清晰地分組，與現有 UI 風格保持一致。
+
+### 7.2 功能規格 (Functional Specifications)
+
+1.  **時間週期切換 (Timeframe Selection)**
+    - **功能描述**: 提供一個下拉選單，讓使用者可以切換不同的 K 線時間週期。
+    - **選項**:
+        - 1 分鐘 (1m) - (預設)
+        - 5 分鐘 (5m)
+        - 15 分鐘 (15m)
+        - 1 小時 (1h)
+        - 日線 (1D)
+    - **實作方式**:
+        - **後端 (`server.py`)**: `/api/kline_data` 端點將會新增一個 `timeframe` 參數。當收到請求時，後端會使用 Pandas 的 `resample()` 功能，將原始的 1 分鐘資料動態聚合成使用者請求的時間週期資料。
+        - **前端 (`KlineChart.vue`)**: 當使用者從下拉選單選擇新的時間週期時，前端會帶上新參數，重新向後端請求資料並刷新圖表。
+
+2.  **技術指標 (Technical Indicators)**
+    - **功能描述**: 提供一個下拉選單或一組開關按鈕，讓使用者可以在圖表上疊加常用的技術指標。
+    - **初步選項**:
+        - **移動平均線 (Moving Average - MA)**: 提供 MA5, MA10, MA20, MA60 四個常用週期的開關。
+        - **布林通道 (Bollinger Bands - BBands)**: 提供一個開關，用以顯示上、中、下三條軌道線 (20週期, 2個標準差)。
+    - **實作方式**:
+        - **前端 (`KlineChart.vue`)**: 指標的計算將在前端完成。當使用者啟用一個指標時，前端會根據現有的 K 線資料即時計算出指標數據，並使用 `lightweight-charts` 的 `addLineSeries` 功能將其繪製到圖表上。
+
+3.  **圖表類型 (Chart Type)**
+    - **功能描述**: 提供一組按鈕，讓使用者可以切換主圖的顯示類型。
+    - **選項**:
+        - K 線圖 (Candlestick) - (預設)
+        - 線圖 (Line) - (僅收盤價連線)
+    - **實作方式**:
+        - **前端 (`KlineChart.vue`)**: 點擊按鈕時，會移除當前的圖表序列，並使用相同的資料重新建立一個不同類型的圖表序列。
+
+4.  **匯出圖表 (Export Chart)**
+    - **功能描述**: 提供一個「下載圖表」按鈕，讓使用者可以將當前看到的圖表畫面儲存為一張 `.png` 圖片。
+    - **實作方式**:
+        - **前端 (`KlineChart.vue`)**: 利用 `lightweight-charts` 內建的 `takeScreenshot()` API 來獲取圖表的 Canvas 物件，然後觸發瀏覽器下載該圖片。
+
+---
+
+## 8. K線圖頁面縮放與資料適配規格 (K-Line Chart Zoom & Data Fit Specification)
+
+### 8.1 資料適配與自動縮放 (Data Fit & Auto-Zoom)
+- **功能描述**: K線圖在初始化或數據更新後，應自動調整其時間軸與價格軸（Y軸）縮放級別，以確保所有可視數據點都能完整顯示在圖表區域內，K棒能正常顯示且不縮成一條線，並且Y軸能隨著資料的高低點自動適配。當瀏覽器窗口大小改變時，圖表應自適應調整大小並重新適配數據。
+- **實作方式**:
+    - 利用 `lightweight-charts` 提供的 `chart.timeScale().fitContent()` 方法，在圖表初始化及數據更新時呼叫，以實現內容的自動適配。這將確保時間軸和價格軸都自動調整以包含所有可見數據。
+    - 利用 `window.addEventListener('resize', resizeHandler)` 監聽窗口大小變化事件，並在 `resizeHandler` 中調用 `chart.resize()` 和 `chart.timeScale().fitContent()`。
+- **驗證狀態**: 已驗證 K棒畫面縮放與資料適配功能正常，K棒顯示正常大小，Y軸隨資料變動自動適配。
+
+### 8.2 手動縮放功能 (Manual Zoom Functionality)
+- **功能描述**: 提供用戶界面元素，讓用戶可以手動控制圖表的縮放級別。
+- **初步選項**:
+    - **縮放按鈕**: 提供「放大」和「縮小」按鈕。
+    - **重置縮放按鈕**: 提供一個按鈕，將圖表縮放級別重置為自動適配所有數據的初始狀態。
+- **實作方式**:
+    - **前端 (`KlineChart.vue`)**:
+        - 在工具列中新增「放大」、「縮小」及「重置縮放」按鈕。
+        - 利用 `lightweight-charts` API 提供的時間軸方法來控制縮放：
+            - `chart.timeScale().scrollPosition()` 可以獲取或設置當前滾動位置。
+            - `chart.timeScale().setVisibleRange()` 可以設定可視範圍。
+            - 手動縮放功能可能需要計算當前可視K棒的數量，並根據比例調整 `setVisibleRange`。
+            - `chart.timeScale().fitContent()` 用於重置縮放。
+
+### 8.3 Y軸範圍手動設定 (Manual Y-axis Range Setting)
+- **功能描述**: 允許使用者手動設定 K 線圖 Y 軸的最大值與最小值，以便更精確地觀察特定價格區間。
+- **初步選項**:
+    - **輸入欄位**: 提供兩個輸入欄位，分別用於設定 Y 軸的最大值和最小值。
+    - **應用按鈕**: 一個按鈕用於應用手動設定的範圍。
+    - **重置按鈕**: 一個按鈕用於將 Y 軸範圍重置為自動適配模式。
+- **實作方式**:
+    - **前端 (`KlineChart.vue`)**:
+        - 在工具列中新增輸入欄位和按鈕。
+        - 利用 `lightweight-charts` API 提供的 `chart.priceScale('right').applyOptions({ mode: 'normal', autoscaleInfoProvider: undefined, visible: true, scaleMargins: { top: 0.1, bottom: 0.25 } })` 或 `chart.priceScale('right').setVisibleRange({ from: minValue, to: maxValue })` 來設定 Y 軸的可視範圍。
+        - 當使用者輸入值並點擊應用時，呼叫上述 API 進行設定。
+        - 重置時，呼叫 `chart.timeScale().fitContent()`，`lightweight-charts` 會自動計算 Y 軸範圍。
+
+---
+
+## 9. 圖層管理功能規格 (Layer Management Feature Specification)
+
+### 9.1 功能描述
+提供用戶在K線圖上疊加顯示不同資料系列或視覺元素的能力，例如交易訊號、指標線、事件標記等。每個圖層應可獨立開啟/關閉顯示、調整樣式或設定。
+
+### 9.2 初步選項
+*   **預設圖層**: K線圖本身作為基礎圖層。
+*   **可選圖層類型**:
+    *   **交易資料圖層 (Trade Data Layer)**: 在 K 線圖上顯示買入/賣出交易點，以特定圖示（例如：箭頭）標示。
+    *   **移動平均線 (MA)**: 不同週期的移動平均線 (MA)。
+    *   **成交量 (Volume)**: 底部成交量圖。
+    *   **布林通道 (Bollinger Bands)**: 布林通道的上下軌和中軌。
+    *   **自訂指標 (Custom Indicators)**: (未來可擴充其他技術指標，例如 RSI, MACD 等)。
+    *   **事件標記 (Event Markers)**: (未來可擴充特定日期或時間點的文字/圖示標記)。
+
+### 9.3 用戶界面 (UI) 設計
+*   **圖層控制面板**: 在圖表上方或側邊增加一個可展開/收合的面板，列出所有可用的圖層。
+*   **圖層開關**: 每個圖層旁應有勾選框或開關按鈕，控制其顯示與隱藏。
+*   **圖層設定**: 每個圖層旁可提供一個齒輪圖示或下拉選單，用於調整該圖層的樣式 (例如：線條顏色、粗細、標記圖示) 或參數 (例如：均線週期)。
+
+### 9.4 實作方式
+
+#### 前端 (`KlineChart.vue` 及相關組件)
+1.  **資料結構定義**:
+    *   定義圖層的資料結構，包含 `id`, `name`, `type`, `isVisible`, `settings` (例如: `color`, `period` 等)。
+2.  **圖層狀態管理**:
+    *   在 `KlineChart.vue` 或 Vuex (如果專案有使用) 中管理活躍圖層的狀態。
+    *   狀態應包含哪些圖層被啟用，以及它們各自的設定。
+3.  **UI 組件開發**:
+    *   創建一個新的 Vue 組件 `LayerControl.vue` (或類似名稱)，用於顯示圖層列表和控制選項。
+    *   `LayerControl.vue` 將透過 props 接收可用的圖層定義，並透過 emit 事件通知父組件 `KlineChart.vue` 圖層狀態的改變。
+4.  **`lightweight-charts` API 整合**:
+    *   `KlineChart.vue` 將根據 `LayerControl.vue` 傳來的狀態，動態地使用 `lightweight-charts` API 創建、更新或移除圖層。
+    *   **基礎K線圖**: 作為主系列 (main series)，不可關閉。
+    *   **疊加系列 (Overlay Series)**:
+        *   對於均線、交易訊號等，需要創建新的 `series` (例如 `chart.addLineSeries()`, `chart.addHistogramSeries()` 等)。
+        *   根據圖層設定，動態配置系列屬性 (例如顏色、線寬)。
+        *   交易訊號可能需要使用 `chart.timeScale().createPriceLine()` 或 `series.setMarkers()` 來添加標記。
+    *   **資料載入**: 確保不同圖層所需的資料 (例如均線計算結果、交易訊號資料) 能被正確地載入並傳遞給 `lightweight-charts`。
+5.  **樣式和互動**:
+    *   確保圖層控制面板的樣式與現有界面一致。
+    *   處理圖層開關和設定變更時的即時圖表更新。
+
+#### 後端 (如果圖層資料需要後端計算或提供)
+*   **API 接口**: 如果某些圖層 (例如複雜指標) 的資料需要在後端計算，則需要定義新的 API 接口供前端調用。
+*   **資料處理**: 後端負責接收前端請求，計算所需指標資料，並以標準格式返回給前端。

@@ -48,11 +48,12 @@ async def get_kdata_files():
         raise HTTPException(status_code=500, detail="Failed to retrieve KData files from server.")
 
 @app.get("/api/kline_data")
-async def get_kline_data():
+async def get_kline_data(timeframe: Optional[str] = '1T'): # Default to 1-minute
     """
     API endpoint to retrieve K-line data from the database, formatted for charting.
+    Supports resampling to different timeframes.
     """
-    logger.info("Request received for K-line data.")
+    logger.info(f"Request received for K-line data with timeframe: {timeframe}")
     try:
         conn = sqlite3.connect(DB_FILE)
         # Read data into a pandas DataFrame
@@ -65,9 +66,35 @@ async def get_kline_data():
             logger.warning("No K-line data found in 'market_data' table.")
             return JSONResponse(content=[])
 
+        # Convert 'datetime' string to datetime objects
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df = df.set_index('datetime')
+
+        # Resample data if a timeframe is provided and not 1T (1-minute)
+        if timeframe and timeframe != '1T':
+            try:
+                # Aggregate to the desired timeframe
+                df_resampled = df.resample(timeframe).agg({
+                    'open': 'first',
+                    'high': 'max',
+                    'low': 'min',
+                    'close': 'last',
+                    'volume': 'sum'
+                }).dropna() # Drop any rows that might have been created by resampling with no data
+
+                if df_resampled.empty:
+                    logger.warning(f"No K-line data found after resampling to {timeframe}.")
+                    return JSONResponse(content=[])
+
+                df = df_resampled
+            except Exception as e:
+                logger.error(f"Error during resampling with timeframe '{timeframe}': {e}", exc_info=True)
+                raise HTTPException(status_code=400, detail=f"Invalid timeframe or resampling error: {timeframe}")
+
+        df = df.reset_index()
         # --- Data Formatting for lightweight-charts ---
-        # 1. Convert 'datetime' string to datetime objects, then to UNIX timestamp (seconds)
-        df['time'] = pd.to_datetime(df['datetime']).astype('int64') // 10**9
+        # 1. Convert 'datetime' objects to UNIX timestamp (seconds)
+        df['time'] = df['datetime'].astype('int64') // 10**9
         
         # 2. Rename columns to match the expected format
         df.rename(columns={'volume': 'value'}, inplace=True)
@@ -75,7 +102,7 @@ async def get_kline_data():
         # 3. Select the required columns
         chart_data = df[['time', 'open', 'high', 'low', 'close', 'value']].to_dict(orient='records')
         
-        logger.info(f"Successfully retrieved and formatted {len(chart_data)} K-line data points.")
+        logger.info(f"Successfully retrieved and formatted {len(chart_data)} K-line data points for timeframe: {timeframe}.")
         return JSONResponse(content=chart_data)
         
     except sqlite3.OperationalError as e:
@@ -102,23 +129,111 @@ async def import_kdata_endpoint(request: KDataImportRequest):
         logger.critical(f"An unexpected error occurred during K-line data import for {filename}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {str(e)}")
 
+@app.get("/api/trade_data")
+async def get_trade_data(start_time: int, end_time: int):
+    """
+    API endpoint to retrieve trade data from the database within a specified time range,
+    formatted for charting markers.
+    """
+    logger.info(f"Request received for trade data from {start_time} to {end_time}.")
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        
+        # Convert Unix timestamps to ISO format for database query
+        start_datetime_iso = datetime.fromtimestamp(start_time).isoformat(sep=' ', timespec='seconds')
+        end_datetime_iso = datetime.fromtimestamp(end_time).isoformat(sep=' ', timespec='seconds')
+
+        # Query trades and join with market_data to get the close price at the trade time
+        # We use a subquery to find the closest market_data datetime for each trade_time
+        query = f"""
+            SELECT
+                t.trade_id,
+                t.trade_time,
+                t.action,
+                t.net_pnl,
+                t.product_name,
+                t.contracts,
+                COALESCE(md.close, (SELECT close FROM market_data WHERE datetime <= t.trade_time ORDER BY datetime DESC LIMIT 1)) as price
+            FROM
+                trades t
+            LEFT JOIN
+                market_data md ON t.trade_time = md.datetime
+            WHERE
+                t.trade_time BETWEEN '{start_datetime_iso}' AND '{end_datetime_iso}'
+            ORDER BY
+                t.trade_time ASC
+        """
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+
+        if df.empty:
+            logger.warning("No trade data found in 'trades' table for the specified range.")
+            return JSONResponse(content=[])
+
+        df['trade_time'] = pd.to_datetime(df['trade_time'])
+        df['time'] = df['trade_time'].astype('int64') // 10**9 # Convert to Unix timestamp (seconds)
+
+        # Format data for lightweight-charts markers
+        # Assuming 'action' is 'buy' or 'sell'
+        chart_markers = []
+        for index, row in df.iterrows():
+            marker = {
+                "time": row['time'],
+                "position": "aboveBar", # Default position
+                "color": "#1e88e5", # Default color
+                "shape": "circle", # Default shape
+                "text": f"{row['action'].capitalize()} {row['contracts']} @ {row['price']:.2f}"
+            }
+            if row['action'].lower() == 'buy':
+                marker['position'] = 'belowBar'
+                marker['color'] = '#26a69a' # Green for buy
+                marker['shape'] = 'arrowUp'
+                marker['text'] = f"買 {row['contracts']} @ {row['price']:.2f}"
+            elif row['action'].lower() == 'sell':
+                marker['position'] = 'aboveBar'
+                marker['color'] = '#ef5350' # Red for sell
+                marker['shape'] = 'arrowDown'
+                marker['text'] = f"賣 {row['contracts']} @ {row['price']:.2f}"
+            
+            # If price is null (no matching kline data), try to get the nearest kline close price
+            if pd.isna(row['price']):
+                # This should ideally be handled in the main query for efficiency
+                # but as a fallback, we can use a placeholder or log a warning
+                marker['price'] = (row['net_pnl'] > 0) * 100 # Placeholder for now, needs real price
+                logger.warning(f"No exact K-line price found for trade {row['trade_id']} at {row['trade_time']}. Using placeholder for price.")
+            else:
+                marker['price'] = row['price']
+            
+            chart_markers.append(marker)
+        
+        logger.info(f"Successfully retrieved and formatted {len(chart_markers)} trade data points.")
+        return JSONResponse(content=chart_markers)
+        
+    except sqlite3.OperationalError as e:
+        logger.warning(f"Could not retrieve trade data, table might not exist yet: {e}")
+        return JSONResponse(content=[])
+    except Exception as e:
+        logger.error(f"Failed to get trade data: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve trade data.")
+
+
 def init_database():
     """Initializes the database and creates tables if they don't exist."""
     try:
-        logger.info(f"Initializing database at '{DB_FILE}'...")
+        logger.info(f"Initializing database at {DB_FILE}...")
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        
+
         # Create table for trade notes
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS trade_notes (
                 trade_id TEXT PRIMARY KEY,
                 note TEXT,
                 related_info TEXT,
-                last_updated DATETIME
+                last_updated TIMESTAMP
             )
         ''')
-        
+
         # Create table for trades
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS trades (

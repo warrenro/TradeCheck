@@ -116,5 +116,11 @@
   "loading": "Running audit, please wait...",
   "kline_chart_title": "Market Data (K-Line Chart)",
   "loading_data": "Loading Chart Data...",
-  "no_kline_data": "No K-Line data found in database. Please import a K-Data file first."
-}
+  "no_kline_data": "No K-Line data found in database. Please import a K-Data file first.",
+  "y_axis_min": "Y-Axis Min",
+  "y_axis_max": "Y-Axis Max",
+  "set_y_range": "Set Y-Axis Range",
+  "reset_y_range": "Reset Y-Axis Range",
+  "invalid_y_range_input": "Invalid Y-Axis range input. Please enter valid numbers.",
+      "y_max_less_than_y_min": "Y-Axis maximum must be greater than minimum.",
+    "trade_data_layer": "Trade Data"}

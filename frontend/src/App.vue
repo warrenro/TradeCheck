@@ -268,7 +268,7 @@
                         <th>{{ $t('dashboard.sopRisk.sopA_loss') }}</th>
                         <th>{{ $t('dashboard.sopRisk.sopA_risk') }}</th>
                         <th>{{ $t('dashboard.sopRisk.sopB_loss') }}</th>
-                        <th>{{ $t('dashboard.sopRisk.sopB_risk') }}</th>
+                        <th>{{ $t('dashboard.sopB_risk') }}</th>
                       </tr>
                     </thead>
                     <tbody>

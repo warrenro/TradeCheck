@@ -116,5 +116,12 @@
   "loading": "審計執行中，請稍候...",
   "kline_chart_title": "行情圖表 (K線圖)",
   "loading_data": "正在載入圖表資料...",
-  "no_kline_data": "資料庫中找不到K線資料，請先匯入K線圖檔案。"
+  "no_kline_data": "資料庫中找不到K線資料，請先匯入K線圖檔案。",
+  "y_axis_min": "Y軸最小值",
+  "y_axis_max": "Y軸最大值",
+  "set_y_range": "設定Y軸範圍",
+  "reset_y_range": "重設Y軸範圍",
+  "invalid_y_range_input": "Y軸範圍輸入無效，請輸入有效的數字。",
+  "y_max_less_than_y_min": "Y軸最大值必須大於最小值。",
+  "trade_data_layer": "交易資料"
 }
