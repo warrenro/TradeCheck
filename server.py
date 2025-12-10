@@ -188,16 +188,14 @@ async def get_trade_data(start_time: int, end_time: int):
     API endpoint to retrieve trade data from the database within a specified time range,
     formatted for charting markers.
     """
-    logger.info(f"Request received for trade data from {start_time} to {end_time}.")
+    logger.info(f"TradeData Trace: Request received for trades between {start_time} and {end_time}.")
     try:
         conn = sqlite3.connect(DB_FILE)
         
-        # Convert Unix timestamps to ISO format for database query
         start_datetime_iso = datetime.fromtimestamp(start_time).isoformat(sep=' ', timespec='seconds')
         end_datetime_iso = datetime.fromtimestamp(end_time).isoformat(sep=' ', timespec='seconds')
+        logger.info(f"TradeData Trace: Querying trades between ISO times {start_datetime_iso} and {end_datetime_iso}.")
 
-        # Query trades and join with market_data to get the close price at the trade time
-        # We use a subquery to find the closest market_data datetime for each trade_time
         query = f"""
             SELECT
                 t.trade_id,
@@ -218,48 +216,33 @@ async def get_trade_data(start_time: int, end_time: int):
         """
         df = pd.read_sql_query(query, conn)
         conn.close()
+        logger.info(f"TradeData Trace: Read {len(df)} trade rows from the database.")
 
         if df.empty:
-            logger.warning("No trade data found in 'trades' table for the specified range.")
+            logger.warning("TradeData Trace: No trades found for this time range, returning empty list.")
             return JSONResponse(content=[])
 
         df['trade_time'] = pd.to_datetime(df['trade_time'])
-        df['time'] = df['trade_time'].astype('int64') // 10**9 # Convert to Unix timestamp (seconds)
+        df['time'] = df['trade_time'].astype('int64') // 10**9
 
-        # Format data for lightweight-charts markers
-        # Assuming 'action' is 'buy' or 'sell'
         chart_markers = []
         for index, row in df.iterrows():
-            marker = {
+            marker_price = row['price']
+            if pd.isna(marker_price):
+                logger.warning(f"No K-line price found for trade {row['trade_id']} at {row['trade_time']}. Skipping marker.")
+                continue
+
+            marker_text = f"賣 {row['contracts']} @ {marker_price:.2f}" if row['action'].lower() != 'buy' else f"買 {row['contracts']} @ {marker_price:.2f}"
+            
+            chart_markers.append({
                 "time": row['time'],
-                "position": "aboveBar", # Default position
-                "color": "#1e88e5", # Default color
-                "shape": "circle", # Default shape
-                "text": f"{row['action'].capitalize()} {row['contracts']} @ {row['price']:.2f}"
-            }
-            if row['action'].lower() == 'buy':
-                marker['position'] = 'belowBar'
-                marker['color'] = '#26a69a' # Green for buy
-                marker['shape'] = 'arrowUp'
-                marker['text'] = f"買 {row['contracts']} @ {row['price']:.2f}"
-            elif row['action'].lower() == 'sell':
-                marker['position'] = 'aboveBar'
-                marker['color'] = '#ef5350' # Red for sell
-                marker['shape'] = 'arrowDown'
-                marker['text'] = f"賣 {row['contracts']} @ {row['price']:.2f}"
-            
-            # If price is null (no matching kline data), try to get the nearest kline close price
-            if pd.isna(row['price']):
-                # This should ideally be handled in the main query for efficiency
-                # but as a fallback, we can use a placeholder or log a warning
-                marker['price'] = (row['net_pnl'] > 0) * 100 # Placeholder for now, needs real price
-                logger.warning(f"No exact K-line price found for trade {row['trade_id']} at {row['trade_time']}. Using placeholder for price.")
-            else:
-                marker['price'] = row['price']
-            
-            chart_markers.append(marker)
+                "position": 'aboveBar' if row['action'].lower() != 'buy' else 'belowBar',
+                "color": '#ef5350' if row['action'].lower() != 'buy' else '#26a69a',
+                "shape": 'arrowDown' if row['action'].lower() != 'buy' else 'arrowUp',
+                "text": marker_text
+            })
         
-        logger.info(f"Successfully retrieved and formatted {len(chart_markers)} trade data points.")
+        logger.info(f"TradeData Trace: Prepared {len(chart_markers)} markers to return.")
         return JSONResponse(content=chart_markers)
         
     except sqlite3.OperationalError as e:
