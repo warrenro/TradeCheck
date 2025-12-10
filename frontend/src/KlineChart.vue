@@ -29,6 +29,10 @@
       <label class="indicator-checkbox">
         <input type="checkbox" v-model="showTradeData" @change="toggleTradeDataLayer"> {{ $t('trade_data_layer') }}
       </label>
+      <label class="indicator-checkbox">
+        <input type="checkbox" v-model="showDebugInfo"> Debug Info
+      </label>
+
 
       <button @click="setChartType('Candlestick')" :class="{ 'active': currentChartType === 'Candlestick' }">Candlestick</button>
       <button @click="setChartType('Line')" :class="{ 'active': currentChartType === 'Line' }">Line</button>
@@ -49,6 +53,17 @@
     <div ref="chartContainer" class="chart-container"></div>
     <div v-if="isLoading" class="loading-overlay">{{ $t('loading_data') }}</div>
     <div v-if="!isLoading && !hasData" class="loading-overlay">{{ $t('no_kline_data') }}</div>
+    
+    <!-- Temporary Debug UI -->
+    <div v-if="showDebugInfo" class="debug-info">
+      <strong>Debug Info:</strong><br>
+      - Last Updated: {{ new Date().toLocaleString() }} <br>
+      - Trade Layer Active: {{ showTradeData }}<br>
+      - Trades Loaded: {{ tradeData.length }}<br>
+      - Fetch Error: {{ tradeFetchError || 'None' }}<br>
+      - First Trade Time: {{ tradeData[0]?.time || 'N/A' }}<br>
+      - Visible Chart Range: {{ visibleTimeRange.from }} to {{ visibleTimeRange.to }}
+    </div>
   </div>
 </template>
 
@@ -85,8 +100,11 @@ const showMA20 = ref(false);
 const showMA60 = ref(false);
 const showBBands = ref(false);
 const showTradeData = ref(false);
+const showDebugInfo = ref(false); // New state for debug checkbox
 const tradeData = ref([]);
 const currentChartType = ref('Candlestick');
+const tradeFetchError = ref(null); // For Debug UI
+const visibleTimeRange = ref({ from: null, to: null }); // For Debug UI
 
 const currentChartData = ref([]);
 const firstDataTime = ref(null);
@@ -182,14 +200,16 @@ const fetchData = async (timeframe) => {
 };
 
 const fetchTradeData = async (startTime, endTime) => {
+  tradeFetchError.value = null;
   try {
     const response = await fetch(`${API_BASE_URL}/api/trade_data?start_time=${startTime}&end_time=${endTime}`);
     if (!response.ok) {
-      throw new Error('Network response for trade data was not ok');
+      throw new Error(`Network response for trade data was not ok (${response.status})`);
     }
     tradeData.value = await response.json();
   } catch (error) {
     console.error("Failed to fetch trade data:", error);
+    tradeFetchError.value = error.message;
     tradeData.value = [];
   }
 };
@@ -328,9 +348,24 @@ const setupChart = (data) => {
 
   chart.timeScale().fitContent();
 
-  chart.timeScale().subscribeVisibleTimeRangeChange(async () => {
+  const timeScale = chart.timeScale();
+  timeScale.subscribeVisibleTimeRangeChange(() => {
+    const range = timeScale.getVisibleRange();
+    if (range) {
+      visibleTimeRange.value = range;
+    }
+  });
+
+  // Set initial range
+  const initialRange = timeScale.getVisibleRange();
+  if (initialRange) {
+    visibleTimeRange.value = initialRange;
+  }
+
+
+  timeScale.subscribeVisibleTimeRangeChange(async () => {
     if (showTradeData.value) {
-      const visibleRange = chart.timeScale().getVisibleRange();
+      const visibleRange = timeScale.getVisibleRange();
       if (visibleRange) {
         await fetchTradeData(visibleRange.from, visibleRange.to);
         drawTradeData();
@@ -383,9 +418,14 @@ const drawIndicators = () => {
 };
 
 const drawTradeData = () => {
+  console.log('drawTradeData called');
   const targetSeries = candlestickSeries || lineSeries;
-  if (!chart || !targetSeries) return;
+  if (!chart || !targetSeries) {
+    console.log('Chart or target series not ready');
+    return;
+  }
 
+  console.log(`showTradeData: ${showTradeData.value}, tradeData length: ${tradeData.value.length}`);
   if (showTradeData.value && tradeData.value.length > 0) {
     const markers = tradeData.value.map(trade => ({
       time: trade.time,
@@ -394,8 +434,10 @@ const drawTradeData = () => {
       shape: trade.action.toLowerCase() === 'buy' ? 'arrowUp' : 'arrowDown',
       text: `${trade.action.toUpperCase()} @ ${trade.price}`
     }));
+    console.log('Generated markers:', markers);
     targetSeries.setMarkers(markers);
   } else {
+    console.log('Clearing markers');
     targetSeries.setMarkers([]);
   }
 };
@@ -529,5 +571,14 @@ onBeforeUnmount(() => {
     justify-content: center;
     align-items: center;
     font-size: 1.2em;
+}
+.debug-info {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
 }
 </style>
