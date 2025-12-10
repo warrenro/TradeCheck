@@ -11542,3 +11542,260 @@
 2025-12-10 14:16:11,455 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 12:32:00 and 2025-08-29 07:40:00.
 2025-12-10 14:16:11,470 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
 2025-12-10 14:16:11,471 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 14:21:48,357 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-10 14:21:48,700 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-10 14:21:49,322 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-10 14:21:52,096 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-10 14:21:52,410 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-10 14:21:52,889 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-10 14:21:56,400 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-10 14:21:56,660 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-10 14:21:57,159 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-10 14:22:00,528 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-10 14:22:00,843 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-10 14:22:01,310 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-10 17:02:10,060 - trade_check - INFO - TradeData Trace: Request received for trades between 1756345920 and 1756401600.
+2025-12-10 17:02:10,089 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:52:00 and 2025-08-29 01:20:00.
+2025-12-10 17:02:10,233 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:10,273 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:10,956 - trade_check - INFO - TradeData Trace: Request received for trades between 1756345920 and 1756401660.
+2025-12-10 17:02:10,957 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:52:00 and 2025-08-29 01:21:00.
+2025-12-10 17:02:10,988 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:10,989 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:10,994 - trade_check - INFO - TradeData Trace: Request received for trades between 1756345500 and 1756401660.
+2025-12-10 17:02:10,996 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:45:00 and 2025-08-29 01:21:00.
+2025-12-10 17:02:11,015 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,016 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,018 - trade_check - INFO - TradeData Trace: Request received for trades between 1756345620 and 1756401720.
+2025-12-10 17:02:11,019 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:47:00 and 2025-08-29 01:22:00.
+2025-12-10 17:02:11,039 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,040 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,040 - trade_check - INFO - TradeData Trace: Request received for trades between 1756344960 and 1756401720.
+2025-12-10 17:02:11,042 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:36:00 and 2025-08-29 01:22:00.
+2025-12-10 17:02:11,065 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,068 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,069 - trade_check - INFO - TradeData Trace: Request received for trades between 1756345140 and 1756401900.
+2025-12-10 17:02:11,071 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:39:00 and 2025-08-29 01:25:00.
+2025-12-10 17:02:11,092 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,093 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,093 - trade_check - INFO - TradeData Trace: Request received for trades between 1756345020 and 1756401780.
+2025-12-10 17:02:11,095 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:37:00 and 2025-08-29 01:23:00.
+2025-12-10 17:02:11,112 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,113 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,115 - trade_check - INFO - TradeData Trace: Request received for trades between 1756344180 and 1756401780.
+2025-12-10 17:02:11,117 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:23:00 and 2025-08-29 01:23:00.
+2025-12-10 17:02:11,138 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,139 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,139 - trade_check - INFO - TradeData Trace: Request received for trades between 1756344420 and 1756402020.
+2025-12-10 17:02:11,140 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:27:00 and 2025-08-29 01:27:00.
+2025-12-10 17:02:11,158 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,159 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,159 - trade_check - INFO - TradeData Trace: Request received for trades between 1756344300 and 1756401900.
+2025-12-10 17:02:11,159 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:25:00 and 2025-08-29 01:25:00.
+2025-12-10 17:02:11,180 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,181 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,182 - trade_check - INFO - TradeData Trace: Request received for trades between 1756343580 and 1756401900.
+2025-12-10 17:02:11,187 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:13:00 and 2025-08-29 01:25:00.
+2025-12-10 17:02:11,209 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,210 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,211 - trade_check - INFO - TradeData Trace: Request received for trades between 1756343820 and 1756402080.
+2025-12-10 17:02:11,212 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:17:00 and 2025-08-29 01:28:00.
+2025-12-10 17:02:11,230 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,231 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,233 - trade_check - INFO - TradeData Trace: Request received for trades between 1756343700 and 1756401960.
+2025-12-10 17:02:11,234 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:15:00 and 2025-08-29 01:26:00.
+2025-12-10 17:02:11,249 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,249 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,250 - trade_check - INFO - TradeData Trace: Request received for trades between 1756342500 and 1756401960.
+2025-12-10 17:02:11,250 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:55:00 and 2025-08-29 01:26:00.
+2025-12-10 17:02:11,267 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,268 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,269 - trade_check - INFO - TradeData Trace: Request received for trades between 1756342860 and 1756402320.
+2025-12-10 17:02:11,269 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:01:00 and 2025-08-29 01:32:00.
+2025-12-10 17:02:11,284 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,285 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,285 - trade_check - INFO - TradeData Trace: Request received for trades between 1756341480 and 1756402320.
+2025-12-10 17:02:11,286 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:38:00 and 2025-08-29 01:32:00.
+2025-12-10 17:02:11,303 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,304 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,305 - trade_check - INFO - TradeData Trace: Request received for trades between 1756341840 and 1756402740.
+2025-12-10 17:02:11,305 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:44:00 and 2025-08-29 01:39:00.
+2025-12-10 17:02:11,332 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,333 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,334 - trade_check - INFO - TradeData Trace: Request received for trades between 1756340400 and 1756402740.
+2025-12-10 17:02:11,341 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:20:00 and 2025-08-29 01:39:00.
+2025-12-10 17:02:11,360 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,361 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,362 - trade_check - INFO - TradeData Trace: Request received for trades between 1756340820 and 1756403160.
+2025-12-10 17:02:11,363 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:27:00 and 2025-08-29 01:46:00.
+2025-12-10 17:02:11,377 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,378 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,379 - trade_check - INFO - TradeData Trace: Request received for trades between 1756339320 and 1756403160.
+2025-12-10 17:02:11,379 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:02:00 and 2025-08-29 01:46:00.
+2025-12-10 17:02:11,395 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,395 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,396 - trade_check - INFO - TradeData Trace: Request received for trades between 1756339740 and 1756403580.
+2025-12-10 17:02:11,397 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 08:09:00 and 2025-08-29 01:53:00.
+2025-12-10 17:02:11,412 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,413 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,413 - trade_check - INFO - TradeData Trace: Request received for trades between 1756338180 and 1756403580.
+2025-12-10 17:02:11,414 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:43:00 and 2025-08-29 01:53:00.
+2025-12-10 17:02:11,429 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,430 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,430 - trade_check - INFO - TradeData Trace: Request received for trades between 1756338600 and 1756404000.
+2025-12-10 17:02:11,431 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:50:00 and 2025-08-29 02:00:00.
+2025-12-10 17:02:11,458 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,459 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,459 - trade_check - INFO - TradeData Trace: Request received for trades between 1756337040 and 1756404000.
+2025-12-10 17:02:11,460 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:24:00 and 2025-08-29 02:00:00.
+2025-12-10 17:02:11,498 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,499 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,500 - trade_check - INFO - TradeData Trace: Request received for trades between 1756337520 and 1756404420.
+2025-12-10 17:02:11,500 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:32:00 and 2025-08-29 02:07:00.
+2025-12-10 17:02:11,515 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,516 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,516 - trade_check - INFO - TradeData Trace: Request received for trades between 1756335660 and 1756404420.
+2025-12-10 17:02:11,517 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:01:00 and 2025-08-29 02:07:00.
+2025-12-10 17:02:11,532 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,533 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,533 - trade_check - INFO - TradeData Trace: Request received for trades between 1756336200 and 1756404960.
+2025-12-10 17:02:11,533 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:10:00 and 2025-08-29 02:16:00.
+2025-12-10 17:02:11,551 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,552 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,553 - trade_check - INFO - TradeData Trace: Request received for trades between 1756334340 and 1756404960.
+2025-12-10 17:02:11,554 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 06:39:00 and 2025-08-29 02:16:00.
+2025-12-10 17:02:11,570 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,571 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,572 - trade_check - INFO - TradeData Trace: Request received for trades between 1756334880 and 1756405500.
+2025-12-10 17:02:11,573 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 06:48:00 and 2025-08-29 02:25:00.
+2025-12-10 17:02:11,588 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,589 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,589 - trade_check - INFO - TradeData Trace: Request received for trades between 1756333140 and 1756405500.
+2025-12-10 17:02:11,590 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 06:19:00 and 2025-08-29 02:25:00.
+2025-12-10 17:02:11,606 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,607 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,608 - trade_check - INFO - TradeData Trace: Request received for trades between 1756333620 and 1756405980.
+2025-12-10 17:02:11,608 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 06:27:00 and 2025-08-29 02:33:00.
+2025-12-10 17:02:11,627 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,628 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,628 - trade_check - INFO - TradeData Trace: Request received for trades between 1756331940 and 1756405980.
+2025-12-10 17:02:11,629 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 05:59:00 and 2025-08-29 02:33:00.
+2025-12-10 17:02:11,645 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,646 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:02:11,646 - trade_check - INFO - TradeData Trace: Request received for trades between 1756332420 and 1756406460.
+2025-12-10 17:02:11,647 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 06:07:00 and 2025-08-29 02:41:00.
+2025-12-10 17:02:11,662 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:02:11,663 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:17:47,764 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-10 17:17:48,731 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-10 17:17:49,456 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-10 17:18:16,238 - trade_check - INFO - Request received for KData files list.
+2025-12-10 17:18:16,271 - trade_check - INFO - Request received for trade files list.
+2025-12-10 17:18:16,296 - trade_check - INFO - Searching for trade files in directory: /Users/weiyuanlo/Downloads/code/TradeCheck/tradedata
+2025-12-10 17:18:16,311 - trade_check - INFO - [Frontend] Frontend application mounted and ready.
+2025-12-10 17:18:16,313 - trade_check - INFO - [Frontend] Found 2 K-Data files.
+2025-12-10 17:18:16,316 - trade_check - INFO - Found 7 trade files. Newest: 給審計程式用的交易資料(TradeCheck) - 2024-2025.csv
+2025-12-10 17:18:16,564 - trade_check - INFO - [Frontend] Found 7 trade files.
+2025-12-10 17:18:21,725 - trade_check - INFO - Request received for K-line data with timeframe: 1T
+2025-12-10 17:18:21,989 - trade_check - INFO - K-line trace: Read 179668 rows from database.
+2025-12-10 17:18:22,472 - trade_check - INFO - K-line trace: Final chart_data has 179668 records.
+2025-12-10 17:18:25,105 - trade_check - INFO - TradeData Trace: Request received for trades between 1756430100 and 1756530000.
+2025-12-10 17:18:25,108 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:15:00 and 2025-08-30 13:00:00.
+2025-12-10 17:18:25,125 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:25,125 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,447 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429980 and 1756529940.
+2025-12-10 17:18:26,449 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:13:00 and 2025-08-30 12:59:00.
+2025-12-10 17:18:26,451 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,451 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,464 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429860 and 1756529820.
+2025-12-10 17:18:26,465 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:11:00 and 2025-08-30 12:57:00.
+2025-12-10 17:18:26,466 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,467 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,481 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429680 and 1756529640.
+2025-12-10 17:18:26,482 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:08:00 and 2025-08-30 12:54:00.
+2025-12-10 17:18:26,483 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,483 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,498 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429620 and 1756529520.
+2025-12-10 17:18:26,500 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:07:00 and 2025-08-30 12:52:00.
+2025-12-10 17:18:26,501 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,502 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,865 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429680 and 1756529640.
+2025-12-10 17:18:26,865 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:08:00 and 2025-08-30 12:54:00.
+2025-12-10 17:18:26,868 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,868 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,881 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429800 and 1756529760.
+2025-12-10 17:18:26,882 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:10:00 and 2025-08-30 12:56:00.
+2025-12-10 17:18:26,883 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,884 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,897 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429860 and 1756529820.
+2025-12-10 17:18:26,898 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:11:00 and 2025-08-30 12:57:00.
+2025-12-10 17:18:26,899 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,899 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,914 - trade_check - INFO - TradeData Trace: Request received for trades between 1756429980 and 1756529940.
+2025-12-10 17:18:26,915 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:13:00 and 2025-08-30 12:59:00.
+2025-12-10 17:18:26,916 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,916 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,931 - trade_check - INFO - TradeData Trace: Request received for trades between 1756430100 and 1756530000.
+2025-12-10 17:18:26,932 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:15:00 and 2025-08-30 13:00:00.
+2025-12-10 17:18:26,933 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,934 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:26,950 - trade_check - INFO - TradeData Trace: Request received for trades between 1756430160 and 1756530000.
+2025-12-10 17:18:26,951 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:16:00 and 2025-08-30 13:00:00.
+2025-12-10 17:18:26,953 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:26,953 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:27,107 - trade_check - INFO - TradeData Trace: Request received for trades between 1756430100 and 1756530000.
+2025-12-10 17:18:27,108 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 09:15:00 and 2025-08-30 13:00:00.
+2025-12-10 17:18:27,111 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:27,111 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:30,260 - trade_check - INFO - TradeData Trace: Request received for trades between 1756426860 and 1756526700.
+2025-12-10 17:18:30,261 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 08:21:00 and 2025-08-30 12:05:00.
+2025-12-10 17:18:30,270 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:30,270 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:30,273 - trade_check - INFO - TradeData Trace: Request received for trades between 1756422420 and 1756522200.
+2025-12-10 17:18:30,275 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 07:07:00 and 2025-08-30 10:50:00.
+2025-12-10 17:18:30,279 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:30,279 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:30,290 - trade_check - INFO - TradeData Trace: Request received for trades between 1756410060 and 1756509840.
+2025-12-10 17:18:30,291 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 03:41:00 and 2025-08-30 07:24:00.
+2025-12-10 17:18:30,292 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:30,292 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:30,299 - trade_check - INFO - TradeData Trace: Request received for trades between 1756403760 and 1756503600.
+2025-12-10 17:18:30,299 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 01:56:00 and 2025-08-30 05:40:00.
+2025-12-10 17:18:30,300 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:30,300 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:30,313 - trade_check - INFO - TradeData Trace: Request received for trades between 1756398240 and 1756498080.
+2025-12-10 17:18:30,314 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-29 00:24:00 and 2025-08-30 04:08:00.
+2025-12-10 17:18:30,314 - trade_check - INFO - TradeData Trace: Read 0 trade rows from the database.
+2025-12-10 17:18:30,315 - trade_check - WARNING - TradeData Trace: No trades found for this time range, returning empty list.
+2025-12-10 17:18:30,330 - trade_check - INFO - TradeData Trace: Request received for trades between 1756393920 and 1756493700.
+2025-12-10 17:18:30,331 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 23:12:00 and 2025-08-30 02:55:00.
+2025-12-10 17:18:30,393 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:30,398 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,231 - trade_check - INFO - TradeData Trace: Request received for trades between 1756386660 and 1756490880.
+2025-12-10 17:18:31,232 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 21:11:00 and 2025-08-30 02:08:00.
+2025-12-10 17:18:31,253 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,254 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,254 - trade_check - INFO - TradeData Trace: Request received for trades between 1756380900 and 1756485120.
+2025-12-10 17:18:31,255 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 19:35:00 and 2025-08-30 00:32:00.
+2025-12-10 17:18:31,281 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,283 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,284 - trade_check - INFO - TradeData Trace: Request received for trades between 1756372260 and 1756471980.
+2025-12-10 17:18:31,285 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 17:11:00 and 2025-08-29 20:53:00.
+2025-12-10 17:18:31,302 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,303 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,304 - trade_check - INFO - TradeData Trace: Request received for trades between 1756344420 and 1756457700.
+2025-12-10 17:18:31,305 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 09:27:00 and 2025-08-29 16:55:00.
+2025-12-10 17:18:31,322 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,323 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,324 - trade_check - INFO - TradeData Trace: Request received for trades between 1756351080 and 1756464300.
+2025-12-10 17:18:31,324 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 11:18:00 and 2025-08-29 18:45:00.
+2025-12-10 17:18:31,344 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,345 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,346 - trade_check - INFO - TradeData Trace: Request received for trades between 1756339020 and 1756438680.
+2025-12-10 17:18:31,346 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 07:57:00 and 2025-08-29 11:38:00.
+2025-12-10 17:18:31,363 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,364 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.
+2025-12-10 17:18:31,364 - trade_check - INFO - TradeData Trace: Request received for trades between 1756334220 and 1756433880.
+2025-12-10 17:18:31,365 - trade_check - INFO - TradeData Trace: Querying trades between ISO times 2025-08-28 06:37:00 and 2025-08-29 10:18:00.
+2025-12-10 17:18:31,381 - trade_check - INFO - TradeData Trace: Read 1 trade rows from the database.
+2025-12-10 17:18:31,382 - trade_check - INFO - TradeData Trace: Prepared 1 markers to return.

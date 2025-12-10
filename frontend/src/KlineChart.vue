@@ -100,7 +100,7 @@ const showMA20 = ref(false);
 const showMA60 = ref(false);
 const showBBands = ref(false);
 const showTradeData = ref(false);
-const showDebugInfo = ref(false); // New state for debug checkbox
+const showDebugInfo = ref(true); // New state for debug checkbox - TEMPORARILY TRUE FOR DEBUGGING
 const tradeData = ref([]);
 const currentChartType = ref('Candlestick');
 const tradeFetchError = ref(null); // For Debug UI
@@ -201,14 +201,18 @@ const fetchData = async (timeframe) => {
 
 const fetchTradeData = async (startTime, endTime) => {
   tradeFetchError.value = null;
+  console.log(`[fetchTradeData] Attempting to fetch trade data for range: ${startTime} to ${endTime}`);
   try {
     const response = await fetch(`${API_BASE_URL}/api/trade_data?start_time=${startTime}&end_time=${endTime}`);
+    console.log(`[fetchTradeData] Response status: ${response.status}`);
     if (!response.ok) {
       throw new Error(`Network response for trade data was not ok (${response.status})`);
     }
-    tradeData.value = await response.json();
+    const data = await response.json();
+    tradeData.value = data;
+    console.log(`[fetchTradeData] Successfully fetched ${tradeData.value.length} trade records.`);
   } catch (error) {
-    console.error("Failed to fetch trade data:", error);
+    console.error("[fetchTradeData] Failed to fetch trade data:", error);
     tradeFetchError.value = error.message;
     tradeData.value = [];
   }
@@ -418,36 +422,51 @@ const drawIndicators = () => {
 };
 
 const drawTradeData = () => {
-  console.log('drawTradeData called');
+  console.log('[drawTradeData] called');
   const targetSeries = candlestickSeries || lineSeries;
   if (!chart || !targetSeries) {
-    console.log('Chart or target series not ready');
+    console.log('[drawTradeData] Chart or target series not ready.');
     return;
   }
 
-  console.log(`showTradeData: ${showTradeData.value}, tradeData length: ${tradeData.value.length}`);
+  console.log(`[drawTradeData] showTradeData: ${showTradeData.value}, tradeData length: ${tradeData.value.length}`);
   if (showTradeData.value && tradeData.value.length > 0) {
-    const markers = tradeData.value.map(trade => ({
-      time: trade.time,
-      position: trade.action.toLowerCase() === 'buy' ? 'belowBar' : 'aboveBar',
-      color: trade.action.toLowerCase() === 'buy' ? 'blue' : '#FF0000',
-      shape: trade.action.toLowerCase() === 'buy' ? 'arrowUp' : 'arrowDown',
-      text: `${trade.action.toUpperCase()} @ ${trade.price}`
-    }));
-    console.log('Generated markers:', markers);
+    console.log('[drawTradeData] Trade data to process:', tradeData.value);
+    const markers = tradeData.value.map(trade => {
+      const action = trade.action ? trade.action.toLowerCase() : 'unknown';
+      const isBuy = action === 'buy';
+      const price = trade.price !== undefined && trade.price !== null ? trade.price : 'N/A';
+
+      return {
+        time: trade.time,
+        position: isBuy ? 'belowBar' : 'aboveBar',
+        color: isBuy ? 'blue' : '#FF0000',
+        shape: isBuy ? 'arrowUp' : 'arrowDown',
+        text: `${(trade.action || 'UNKNOWN').toUpperCase()} @ ${price}`
+      };
+    });
+    console.log('[drawTradeData] Generated markers:', markers);
     targetSeries.setMarkers(markers);
   } else {
-    console.log('Clearing markers');
+    console.log('[drawTradeData] Clearing markers (showTradeData is false or no trade data).');
     targetSeries.setMarkers([]);
   }
 };
 
 const toggleTradeDataLayer = async () => {
+  console.log(`[toggleTradeDataLayer] showTradeData before toggle: ${!showTradeData.value}`);
   if (showTradeData.value) {
+    console.log("[toggleTradeDataLayer] showTradeData is true, fetching trade data.");
     const visibleRange = chart ? chart.timeScale().getVisibleRange() : null;
     if (visibleRange) {
+      console.log(`[toggleTradeDataLayer] Visible range for fetch: from ${visibleRange.from} to ${visibleRange.to}`);
       await fetchTradeData(visibleRange.from, visibleRange.to);
+    } else {
+      console.warn("[toggleTradeDataLayer] No visible range found for fetching trade data.");
     }
+  } else {
+    console.log("[toggleTradeDataLayer] showTradeData is false, clearing trade data.");
+    tradeData.value = []; // Clear trade data when toggle is off
   }
   drawTradeData();
 };

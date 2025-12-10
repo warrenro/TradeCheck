@@ -185,6 +185,18 @@
     在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），並轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
 - **影響**: 這兩項修正強化了系統的穩定性（魯棒性），使其能夠應對不乾淨的輸入資料（如缺失的商品名稱）以及處理 Python 生態系統中常見的 NumPy 資料型別，確保了 API 的正常回應與前後端資料流的順暢。經過這些修正，後端系統的核心錯誤皆已解決，應用程式現已進入穩定狀態。
 
+### 2.7 錯誤七：交易資料圖層顯示異常 - `TypeError: Cannot read properties of undefined (reading 'toLowerCase')`
+
+- **錯誤現象**: 當前端 K 線圖啟用「交易資料圖層」後，交易資料（買賣點箭頭）無法正常顯示在圖表上。瀏覽器控制台顯示 `TypeError: Cannot read properties of undefined (reading 'toLowerCase') at KlineChart.vue:437:30`。
+- **根本原因分析**:
+    - 此錯誤發生在 `frontend/src/KlineChart.vue` 的 `drawTradeData` 函式中，當程式嘗試將從後端獲取的交易資料映射為 `lightweight-charts` 所需的 `marker` 格式時。
+    - 具體而言，錯誤訊息表明程式試圖在一個 `undefined` 的值上呼叫 `toLowerCase()` 方法。這很可能發生在根據交易的「買賣別」(`action`) 來決定標記的 `position`, `color`, 或 `shape` 時，如果 `tradeData` 中的某個交易物件缺乏預期的屬性（例如 `action` 欄位為 `undefined` 或 `null`），就會導致此錯誤。
+    - 這表示從後端 `/api/trade_data` 傳來的交易資料結構，可能存在不一致或缺失必要的欄位。
+- **解決方案 (待實作)**:
+    - **前端修正**: 在 `KlineChart.vue` 的 `drawTradeData` 函式中，對 `tradeData` 陣列中的每個交易物件的關鍵屬性（如 `action`）進行防禦性檢查，確保它們在被使用前不是 `undefined` 或 `null`。
+    - **後端檢查**: 審查 `/api/trade_data` API 的資料回傳邏輯，確保每個交易物件都包含所有預期的欄位，尤其是那些會被前端用於 `toLowerCase()` 操作的字串欄位。
+- **目前狀態**: 問題已定位，需進一步實作修正以確保交易資料圖層正常顯示。
+
 ---
 
 ## 3. 架構演進：資料庫化與備註功能 (Architectural Evolution: Databasing and Annotation Feature)
