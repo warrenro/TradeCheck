@@ -55,8 +55,6 @@ def init_database():
                 action TEXT,
                 net_pnl REAL,
                 contracts INTEGER,
-                open_price REAL,
-                close_price REAL,
                 product_name TEXT,
                 source_file TEXT
             )
@@ -74,23 +72,6 @@ def init_database():
             )
         ''')
         
-        # Attempt to add new columns for backward compatibility
-        try:
-            logger.info("Attempting to add 'open_price' column to 'trades' table...")
-            cursor.execute("ALTER TABLE trades ADD COLUMN open_price REAL")
-            logger.info("'open_price' column added.")
-        except sqlite3.OperationalError:
-            logger.info("'open_price' column already exists or another error occurred.")
-            pass  # Column likely already exists
-
-        try:
-            logger.info("Attempting to add 'close_price' column to 'trades' table...")
-            cursor.execute("ALTER TABLE trades ADD COLUMN close_price REAL")
-            logger.info("'close_price' column added.")
-        except sqlite3.OperationalError:
-            logger.info("'close_price' column already exists or another error occurred.")
-            pass  # Column likely already exists
-
         conn.commit()
         conn.close()
         logger.info("Database initialized successfully with all tables.")
@@ -221,8 +202,6 @@ async def get_trade_data(start_time: int, end_time: int):
                 t.action,
                 t.net_pnl,
                 t.contracts,
-                t.open_price,
-                t.close_price,
                 COALESCE(md.close, (SELECT close FROM market_data WHERE datetime <= t.trade_time ORDER BY datetime DESC LIMIT 1)) as marker_price
             FROM
                 trades t
@@ -250,7 +229,7 @@ async def get_trade_data(start_time: int, end_time: int):
         # Select and rename columns for the final output
         output_df = df[[
             'time', 'action', 'contracts', 'net_pnl', 
-            'open_price', 'close_price', 'marker_price'
+            'marker_price'
         ]]
 
         trade_records = output_df.to_dict(orient='records')
@@ -377,16 +356,14 @@ async def import_trades_from_file(request: ImportRequest):
         for _, row in trades_df.iterrows():
             try:
                 cursor.execute("""
-                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, open_price, close_price, product_name, source_file)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, product_name, source_file)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, (
                     row['trade_id'],
                     row['trade_time'].isoformat(),
                     row['action'],
                     row['net_pnl'],
                     row['contracts'],
-                    row['open_price'],
-                    row['close_price'],
                     row['product_name'],
                     row['source_file']
                 ))
