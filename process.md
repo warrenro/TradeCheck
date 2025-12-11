@@ -185,17 +185,29 @@
     在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），並轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
 - **影響**: 這兩項修正強化了系統的穩定性（魯棒性），使其能夠應對不乾淨的輸入資料（如缺失的商品名稱）以及處理 Python 生態系統中常見的 NumPy 資料型別，確保了 API 的正常回應與前後端資料流的順暢。經過這些修正，後端系統的核心錯誤皆已解決，應用程式現已進入穩定狀態。
 
-### 2.7 錯誤七：交易資料圖層顯示異常 - `TypeError: Cannot read properties of undefined (reading 'toLowerCase')`
+### 2.7 錯誤七：交易資料圖層顯示異常 - `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` (已解決)
 
 - **錯誤現象**: 當前端 K 線圖啟用「交易資料圖層」後，交易資料（買賣點箭頭）無法正常顯示在圖表上。瀏覽器控制台顯示 `TypeError: Cannot read properties of undefined (reading 'toLowerCase') at KlineChart.vue:437:30`。
 - **根本原因分析**:
     - 此錯誤發生在 `frontend/src/KlineChart.vue` 的 `drawTradeData` 函式中，當程式嘗試將從後端獲取的交易資料映射為 `lightweight-charts` 所需的 `marker` 格式時。
-    - 具體而言，錯誤訊息表明程式試圖在一個 `undefined` 的值上呼叫 `toLowerCase()` 方法。這很可能發生在根據交易的「買賣別」(`action`) 來決定標記的 `position`, `color`, 或 `shape` 時，如果 `tradeData` 中的某個交易物件缺乏預期的屬性（例如 `action` 欄位為 `undefined` 或 `null`），就會導致此錯誤。
-    - 這表示從後端 `/api/trade_data` 傳來的交易資料結構，可能存在不一致或缺失必要的欄位。
-- **解決方案 (待實作)**:
-    - **前端修正**: 在 `KlineChart.vue` 的 `drawTradeData` 函式中，對 `tradeData` 陣列中的每個交易物件的關鍵屬性（如 `action`）進行防禦性檢查，確保它們在被使用前不是 `undefined` 或 `null`。
-    - **後端檢查**: 審查 `/api/trade_data` API 的資料回傳邏輯，確保每個交易物件都包含所有預期的欄位，尤其是那些會被前端用於 `toLowerCase()` 操作的字串欄位。
-- **目前狀態**: 問題已定位，需進一步實作修正以確保交易資料圖層正常顯示。
+    - 錯誤訊息表明程式試圖在一個 `undefined` 的值上呼叫 `toLowerCase()` 方法。經排查，原因是從後端 `/api/trade_data` 傳來的某些交易資料物件，缺少 `action` 屬性，或該屬性的值為 `null`。
+- **解決方案**:
+    - **前端防禦性程式設計**: 在 `KlineChart.vue` 的 `drawTradeData` 函式中，對 `tradeData` 陣列進行 `map` 操作時，加入了對 `trade.action` 屬性的存在性檢查。在呼叫 `.toLowerCase()` 之前，確保該屬性為一個有效的字串，若不存在則給予預設值。
+      ```javascript
+      // 示例修正
+      const markers = tradeData.value.map(trade => {
+        const action = trade.action || ''; // 提供預設值，防止 undefined 錯誤
+        return {
+          time: trade.time,
+          position: action.toLowerCase() === 'buy' ? 'belowBar' : 'aboveBar',
+          color: action.toLowerCase() === 'buy' ? '#26A69A' : '#EF5350',
+          shape: action.toLowerCase() === 'buy' ? 'arrowUp' : 'arrowDown',
+          text: `Trade @ ${trade.price}`
+        };
+      }).filter(marker => marker.time); // 過濾掉無效數據
+      ```
+    - **後端資料校驗 (建議)**: 同時建議在後端 `/api/trade_data` API 的輸出端進行更嚴格的資料清理，確保所有回傳給前端的交易物件都包含完整的必要欄位。
+- **狀態**: **已解決**。前端加上防禦性檢查後，即使後端傳來不完整的資料，圖表也能正常渲染，不會再因單筆資料問題而崩潰。交易標記已可成功顯示。
 
 ---
 
@@ -364,3 +376,45 @@ K 線圖時間週期切換失敗的問題，是由後端一個不夠強健的資
     - 作為一個防禦性措施，在 `fetchData` 函式中增加了一道過濾器，可以在收到後端數據時，就自動移除任何價格為 `0` 或無效的 K 線數據，增加了圖表整體的穩定性。
 
 透過以上「`autoscaleInfoProvider` + 獨立成交量圖 + 數據清洗」的組合，徹底解決了長久以來的 Y 軸縮放問題，並讓圖表功能在各種使用情境下都更加穩健可靠。
+---
+
+## 交易資料顯示優化 (Trade Data Display Enhancement)
+
+為了在K線圖上提供更豐富的交易資訊，將對交易圖層進行功能優化。
+
+### 1. 後端 (server.py)
+
+- **目標**:
+  - 確認後端 API (`/api/trade_data`) 回傳的交易資料包含所有必要的欄位。
+- **實作**:
+  - 交易資料匯入流程 (`/api/import_trades`) 將進行修改，以處理包含 `新倉價 (open_price)` 和 `平倉價 (close_price)` 的CSV檔案。這些欄位將與 `成交時間 (trade_time)`, `口數 (contracts)`, 和 `平倉損益淨額 (net_pnl)` 一同存入 `trades` 資料庫。
+  - `GET /api/trade_data` 函式將被修改，其 SQL 查詢及回傳的 JSON 物件會確保包含 `trade_time`, `contracts`, `open_price`, `close_price`, 以及 `net_pnl`。
+
+### 2. 前端 (KlineChart.vue)
+
+- **目標**:
+  - 在 K 線圖上繪製交易標記，並在用戶滑鼠懸停時顯示包含詳細資訊的提示框 (Tooltip)。
+- **實作**:
+  - **修改 `drawTradeData` 函式**:
+    - 將修改此函式，為每個交易標記附加一個自定義的提示框。
+  - **設計提示框內容**:
+    - 提示框將顯示一個列表或表格，包含：`成交時間`, `口數`, `新倉價`, `平倉價`, `平倉損益淨額`。
+  - **實現條件性顏色**:
+    - 在提示框的 `平倉損益淨額` 欄位上，將使用 Vue.js 的綁定語法來動態設定 CSS class。
+    - 如果 `平倉損益淨額 > 0`，文字顏色設為藍色。
+    - 如果 `平倉損益淨額 < 0`，文字顏色設為紅色。
+  - **更新圖表**:
+    - 確保在獲取新數據或切換可見性時，圖表能正確地重繪或清除這些交易標記及其提示框。
+
+### 3. 測試與驗收
+
+- **目標**:
+  - 確保新功能如預期般運作。
+- **步驟**:
+  1. 啟動應用程式。
+  2. 在圖表上啟用「交易資料」圖層。
+  3. 滑鼠移動到圖表上的交易標記上。
+  4. **驗證**:
+      - 是否彈出包含所有指定欄位的提示框？
+      - `平倉損益淨額` 的顏色是否根據其正負值正確顯示（正為藍，負為紅）？
+      - 資料內容是否正確？

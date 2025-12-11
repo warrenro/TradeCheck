@@ -182,20 +182,23 @@ class TradeAuditor:
             else:
                 raise ValueError("Unsupported file type. Please use CSV or Excel.")
 
-            required_columns = {'成交時間', '買賣別', '平倉損益淨額', '口數', '商品名稱'}
+            required_columns = {'成交時間', '買賣別', '平倉損益淨額', '口數', '商品名稱', '新倉價', '平倉價'}
             if not required_columns.issubset(df.columns):
                 missing = required_columns - set(df.columns)
                 raise ValueError(f"Missing required columns: {missing}")
 
             column_mapping = {
                 '成交時間': 'trade_time', '買賣別': 'action',
-                '平倉損益淨額': 'net_pnl', '口數': 'contracts', '商品名稱': 'product_name'
+                '平倉損益淨額': 'net_pnl', '口數': 'contracts', '商品名稱': 'product_name',
+                '新倉價': 'open_price', '平倉價': 'close_price'
             }
             df.rename(columns=column_mapping, inplace=True)
 
             df['trade_time'] = pd.to_datetime(df['trade_time'])
             df['net_pnl'] = pd.to_numeric(df['net_pnl'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
             df['contracts'] = pd.to_numeric(df['contracts'], errors='coerce').fillna(0).astype(int)
+            df['open_price'] = pd.to_numeric(df['open_price'], errors='coerce').fillna(0)
+            df['close_price'] = pd.to_numeric(df['close_price'], errors='coerce').fillna(0)
             df['product_name'] = df['product_name'].astype(str).str.strip()
 
             logger.info(f"Successfully loaded and processed {len(df)} transactions from file.")

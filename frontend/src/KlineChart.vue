@@ -33,7 +33,6 @@
         <input type="checkbox" v-model="showDebugInfo"> Debug Info
       </label>
 
-
       <button @click="setChartType('Candlestick')" :class="{ 'active': currentChartType === 'Candlestick' }">Candlestick</button>
       <button @click="setChartType('Line')" :class="{ 'active': currentChartType === 'Line' }">Line</button>
 
@@ -50,13 +49,50 @@
       <button @click="setManualYAxisRange">{{ $t('set_y_range') }}</button>
       <button @click="resetYAxisRange">{{ $t('reset_y_range') }}</button>
     </div>
-    <div ref="chartContainer" class="chart-container"></div>
+    <div ref="chartContainer" class="chart-container-wrapper">
+      <div ref="chartContainer" class="chart-container"></div>
+      <div ref="tooltip" class="tooltip" :style="tooltipStyle">
+        <div class="tooltip-item"><strong>{{ $t('trade_time') }}:</strong> {{ formatTimestamp(tooltipData.time) }}</div>
+        <div class="tooltip-item"><strong>{{ $t('trade_quantity') }}:</strong> {{ tooltipData.contracts }}</div>
+        <div class="tooltip-item"><strong>{{ $t('trade_entry_price') }}:</strong> {{ tooltipData.open_price }}</div>
+        <div class="tooltip-item"><strong>{{ $t('trade_exit_price') }}:</strong> {{ tooltipData.close_price }}</div>
+        <div class="tooltip-item">
+          <strong>{{ $t('trade_pnl') }}:</strong>
+          <span :class="getPnlClass(tooltipData.net_pnl)">{{ tooltipData.net_pnl }}</span>
+        </div>
+      </div>
+    </div>
     <div v-if="isLoading" class="loading-overlay">{{ $t('loading_data') }}</div>
     <div v-if="!isLoading && !hasData" class="loading-overlay">{{ $t('no_kline_data') }}</div>
+
+    <!-- Trade Data Table -->
+    <div v-if="showTradeData && tradeData.length > 0" class="trade-data-table">
+      <h4>{{ $t('trade_records') }}</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ $t('trade_time') }}</th>
+            <th>{{ $t('trade_quantity') }}</th>
+            <th>{{ $t('trade_entry_price') }}</th>
+            <th>{{ $t('trade_exit_price') }}</th>
+            <th>{{ $t('trade_pnl') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(trade, index) in tradeData" :key="index">
+            <td>{{ formatTimestamp(trade.time) }}</td>
+            <td>{{ trade.contracts }}</td>
+            <td>{{ trade.open_price }}</td>
+            <td>{{ trade.close_price }}</td>
+            <td :class="getPnlClass(trade.net_pnl)">{{ trade.net_pnl }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     
     <!-- Temporary Debug UI -->
     <div v-if="showDebugInfo" class="debug-info">
-      <strong>Debug Info:</strong><br>
+      <strong>Debug Info (Visible):</strong><br>
       - Last Updated: {{ new Date().toLocaleString() }} <br>
       - Trade Layer Active: {{ showTradeData }}<br>
       - Trades Loaded: {{ tradeData.length }}<br>
@@ -68,17 +104,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, reactive } from 'vue';
 import { createChart } from 'lightweight-charts';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const API_BASE_URL = 'http://localhost:8000';
 const chartContainer = ref(null);
+const tooltip = ref(null);
+
 let chart = null;
 let candlestickSeries = null;
 let lineSeries = null;
 let volumeSeries = null;
+
+// Tooltip state
+const tooltipData = reactive({
+  time: null, contracts: null, open_price: null, close_price: null, net_pnl: null
+});
+const tooltipStyle = reactive({
+  display: 'none', top: '0px', left: '0px'
+});
 
 // Indicator series refs
 let ma5Series = null;
@@ -100,17 +146,30 @@ const showMA20 = ref(false);
 const showMA60 = ref(false);
 const showBBands = ref(false);
 const showTradeData = ref(false);
-const showDebugInfo = ref(true); // New state for debug checkbox - TEMPORARILY TRUE FOR DEBUGGING
+const showDebugInfo = ref(true); 
 const tradeData = ref([]);
 const currentChartType = ref('Candlestick');
-const tradeFetchError = ref(null); // For Debug UI
-const visibleTimeRange = ref({ from: null, to: null }); // For Debug UI
+const tradeFetchError = ref(null); 
+const visibleTimeRange = ref({ from: null, to: null });
 
 const currentChartData = ref([]);
 const firstDataTime = ref(null);
 const lastDataTime = ref(null);
 const manualYAxisMin = ref(null);
 const manualYAxisMax = ref(null);
+
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return 'N/A';
+  const date = new Date(timestamp * 1000);
+  const pad = (num) => num.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
+const getPnlClass = (pnl) => {
+  if (pnl > 0) return 'pnl-positive';
+  if (pnl < 0) return 'pnl-negative';
+  return '';
+};
 
 const calculateMA = (data, period) => {
   let result = [];
@@ -163,7 +222,6 @@ const fetchData = async (timeframe) => {
     }
     const data = await response.json();
 
-    // **Defensive Data Cleaning**
     const cleanedData = data.filter(d => 
       d && typeof d.time === 'number' &&
       typeof d.high === 'number' && isFinite(d.high) && d.high > 0 &&
@@ -179,14 +237,10 @@ const fetchData = async (timeframe) => {
     if (cleanedData && cleanedData.length > 0) {
       hasData.value = true;
       currentChartData.value = cleanedData;
-      firstDataTime.value = cleanedData[0].time;
-      lastDataTime.value = cleanedData[cleanedData.length - 1].time;
       return cleanedData;
     } else {
       hasData.value = false;
       currentChartData.value = [];
-      firstDataTime.value = null;
-      lastDataTime.value = null;
       return [];
     }
   } catch (error) {
@@ -201,16 +255,13 @@ const fetchData = async (timeframe) => {
 
 const fetchTradeData = async (startTime, endTime) => {
   tradeFetchError.value = null;
-  console.log(`[fetchTradeData] Attempting to fetch trade data for range: ${startTime} to ${endTime}`);
   try {
     const response = await fetch(`${API_BASE_URL}/api/trade_data?start_time=${startTime}&end_time=${endTime}`);
-    console.log(`[fetchTradeData] Response status: ${response.status}`);
     if (!response.ok) {
       throw new Error(`Network response for trade data was not ok (${response.status})`);
     }
     const data = await response.json();
     tradeData.value = data;
-    console.log(`[fetchTradeData] Successfully fetched ${tradeData.value.length} trade records.`);
   } catch (error) {
     console.error("[fetchTradeData] Failed to fetch trade data:", error);
     tradeFetchError.value = error.message;
@@ -226,23 +277,15 @@ const setupChart = (data) => {
     chart = null;
   }
   
-  candlestickSeries = null;
-  lineSeries = null;
-  volumeSeries = null;
-  ma5Series = null;
-  ma10Series = null;
-  ma20Series = null;
-  ma60Series = null;
-  bbandsUpperSeries = null;
-  bbandsMiddleSeries = null;
-  bbandsLowerSeries = null;
+  candlestickSeries = null; lineSeries = null; volumeSeries = null;
+  ma5Series = null; ma10Series = null; ma20Series = null; ma60Series = null;
+  bbandsUpperSeries = null; bbandsMiddleSeries = null; bbandsLowerSeries = null;
 
   chart = createChart(chartContainer.value, {
     width: chartContainer.value.clientWidth,
     height: 500,
     layout: {
-      backgroundColor: '#ffffff',
-      textColor: 'rgba(33, 56, 77, 1)',
+      backgroundColor: '#ffffff', textColor: 'rgba(33, 56, 77, 1)',
     },
     grid: {
       vertLines: { color: 'rgba(197, 203, 206, 0.5)' },
@@ -250,53 +293,37 @@ const setupChart = (data) => {
     },
     crosshair: { mode: 'normal' },
     timeScale: {
-      borderColor: 'rgba(197, 203, 206, 0.8)',
-      barSpacing: 6,
+      borderColor: 'rgba(197, 203, 206, 0.8)', barSpacing: 6,
     },
     handleScroll: {
-      vertTouchDrag: true,
-      horzTouchDrag: true,
-      mouseWheel: true,
-      pressedMouseMove: true,
+      vertTouchDrag: true, horzTouchDrag: true, mouseWheel: true, pressedMouseMove: true,
     },
     handleScale: {
-      axisDoubleClickReset: true,
-      mouseWheel: true,
-      pinch: true,
+      axisDoubleClickReset: true, mouseWheel: true, pinch: true,
     },
     priceScale: {
       autoScale: true,
       scaleMargins: { top: 0.1, bottom: 0.2 },
-      // ** THE DEFINITIVE FIX **
       autoscaleInfoProvider: () => {
         const visibleRange = chart ? chart.timeScale().getVisibleRange() : null;
-        if (!visibleRange || !currentChartData.value || currentChartData.value.length === 0) {
-            return null;
-        }
-
-        let minPrice = Infinity;
-        let maxPrice = -Infinity;
-
+        if (!visibleRange || !currentChartData.value || currentChartData.value.length === 0) return null;
+        let minPrice = Infinity, maxPrice = -Infinity;
         const visibleCandleData = currentChartData.value.filter(d => d.time >= visibleRange.from && d.time <= visibleRange.to);
-        
         if (visibleCandleData.length > 0) {
             visibleCandleData.forEach(d => {
                 minPrice = Math.min(minPrice, d.low);
                 maxPrice = Math.max(maxPrice, d.high);
             });
         }
-
         const updatePriceRangeWithIndicator = (seriesData) => {
             if (!seriesData) return;
-            const visibleSeriesData = seriesData.filter(d => d.time >= visibleRange.from && d.time <= visibleRange.to);
-            visibleSeriesData.forEach(d => {
+            seriesData.filter(d => d.time >= visibleRange.from && d.time <= visibleRange.to).forEach(d => {
                 if (d.value !== undefined && d.value !== null && !isNaN(d.value)) {
                     minPrice = Math.min(minPrice, d.value);
                     maxPrice = Math.max(maxPrice, d.value);
                 }
             });
         };
-
         if (showMA5.value) updatePriceRangeWithIndicator(calculateMA(currentChartData.value, 5));
         if (showMA10.value) updatePriceRangeWithIndicator(calculateMA(currentChartData.value, 10));
         if (showMA20.value) updatePriceRangeWithIndicator(calculateMA(currentChartData.value, 20));
@@ -307,65 +334,60 @@ const setupChart = (data) => {
             updatePriceRangeWithIndicator(bbands.middle);
             updatePriceRangeWithIndicator(bbands.lower);
         }
-        
         if (minPrice === Infinity) return null;
-
-        return {
-            priceRange: {
-                minValue: minPrice,
-                maxValue: maxPrice,
-            },
-        };
+        return { priceRange: { minValue: minPrice, maxValue: maxPrice } };
       },
     },
   });
 
   if (currentChartType.value === 'Candlestick') {
     candlestickSeries = chart.addCandlestickSeries({
-      upColor: '#26a69a', downColor: '#ef5350',
-      borderDownColor: '#ef5350', borderUpColor: '#26a69a',
+      upColor: '#26a69a', downColor: '#ef5350', borderDownColor: '#ef5350', borderUpColor: '#26a69a',
       wickDownColor: '#ef5350', wickUpColor: '#26a69a',
     });
     candlestickSeries.setData(data);
   } else {
     lineSeries = chart.addLineSeries({ color: '#2196F3', lineWidth: 2 });
-    const lineData = data.map(d => ({ time: d.time, value: d.close }));
-    lineSeries.setData(lineData);
+    lineSeries.setData(data.map(d => ({ time: d.time, value: d.close })));
   }
 
-  // ** CORRECT VOLUME SERIES IMPLEMENTATION **
   volumeSeries = chart.addHistogramSeries({
-    color: '#26a69a',
-    priceFormat: { type: 'volume' },
-    priceScaleId: 'volume_scale', // Give it a separate price scale
+    color: '#26a69a', priceFormat: { type: 'volume' }, priceScaleId: 'volume_scale',
   });
-  volumeSeries.priceScale().applyOptions({
-      scaleMargins: { top: 0.8, bottom: 0 },
-  });
-
-  const volumeData = data.map(d => ({
-    time: d.time,
-    value: d.value,
-    color: d.close > d.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-  }));
-  volumeSeries.setData(volumeData);
+  volumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+  volumeSeries.setData(data.map(d => ({
+    time: d.time, value: d.value, color: d.close > d.open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+  })));
 
   chart.timeScale().fitContent();
 
   const timeScale = chart.timeScale();
   timeScale.subscribeVisibleTimeRangeChange(() => {
     const range = timeScale.getVisibleRange();
-    if (range) {
-      visibleTimeRange.value = range;
+    if (range) visibleTimeRange.value = range;
+  });
+  
+  // Tooltip Logic
+  chart.subscribeCrosshairMove(param => {
+    if (!param.point || !param.time || !chartContainer.value) {
+      tooltipStyle.display = 'none';
+      return;
+    }
+    const tradeAtTime = tradeData.value.find(t => t.time === param.time);
+    if (tradeAtTime) {
+      Object.assign(tooltipData, tradeAtTime);
+      tooltipStyle.display = 'block';
+      const chartRect = chartContainer.value.getBoundingClientRect();
+      const priceCoord = (candlestickSeries || lineSeries).priceToCoordinate(tradeAtTime.close_price);
+      tooltipStyle.top = `${priceCoord + chartRect.top + window.scrollY}px`;
+      tooltipStyle.left = `${param.point.x + chartRect.left + window.scrollX + 15}px`;
+    } else {
+      tooltipStyle.display = 'none';
     }
   });
 
-  // Set initial range
   const initialRange = timeScale.getVisibleRange();
-  if (initialRange) {
-    visibleTimeRange.value = initialRange;
-  }
-
+  if (initialRange) visibleTimeRange.value = initialRange;
 
   timeScale.subscribeVisibleTimeRangeChange(async () => {
     if (showTradeData.value) {
@@ -384,24 +406,19 @@ const setupChart = (data) => {
 const drawIndicators = () => {
   if (!chart) return;
 
-  if (ma5Series) { chart.removeSeries(ma5Series); ma5Series = null; }
-  if (ma10Series) { chart.removeSeries(ma10Series); ma10Series = null; }
-  if (ma20Series) { chart.removeSeries(ma20Series); ma20Series = null; }
-  if (ma60Series) { chart.removeSeries(ma60Series); ma60Series = null; }
-  if (bbandsUpperSeries) { chart.removeSeries(bbandsUpperSeries); bbandsUpperSeries = null; }
-  if (bbandsMiddleSeries) { chart.removeSeries(bbandsMiddleSeries); bbandsMiddleSeries = null; }
-  if (bbandsLowerSeries) { chart.removeSeries(bbandsLowerSeries); bbandsLowerSeries = null; }
+  if (ma5Series) chart.removeSeries(ma5Series); ma5Series = null;
+  if (ma10Series) chart.removeSeries(ma10Series); ma10Series = null;
+  if (ma20Series) chart.removeSeries(ma20Series); ma20Series = null;
+  if (ma60Series) chart.removeSeries(ma60Series); ma60Series = null;
+  if (bbandsUpperSeries) chart.removeSeries(bbandsUpperSeries); bbandsUpperSeries = null;
+  if (bbandsMiddleSeries) chart.removeSeries(bbandsMiddleSeries); bbandsMiddleSeries = null;
+  if (bbandsLowerSeries) chart.removeSeries(bbandsLowerSeries); bbandsLowerSeries = null;
 
-  const addIndicatorSeries = (data, options) => chart.addLineSeries({
-      priceScaleId: 'right', // Ensure it's on the main price scale
-      ...options,
-  });
-
+  const addIndicatorSeries = (data, options) => chart.addLineSeries({ priceScaleId: 'right', ...options });
   if (showMA5.value) ma5Series = addIndicatorSeries(calculateMA(currentChartData.value, 5), { color: 'blue', lineWidth: 1, title: 'MA5' });
   if (showMA10.value) ma10Series = addIndicatorSeries(calculateMA(currentChartData.value, 10), { color: 'purple', lineWidth: 1, title: 'MA10' });
   if (showMA20.value) ma20Series = addIndicatorSeries(calculateMA(currentChartData.value, 20), { color: 'orange', lineWidth: 1, title: 'MA20' });
   if (showMA60.value) ma60Series = addIndicatorSeries(calculateMA(currentChartData.value, 60), { color: 'red', lineWidth: 1, title: 'MA60' });
-
   if (showBBands.value) {
     const bbandsData = calculateBBands(currentChartData.value, 20, 2);
     bbandsUpperSeries = addIndicatorSeries(bbandsData.upper, { color: 'green', lineWidth: 1, lineStyle: 2, title: 'BB Upper' });
@@ -422,51 +439,40 @@ const drawIndicators = () => {
 };
 
 const drawTradeData = () => {
-  console.log('[drawTradeData] called');
   const targetSeries = candlestickSeries || lineSeries;
-  if (!chart || !targetSeries) {
-    console.log('[drawTradeData] Chart or target series not ready.');
-    return;
-  }
+  if (!chart || !targetSeries) return;
 
-  console.log(`[drawTradeData] showTradeData: ${showTradeData.value}, tradeData length: ${tradeData.value.length}`);
-  if (showTradeData.value && tradeData.value.length > 0) {
-    console.log('[drawTradeData] Trade data to process:', tradeData.value);
-    const markers = tradeData.value.map(trade => {
-      const action = trade.action ? trade.action.toLowerCase() : 'unknown';
-      const isBuy = action === 'buy';
-      const price = trade.price !== undefined && trade.price !== null ? trade.price : 'N/A';
+  // Always clear markers first to handle toggling off
+  targetSeries.setMarkers([]);
 
-      return {
-        time: trade.time,
-        position: isBuy ? 'belowBar' : 'aboveBar',
-        color: isBuy ? 'blue' : '#FF0000',
-        shape: isBuy ? 'arrowUp' : 'arrowDown',
-        text: `${(trade.action || 'UNKNOWN').toUpperCase()} @ ${price}`
-      };
-    });
-    console.log('[drawTradeData] Generated markers:', markers);
-    targetSeries.setMarkers(markers);
-  } else {
-    console.log('[drawTradeData] Clearing markers (showTradeData is false or no trade data).');
-    targetSeries.setMarkers([]);
+  if (showTradeData.value && tradeData.value && tradeData.value.length > 0) {
+    const markers = tradeData.value
+      .filter(trade => trade && trade.time && typeof trade.net_pnl !== 'undefined' && trade.net_pnl !== null)
+      .map(trade => {
+        const isWin = trade.net_pnl > 0;
+        return {
+          time: trade.time,
+          position: isWin ? 'belowBar' : 'aboveBar',
+          color: isWin ? 'blue' : '#FF0000', // Blue for win, Red for loss
+          shape: isWin ? 'arrowUp' : 'arrowDown',
+          text: `PnL: ${Math.round(trade.net_pnl)}`
+        };
+      });
+    
+    if (markers.length > 0) {
+      targetSeries.setMarkers(markers);
+    }
   }
 };
 
 const toggleTradeDataLayer = async () => {
-  console.log(`[toggleTradeDataLayer] showTradeData before toggle: ${!showTradeData.value}`);
   if (showTradeData.value) {
-    console.log("[toggleTradeDataLayer] showTradeData is true, fetching trade data.");
     const visibleRange = chart ? chart.timeScale().getVisibleRange() : null;
     if (visibleRange) {
-      console.log(`[toggleTradeDataLayer] Visible range for fetch: from ${visibleRange.from} to ${visibleRange.to}`);
       await fetchTradeData(visibleRange.from, visibleRange.to);
-    } else {
-      console.warn("[toggleTradeDataLayer] No visible range found for fetching trade data.");
     }
   } else {
-    console.log("[toggleTradeDataLayer] showTradeData is false, clearing trade data.");
-    tradeData.value = []; // Clear trade data when toggle is off
+    tradeData.value = [];
   }
   drawTradeData();
 };
@@ -486,36 +492,21 @@ const setChartType = (type) => {
   }
 };
 
-const zoomIn = () => {
-  if (chart) chart.timeScale().zoomIn();
-};
-
-const zoomOut = () => {
-  if (chart) chart.timeScale().zoomOut();
-};
-
-const resetZoom = () => {
-    if(chart) chart.timeScale().fitContent();
-}
+const zoomIn = () => chart?.timeScale().zoomIn();
+const zoomOut = () => chart?.timeScale().zoomOut();
+const resetZoom = () => chart?.timeScale().fitContent();
 
 const setManualYAxisRange = () => {
   if (!chart) return;
   const targetSeries = candlestickSeries || lineSeries;
   if (!targetSeries) return;
-
   const newMin = manualYAxisMin.value !== null && !isNaN(manualYAxisMin.value) ? parseFloat(manualYAxisMin.value) : null;
   const newMax = manualYAxisMax.value !== null && !isNaN(manualYAxisMax.value) ? parseFloat(manualYAxisMax.value) : null;
-
   if (newMin !== null && newMax !== null && newMax <= newMin) {
     alert(t('y_max_less_than_y_min'));
     return;
   }
-
-  targetSeries.priceScale().applyOptions({
-    autoScale: false,
-    minimum: newMin,
-    maximum: newMax,
-  });
+  targetSeries.priceScale().applyOptions({ autoScale: false, minimum: newMin, maximum: newMax });
 };
 
 const resetYAxisRange = () => {
@@ -529,20 +520,14 @@ const resetYAxisRange = () => {
 
 const exportChart = () => {
   if (chart) {
-    const img = document.createElement('img');
-    img.src = chart.takeScreenshot();
     const a = document.createElement('a');
-    a.href = img.src;
+    a.href = chart.takeScreenshot();
     a.download = `kline_chart_${selectedTimeframe.value}_${new Date().toISOString().slice(0, 10)}.png`;
     a.click();
   }
 };
 
-const resizeHandler = () => {
-  if (chart && chartContainer.value) {
-    chart.resize(chartContainer.value.clientWidth, 500);
-  }
-};
+const resizeHandler = () => chart?.resize(chartContainer.value.clientWidth, 500);
 
 onMounted(async () => {
   await updateChartData();
@@ -550,10 +535,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  if (chart) {
-    chart.remove();
-    chart = null;
-  }
+  if (chart) chart.remove();
   window.removeEventListener('resize', resizeHandler);
 });
 </script>
@@ -572,12 +554,31 @@ onBeforeUnmount(() => {
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
-  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+  flex-wrap: wrap;
   align-items: center;
+}
+.chart-container-wrapper {
+  position: relative;
+  width: 100%;
+  height: 500px;
 }
 .chart-container {
   width: 100%;
-  height: 500px;
+  height: 100%;
+}
+.tooltip {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  display: none; /* Initially hidden */
+}
+.tooltip-item {
+  margin-bottom: 4px;
 }
 .loading-overlay {
     position: absolute;
@@ -590,6 +591,29 @@ onBeforeUnmount(() => {
     justify-content: center;
     align-items: center;
     font-size: 1.2em;
+}
+.trade-data-table {
+  margin-top: 20px;
+}
+.trade-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.trade-data-table th, .trade-data-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.trade-data-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+.pnl-positive {
+  color: blue;
+}
+.pnl-negative {
+  color: red;
 }
 .debug-info {
   margin-top: 15px;

@@ -21,15 +21,14 @@ import pandas as pd
 from trade_check import TradeAuditor, logger, UPGRADE_CRITERIA, list_trade_files
 from import_kdata import run_kdata_import
 
+app = FastAPI()
+
 # --- Dynamic Path Configuration ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(SCRIPT_DIR, "trade_notes.db")
 KDATA_DIRECTORY = os.path.join(SCRIPT_DIR, "KData")
 TRADEDATA_DIRECTORY = os.path.join(SCRIPT_DIR, "tradedata")
 CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.ini')
-
-app = FastAPI()
-
 
 def init_database():
     """Initializes the database and creates tables if they don't exist."""
@@ -56,6 +55,8 @@ def init_database():
                 action TEXT,
                 net_pnl REAL,
                 contracts INTEGER,
+                open_price REAL,
+                close_price REAL,
                 product_name TEXT,
                 source_file TEXT
             )
@@ -73,6 +74,23 @@ def init_database():
             )
         ''')
         
+        # Attempt to add new columns for backward compatibility
+        try:
+            logger.info("Attempting to add 'open_price' column to 'trades' table...")
+            cursor.execute("ALTER TABLE trades ADD COLUMN open_price REAL")
+            logger.info("'open_price' column added.")
+        except sqlite3.OperationalError:
+            logger.info("'open_price' column already exists or another error occurred.")
+            pass  # Column likely already exists
+
+        try:
+            logger.info("Attempting to add 'close_price' column to 'trades' table...")
+            cursor.execute("ALTER TABLE trades ADD COLUMN close_price REAL")
+            logger.info("'close_price' column added.")
+        except sqlite3.OperationalError:
+            logger.info("'close_price' column already exists or another error occurred.")
+            pass  # Column likely already exists
+
         conn.commit()
         conn.close()
         logger.info("Database initialized successfully with all tables.")
@@ -185,8 +203,8 @@ async def import_kdata_endpoint(request: KDataImportRequest):
 @app.get("/api/trade_data")
 async def get_trade_data(start_time: int, end_time: int):
     """
-    API endpoint to retrieve trade data from the database within a specified time range,
-    formatted for charting markers.
+    API endpoint to retrieve trade data from the database within a specified time range.
+    Returns full trade objects for charting markers and tooltips.
     """
     logger.info(f"TradeData Trace: Request received for trades between {start_time} and {end_time}.")
     try:
@@ -202,9 +220,10 @@ async def get_trade_data(start_time: int, end_time: int):
                 t.trade_time,
                 t.action,
                 t.net_pnl,
-                t.product_name,
                 t.contracts,
-                COALESCE(md.close, (SELECT close FROM market_data WHERE datetime <= t.trade_time ORDER BY datetime DESC LIMIT 1)) as price
+                t.open_price,
+                t.close_price,
+                COALESCE(md.close, (SELECT close FROM market_data WHERE datetime <= t.trade_time ORDER BY datetime DESC LIMIT 1)) as marker_price
             FROM
                 trades t
             LEFT JOIN
@@ -225,25 +244,19 @@ async def get_trade_data(start_time: int, end_time: int):
         df['trade_time'] = pd.to_datetime(df['trade_time'])
         df['time'] = df['trade_time'].astype('int64') // 10**9
 
-        chart_markers = []
-        for index, row in df.iterrows():
-            marker_price = row['price']
-            if pd.isna(marker_price):
-                logger.warning(f"No K-line price found for trade {row['trade_id']} at {row['trade_time']}. Skipping marker.")
-                continue
-
-            marker_text = f"賣 {row['contracts']} @ {marker_price:.2f}" if row['action'].lower() != 'buy' else f"買 {row['contracts']} @ {marker_price:.2f}"
-            
-            chart_markers.append({
-                "time": row['time'],
-                "position": 'aboveBar' if row['action'].lower() != 'buy' else 'belowBar',
-                "color": '#ef5350' if row['action'].lower() != 'buy' else '#26a69a',
-                "shape": 'arrowDown' if row['action'].lower() != 'buy' else 'arrowUp',
-                "text": marker_text
-            })
+        # Replace numpy NaN with None for JSON compatibility
+        df.replace({np.nan: None}, inplace=True)
         
-        logger.info(f"TradeData Trace: Prepared {len(chart_markers)} markers to return.")
-        return JSONResponse(content=chart_markers)
+        # Select and rename columns for the final output
+        output_df = df[[
+            'time', 'action', 'contracts', 'net_pnl', 
+            'open_price', 'close_price', 'marker_price'
+        ]]
+
+        trade_records = output_df.to_dict(orient='records')
+        
+        logger.info(f"TradeData Trace: Prepared {len(trade_records)} trade records to return.")
+        return JSONResponse(content=trade_records)
         
     except sqlite3.OperationalError as e:
         logger.warning(f"Could not retrieve trade data, table might not exist yet: {e}")
@@ -252,61 +265,6 @@ async def get_trade_data(start_time: int, end_time: int):
         logger.error(f"Failed to get trade data: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve trade data.")
 
-
-def init_database():
-    """Initializes the database and creates tables if they don't exist."""
-    try:
-        logger.info(f"Initializing database at {DB_FILE}...")
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-
-        # Create table for trade notes
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS trade_notes (
-                trade_id TEXT PRIMARY KEY,
-                note TEXT,
-                related_info TEXT,
-                last_updated TIMESTAMP
-            )
-        ''')
-
-        # Create table for trades
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS trades (
-                trade_id TEXT PRIMARY KEY,
-                trade_time DATETIME,
-                action TEXT,
-                net_pnl REAL,
-                contracts INTEGER,
-                product_name TEXT,
-                source_file TEXT
-            )
-        ''')
-
-        # Create table for market data (K-line)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS market_data (
-                datetime TEXT PRIMARY KEY,
-                open REAL NOT NULL,
-                high REAL NOT NULL,
-                low REAL NOT NULL,
-                close REAL NOT NULL,
-                volume INTEGER NOT NULL
-            )
-        ''')
-        
-        conn.commit()
-        conn.close()
-        logger.info("Database initialized successfully with all tables.")
-    except Exception as e:
-        logger.critical(f"Failed to initialize database: {e}", exc_info=True)
-        # We might want to prevent the app from starting if the DB fails
-        raise
-
-@app.on_event("startup")
-async def startup_event():
-    """Run database initialization on server startup."""
-    init_database()
 
 # --- Pydantic Models ---
 class LogMessage(BaseModel):
@@ -419,14 +377,16 @@ async def import_trades_from_file(request: ImportRequest):
         for _, row in trades_df.iterrows():
             try:
                 cursor.execute("""
-                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, product_name, source_file)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, open_price, close_price, product_name, source_file)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     row['trade_id'],
                     row['trade_time'].isoformat(),
                     row['action'],
                     row['net_pnl'],
                     row['contracts'],
+                    row['open_price'],
+                    row['close_price'],
                     row['product_name'],
                     row['source_file']
                 ))
