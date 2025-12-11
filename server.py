@@ -56,7 +56,11 @@ def init_database():
                 net_pnl REAL,
                 contracts INTEGER,
                 product_name TEXT,
-                source_file TEXT
+                source_file TEXT,
+                open_price REAL,
+                close_price REAL,
+                fee REAL,
+                tax REAL
             )
         ''')
 
@@ -356,8 +360,8 @@ async def import_trades_from_file(request: ImportRequest):
         for _, row in trades_df.iterrows():
             try:
                 cursor.execute("""
-                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, product_name, source_file)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR IGNORE INTO trades (trade_id, trade_time, action, net_pnl, contracts, product_name, source_file, open_price, close_price, fee, tax)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     row['trade_id'],
                     row['trade_time'].isoformat(),
@@ -365,7 +369,11 @@ async def import_trades_from_file(request: ImportRequest):
                     row['net_pnl'],
                     row['contracts'],
                     row['product_name'],
-                    row['source_file']
+                    row['source_file'],
+                    row['open_price'],
+                    row['close_price'],
+                    row['fee'],
+                    row['tax']
                 ))
                 if cursor.rowcount > 0:
                     inserted_count += 1
@@ -386,6 +394,38 @@ async def import_trades_from_file(request: ImportRequest):
     except Exception as e:
         logger.error(f"Failed to import trades from {filename}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to import trades: {str(e)}")
+
+@app.post("/api/clear_trades")
+async def clear_trades_table():
+    """Clears all data from the 'trades' table. Intended to be used with a frontend confirmation."""
+    logger.warning("Received request to clear ALL trades from the database.")
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT COUNT(*) FROM trades")
+        count_before = cursor.fetchone()[0]
+
+        if count_before == 0:
+            logger.info("Trades table is already empty. No action taken.")
+            return {"status": "success", "message": "Trades table is already empty.", "deleted_rows": 0}
+
+        cursor.execute("DELETE FROM trades")
+        conn.commit()
+        
+        # Verify deletion
+        cursor.execute("SELECT COUNT(*) FROM trades")
+        count_after = cursor.fetchone()[0]
+        conn.close()
+        
+        rows_affected = count_before - count_after
+
+        summary_message = f"Successfully cleared trades table. {rows_affected} rows were deleted."
+        logger.warning(summary_message) # Log as warning due to destructive nature
+        return {"status": "success", "message": summary_message, "deleted_rows": rows_affected}
+    except Exception as e:
+        logger.critical(f"Failed to clear trades table: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to clear trades table: {str(e)}")
 
 @app.get("/api/upgrade-criteria")
 def get_upgrade_criteria():

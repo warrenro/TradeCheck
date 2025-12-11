@@ -62,6 +62,13 @@
               </button>
             </div>
              <p v-if="!loading" class="file-selection-note">{{ $t('form.clickToAnalyze') }}</p>
+
+            <hr class="section-divider">
+            <div class="form-group">
+                <button @click="clearAllTrades" class="clear-button">
+                    清空交易資料
+                </button>
+            </div>
           </div>
         </div>
       </div>
@@ -618,6 +625,29 @@ const importKData = async () => {
   }
 };
 
+const clearAllTrades = async () => {
+  if (confirm('您確定要清空所有交易資料嗎？此操作無法復原。')) {
+    logger.warn('User initiated clearing of all trades.');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clear_trades`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to clear trades.');
+      }
+      alert(data.message);
+      logger.info(`Trades cleared successfully: ${data.message}`);
+      window.location.reload();
+    } catch (e) {
+      logger.error(`Failed to clear trades: ${e.message}`);
+      alert(`清空失敗: ${e.message}`);
+    }
+  } else {
+    logger.info('User cancelled the clear trades operation.');
+  }
+};
+
 
 const fetchTradeNotes = async (trade_ids) => {
   if (!trade_ids || trade_ids.length === 0) return;
@@ -1161,6 +1191,27 @@ header h1 {
 .import-button-secondary:disabled {
   background-color: #e5e7eb;
   color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.clear-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #dc2626; /* Red */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+.clear-button:hover {
+  background-color: #b91c1c;
+}
+.clear-button:disabled {
+  background-color: #9ca3af;
   cursor: not-allowed;
 }
 
