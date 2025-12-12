@@ -1,4 +1,3 @@
-
 import os
 import shutil
 import uvicorn
@@ -28,6 +27,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(SCRIPT_DIR, "trade_notes.db")
 KDATA_DIRECTORY = os.path.join(SCRIPT_DIR, "KData")
 TRADEDATA_DIRECTORY = os.path.join(SCRIPT_DIR, "tradedata")
+TRANSACTION_DATA_DIRECTORY = os.path.join(SCRIPT_DIR, "TransactionData")
 CONFIG_FILE = os.path.join(SCRIPT_DIR, 'config.ini')
 
 def init_database():
@@ -76,6 +76,23 @@ def init_database():
             )
         ''')
         
+        # Create table for TransactionData
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS TransactionData (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                transaction_time DATETIME NOT NULL,
+                trade_type VARCHAR(4) NOT NULL,
+                product_name VARCHAR(20) NOT NULL,
+                quantity INT NOT NULL,
+                price DECIMAL(10, 2) NOT NULL,
+                commission_fee INT,
+                transaction_tax INT,
+                net_amount DECIMAL(12, 2),
+                order_id VARCHAR(10) UNIQUE,
+                position_type VARCHAR(4)
+            )
+        ''')
+
         conn.commit()
         conn.close()
         logger.info("Database initialized successfully with all tables.")
@@ -621,6 +638,103 @@ def get_status():
 @app.get("/")
 def read_root():
     return {"message": "TradeCheck Audit Backend is running. Use the /api/audit endpoint to post data."}
+
+@app.get("/api/transaction_csv_files")
+async def get_transaction_csv_files():
+    """API endpoint to list all available .csv files in the 'TransactionData' directory."""
+    logger.info("Request received for TransactionData CSV files list.")
+    try:
+        if not os.path.isdir(TRANSACTION_DATA_DIRECTORY):
+            logger.warning(f"'{TRANSACTION_DATA_DIRECTORY}' directory not found.")
+            return JSONResponse(content={"files": []})
+            
+        files = [f for f in os.listdir(TRANSACTION_DATA_DIRECTORY) if f.endswith('.csv') and os.path.isfile(os.path.join(TRANSACTION_DATA_DIRECTORY, f))]
+        return JSONResponse(content={"files": sorted(files)})
+    except Exception as e:
+        logger.error(f"Failed to list TransactionData CSV files: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to retrieve TransactionData CSV files from server.")
+
+class TransactionImportRequest(BaseModel):
+    filename: str
+
+@app.post("/api/import_transaction_csv")
+async def import_transaction_csv(request: TransactionImportRequest):
+    """Imports transaction data from a specified CSV file into the TransactionData table."""
+    filename = request.filename
+    logger.info(f"Received request to import transaction data from file: {filename}")
+    
+    file_path = os.path.join(TRANSACTION_DATA_DIRECTORY, filename)
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found for import: {file_path}")
+        raise HTTPException(status_code=404, detail=f"File '{filename}' not found in 'TransactionData' directory.")
+
+    try:
+        df = pd.read_csv(file_path, encoding='utf-8')
+        
+        # Data Cleaning and Preparation
+        df.rename(columns={
+            '成交時間': 'transaction_time',
+            '買賣別': 'trade_type',
+            '商品名稱': 'product_name',
+            '成交口數': 'quantity',
+            '成交價': 'price',
+            '手續費': 'commission_fee',
+            '交易稅': 'transaction_tax',
+            '成交收付': 'net_amount',
+            '委託書號': 'order_id',
+            '倉別': 'position_type'
+        }, inplace=True)
+
+        # Clean numeric columns
+        for col in ['price', 'net_amount']:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.replace(',', '').astype(float)
+
+        df['transaction_time'] = pd.to_datetime(df['transaction_time'], format='mixed')
+
+        # --- Insert into database ---
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        inserted_count = 0
+        skipped_count = 0
+        for _, row in df.iterrows():
+            try:
+                cursor.execute("""
+                    INSERT INTO TransactionData (transaction_time, trade_type, product_name, quantity, price, commission_fee, transaction_tax, net_amount, order_id, position_type)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    row['transaction_time'].isoformat(),
+                    row['trade_type'],
+                    row['product_name'],
+                    row['quantity'],
+                    row['price'],
+                    row['commission_fee'],
+                    row['transaction_tax'],
+                    row['net_amount'],
+                    row['order_id'],
+                    row['position_type']
+                ))
+                if cursor.rowcount > 0:
+                    inserted_count += 1
+            except sqlite3.IntegrityError:
+                # This happens if order_id is not unique
+                skipped_count += 1
+                logger.warning(f"Order ID {row['order_id']} already exists. Skipping.")
+
+        conn.commit()
+        conn.close()
+        
+        total_rows = len(df)
+        
+        summary_message = f"Import completed for '{filename}'. New records: {inserted_count}, Skipped duplicates: {skipped_count}."
+        logger.info(summary_message)
+        return {"status": "success", "message": summary_message, "new": inserted_count, "skipped": skipped_count}
+        
+    except Exception as e:
+        logger.error(f"Failed to import transaction data from {filename}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to import transaction data: {str(e)}")
 
 if __name__ == '__main__':
     logger.info("Starting TradeCheck backend server with uvicorn.")

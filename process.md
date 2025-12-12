@@ -1,4 +1,43 @@
 # TradeCheck 系統實作與設計決策
+- **版本**: v2.7
+- **最後更新日期**: 2025-12-12
+
+## 功能擴充與實作 (v2.7)
+
+### 1. 新增交易資料匯入功能 (TransactionData Import)
+
+為了提供一個更通用的資料匯入管道，系統新增了從 `TransactionData` 資料夾匯入 CSV 檔案至獨立 `TransactionData` 資料表的功能。
+
+- **後端實作 (`server.py`)**:
+    1.  **新增路徑變數**: 新增 `TRANSACTION_DATA_DIRECTORY` 變數，指向 `TransactionData/` 資料夾。
+    2.  **資料庫結構更新**: 修改 `init_database` 函式，在啟動時自動建立 `TransactionData` 資料表，包含 `transaction_time`, `trade_type`, `product_name`, `quantity`, `price`, `commission_fee`, `transaction_tax`, `net_amount`, `order_id` (唯一), 和 `position_type` 等欄位。
+    3.  **新增 API 端點**:
+        - `GET /api/transaction_csv_files`: 掃描 `TransactionData` 目錄並回傳所有 `.csv` 檔名列表。
+        - `POST /api/import_transaction_csv`: 接收前端傳來的 `filename`，讀取對應的 CSV 檔案，進行資料清理（移除千分位逗號、轉換日期格式），並將資料寫入 `TransactionData` 表格。使用 `order_id` 作為唯一鍵，透過 `INSERT` 方式匯入，若 `UNIQUE` 約束失敗則跳過該筆重複資料。其欄位對應關係如下：
+
+            | CSV 中文欄位名 | 資料庫英文字段      |
+            |:---------------|:--------------------|
+            | `成交時間`     | `transaction_time`  |
+            | `買賣別`       | `trade_type`        |
+            | `商品名稱`     | `product_name`      |
+            | `成交口數`     | `quantity`          |
+            | `成交價`       | `price`             |
+            | `手續費`       | `commission_fee`    |
+            | `交易稅`       | `transaction_tax`   |
+            | `成交收付`     | `net_amount`        |
+            | `委託書號`     | `order_id`          |
+            | `倉別`         | `position_type`     |
+
+
+- **前端實作 (`frontend/src/App.vue`)**:
+    1.  **新增 UI 元件**: 在左側面板新增一個「匯入交易資料」區塊，包含一個下拉式選單和一個匯入按鈕。
+    2.  **狀態管理**: 新增 `transactionFiles`, `selectedTransactionFile`, `transactionImporting` 等 `ref` 來管理檔案列表、使用者選擇和匯入狀態。
+    3.  **實作互動邏輯**:
+        - 在 `onMounted` 生命週期鉤子中，呼叫 `fetchTransactionFiles` 方法。
+        - `fetchTransactionFiles` 方法會呼叫後端的 `/api/transaction_csv_files` 來獲取檔案列表並填充下拉選單。
+        - `importTransactions` 方法會在使用者點擊匯入按鈕時觸發，向 `/api/import_transaction_csv` 端點發送 `POST` 請求，並在完成後透過 `alert` 顯示後端回傳的結果訊息。
+
+# TradeCheck 系統實作與設計決策
 - **版本**: v2.6
 - **最後更新日期**: 2025-12-12
 

@@ -56,6 +56,33 @@
       }
       ```
 
+### 2.4 交易資料匯入 (TransactionData)
+- **UI**: 主畫面左側面板提供一個標示為「匯入交易資料」的區塊，包含一個檔案選擇器與一個「匯入交易資料」按鈕。
+- **後端 API**: `POST /api/import_transaction_csv`
+- **處理流程**:
+    1. 前端透過 `GET /api/transaction_csv_files` 獲取 `TransactionData/` 目錄下的 CSV 檔案列表並填充下拉選單。
+    2. 使用者選擇檔案後，點擊按鈕，前端將 `filename` 傳送至後端。
+    3. 後端讀取對應的 CSV 檔案。
+    4. **欄位對應與清理**:
+        - 系統會讀取具有特定中文欄頭的 CSV 檔案，並將其對應至資料庫的英文字段。
+        - 清理 `price` 和 `net_amount` 欄位中的千分位逗號。
+        - **CSV 欄位對應規格**:
+            | CSV 中文欄位名 | 資料庫英文字段      | 資料型別             | 說明                 |
+            |:---------------|:--------------------|:---------------------|:---------------------|
+            | `成交時間`     | `transaction_time`  | `DATETIME`           | 交易發生的完整時間   |
+            | `買賣別`       | `trade_type`        | `VARCHAR(4)`         | 例如 "買" 或 "賣"    |
+            | `商品名稱`     | `product_name`      | `VARCHAR(20)`        | 交易的商品合約名稱   |
+            | `成交口數`     | `quantity`          | `INT`                | 交易的合約數量       |
+            | `成交價`       | `price`             | `DECIMAL(10, 2)`     | 成交價格             |
+            | `手續費`       | `commission_fee`    | `INT`                | 該筆交易的手續費     |
+            | `交易稅`       | `transaction_tax`   | `INT`                | 該筆交易的交易稅     |
+            | `成交收付`     | `net_amount`        | `DECIMAL(12, 2)`     | 實際的收付金額       |
+            | `委託書號`     | `order_id`          | `VARCHAR(10) UNIQUE` | 唯一識別該筆委託的號碼 |
+            | `倉別`         | `position_type`     | `VARCHAR(4)`         | 例如 "新倉", "平倉"  |
+
+    5. 後端將資料寫入 `TransactionData` 資料庫表格中。`order_id` 作為唯一鍵，使用 `INSERT OR IGNORE` 策略防止重複匯入。
+    6. 前端透過 `alert` 顯示匯入結果，包含新增及因重複而跳過的筆數。
+
 ---
 
 ## 3. K 線圖核心需求
@@ -165,3 +192,34 @@ Y 軸的縮放管理確保了價格資訊的清晰可見，並提供手動控制
 | `tax`          | Number  | 期交稅。                                                             |
 | `time`         | Integer | 與 `trade_time` 相同的 UNIX 時間戳 (秒)，供圖表庫使用。          |
 | `marker_price` | Number  | 用於在圖表上標記的價格，通常為收盤價。                               |
+
+### 5.3 GET /api/transaction_csv_files
+- **目的**: 獲取 `TransactionData/` 目錄下所有可用的 `.csv` 檔案列表。
+- **方法**: `GET`
+- **成功回應 (200 OK)**:
+    - **內容**: 一個包含檔名列表的 JSON 物件。
+      ```json
+      {
+        "files": ["file1.csv", "file2.csv"]
+      }
+      ```
+
+### 5.4 POST /api/import_transaction_csv
+- **目的**: 從指定的 CSV 檔案匯入交易資料到 `TransactionData` 資料表。
+- **方法**: `POST`
+- **請求內容**:
+    ```json
+    {
+      "filename": "your_selected_file.csv"
+    }
+    ```
+- **成功回應 (200 OK)**:
+    - **內容**: 一個包含匯入結果摘要的 JSON 物件。
+      ```json
+      {
+        "status": "success",
+        "message": "Import completed for 'your_selected_file.csv'. New records: X, Skipped duplicates: Y.",
+        "new": X,
+        "skipped": Y
+      }
+      ```

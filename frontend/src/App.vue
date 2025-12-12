@@ -61,6 +61,21 @@
                 {{ kdataImporting ? $t('form.kdataImporting') : $t('form.kdataImportButton') }}
               </button>
             </div>
+            <hr class="section-divider">
+            <div class="form-group">
+              <label for="transaction_file_select">匯入交易資料</label>
+              <select id="transaction_file_select" v-model="selectedTransactionFile" :disabled="transactionImporting">
+                <option v-if="transactionFiles.length === 0" disabled value="">讀取中...</option>
+                <option v-for="file in transactionFiles" :key="file" :value="file">
+                  {{ file }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button @click="importTransactions" :disabled="transactionImporting || !selectedTransactionFile" class="import-button">
+                {{ transactionImporting ? '匯入中...' : '匯入交易資料' }}
+              </button>
+            </div>
              <p v-if="!loading" class="file-selection-note">{{ $t('form.clickToAnalyze') }}</p>
 
             <hr class="section-divider">
@@ -394,6 +409,7 @@ const report = ref(null);
 const loading = ref(false);
 const importing = ref(false);
 const kdataImporting = ref(false);
+const transactionImporting = ref(false);
 const error = ref(null);
 const errorMessage = ref('');
 const serverStatus = ref('offline');
@@ -402,6 +418,8 @@ const tradeFiles = ref([]);
 const selectedFile = ref('');
 const kdataFiles = ref([]);
 const selectedKdataFile = ref('');
+const transactionFiles = ref([]);
+const selectedTransactionFile = ref('');
 const tradeNotes = ref({}); // To store notes for trades: { [trade_id]: note }
 const editingTrade = ref(null); // The trade being edited
 const editingNote = ref(''); // The note content being edited
@@ -492,6 +510,7 @@ onMounted(() => {
   setInterval(checkServerStatus, 10000);
   fetchTradeFiles();
   fetchKdataFiles();
+  fetchTransactionFiles();
 });
 
 // --- Methods ---
@@ -538,6 +557,24 @@ const fetchTradeFiles = async () => {
     error.value = 'error.failed';
     errorMessage.value = e.message;
     logger.error('Could not fetch trade files.', { error: e.message });
+  }
+};
+
+const fetchTransactionFiles = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/transaction_csv_files`);
+    if (!response.ok) throw new Error('Failed to fetch transaction files list.');
+    
+    const data = await response.json();
+    transactionFiles.value = data.files || [];
+    logger.info(`Found ${transactionFiles.value.length} transaction files.`);
+
+    if (transactionFiles.value.length > 0) {
+      selectedTransactionFile.value = transactionFiles.value[0];
+    }
+  } catch (e) {
+    errorMessage.value = e.message;
+    logger.error('Could not fetch transaction files.', { error: e.message });
   }
 };
 
@@ -595,6 +632,30 @@ const importTrades = async () => {
     alert(`Error importing trades: ${e.message}`);
   } finally {
     importing.value = false;
+  }
+};
+
+const importTransactions = async () => {
+  if (!selectedTransactionFile.value) return;
+  transactionImporting.value = true;
+  try {
+    logger.info(`Importing transactions from file: ${selectedTransactionFile.value}`);
+    const response = await fetch(`${API_BASE_URL}/api/import_transaction_csv`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: selectedTransactionFile.value }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || 'Failed to import transaction data.');
+    }
+    alert(data.message);
+    logger.info(`Transaction import successful: ${data.message}`);
+  } catch (e) {
+    logger.error(`Failed to import transaction data: ${e.message}`);
+    alert(`Error importing transaction data: ${e.message}`);
+  } finally {
+    transactionImporting.value = false;
   }
 };
 
