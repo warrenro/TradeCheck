@@ -53,9 +53,13 @@
       <div ref="chartContainer" class="chart-container"></div>
       <div ref="tooltip" class="tooltip" :style="tooltipStyle">
         <div class="tooltip-item"><strong>{{ $t('trade_time') }}:</strong> {{ formatTimestamp(tooltipData.time) }}</div>
+        <div class="tooltip-item"><strong>{{ $t('product_name') }}:</strong> {{ tooltipData.product_name }}</div>
+        <div class="tooltip-item"><strong>{{ $t('trade_action') }}:</strong> {{ tooltipData.action }}</div>
         <div class="tooltip-item"><strong>{{ $t('trade_quantity') }}:</strong> {{ tooltipData.contracts }}</div>
         <div class="tooltip-item"><strong>{{ $t('trade_entry_price') }}:</strong> {{ tooltipData.open_price }}</div>
         <div class="tooltip-item"><strong>{{ $t('trade_exit_price') }}:</strong> {{ tooltipData.close_price }}</div>
+        <div class="tooltip-item"><strong>{{ $t('trade_fee') }}:</strong> {{ tooltipData.fee }}</div>
+        <div class="tooltip-item"><strong>{{ $t('trade_tax') }}:</strong> {{ tooltipData.tax }}</div>
         <div class="tooltip-item">
           <strong>{{ $t('trade_pnl') }}:</strong>
           <span :class="getPnlClass(tooltipData.net_pnl)">{{ tooltipData.net_pnl }}</span>
@@ -72,18 +76,26 @@
         <thead>
           <tr>
             <th>{{ $t('trade_time') }}</th>
+            <th>{{ $t('product_name') }}</th>
+            <th>{{ $t('trade_action') }}</th>
             <th>{{ $t('trade_quantity') }}</th>
             <th>{{ $t('trade_entry_price') }}</th>
             <th>{{ $t('trade_exit_price') }}</th>
+            <th>{{ $t('trade_fee') }}</th>
+            <th>{{ $t('trade_tax') }}</th>
             <th>{{ $t('trade_pnl') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(trade, index) in tradeData" :key="index">
             <td>{{ formatTimestamp(trade.time) }}</td>
+            <td>{{ trade.product_name }}</td>
+            <td>{{ trade.action }}</td>
             <td>{{ trade.contracts }}</td>
             <td>{{ trade.open_price }}</td>
             <td>{{ trade.close_price }}</td>
+            <td>{{ trade.fee }}</td>
+            <td>{{ trade.tax }}</td>
             <td :class="getPnlClass(trade.net_pnl)">{{ trade.net_pnl }}</td>
           </tr>
         </tbody>
@@ -120,7 +132,15 @@ let volumeSeries = null;
 
 // Tooltip state
 const tooltipData = reactive({
-  time: null, contracts: null, open_price: null, close_price: null, net_pnl: null
+  time: null,
+  contracts: null,
+  open_price: null,
+  close_price: null,
+  net_pnl: null,
+  product_name: null,
+  action: null,
+  fee: null,
+  tax: null
 });
 const tooltipStyle = reactive({
   display: 'none', top: '0px', left: '0px'

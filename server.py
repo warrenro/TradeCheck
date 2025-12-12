@@ -199,13 +199,10 @@ async def get_trade_data(start_time: int, end_time: int):
         end_datetime_iso = datetime.fromtimestamp(end_time).isoformat(sep=' ', timespec='seconds')
         logger.info(f"TradeData Trace: Querying trades between ISO times {start_datetime_iso} and {end_datetime_iso}.")
 
+        # Modified query to select all columns from the trades table
         query = f"""
             SELECT
-                t.trade_id,
-                t.trade_time,
-                t.action,
-                t.net_pnl,
-                t.contracts,
+                t.*,
                 COALESCE(md.close, (SELECT close FROM market_data WHERE datetime <= t.trade_time ORDER BY datetime DESC LIMIT 1)) as marker_price
             FROM
                 trades t
@@ -226,19 +223,17 @@ async def get_trade_data(start_time: int, end_time: int):
 
         df['trade_time'] = pd.to_datetime(df['trade_time'])
         df['time'] = df['trade_time'].astype('int64') // 10**9
+        
+        # Convert Timestamp objects to strings before JSON serialization
+        df['trade_time'] = df['trade_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
         # Replace numpy NaN with None for JSON compatibility
         df.replace({np.nan: None}, inplace=True)
         
-        # Select and rename columns for the final output
-        output_df = df[[
-            'time', 'action', 'contracts', 'net_pnl', 
-            'marker_price'
-        ]]
-
-        trade_records = output_df.to_dict(orient='records')
+        # Keep all columns from the database, plus the calculated ones
+        trade_records = df.to_dict(orient='records')
         
-        logger.info(f"TradeData Trace: Prepared {len(trade_records)} trade records to return.")
+        logger.info(f"TradeData Trace: Prepared {len(trade_records)} full trade records to return.")
         return JSONResponse(content=trade_records)
         
     except sqlite3.OperationalError as e:

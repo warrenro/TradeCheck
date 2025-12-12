@@ -1,6 +1,6 @@
 # TradeCheck 系統實作與設計決策
 - **版本**: v2.6
-- **最後更新日期**: 2025-12-11
+- **最後更新日期**: 2025-12-12
 
 本文檔旨在記錄 `TradeCheck` 專案在根據 `spec.md` 進行功能開發時，其核心功能的實作摘要、關鍵的設計決策與問題修正過程。它並非鉅細靡遺的步驟紀錄，而是為了幫助未來的維護者快速理解系統的設計思路與重要權衡。
 
@@ -47,19 +47,8 @@
 - **根本原因分析**:
     - 在問題未解決後，從頭對 `KlineChart.vue` 元件進行了更深入的程式碼審查。
     - 最終發現，在元件的 HTML 樣板中，存在兩個 `<div>` 元素被賦予了**相同的 ref 名稱**: `ref="chartContainer"`。
-    ```html
-    <div ref="chartContainer" class="chart-container-wrapper">
-      <div ref="chartContainer" class="chart-container"></div>
-    </div>
-    ```
-    - 在 Vue 3 中，當一個 `ref` 名稱在同一個元件樣板中被多次使用時，該 `ref` 將只會指向最後一個被渲染的元素。這導致圖表建立函式 `createChart(chartContainer.value, ...)` 在一個非預期的 `div` 容器上建立圖表，從而破壞了 `lightweight-charts` 函式庫的內部佈局計算。
 - **解決方案**:
     - 移除外層 `<div>` 的 `ref="chartContainer"` 屬性，確保該 `ref` 名稱的唯一性，並讓圖表只在預期的內層 `<div>` 中被建立。
-    ```html
-    <div class="chart-container-wrapper">
-      <div ref="chartContainer" class="chart-container"></div>
-    </div>
-    ```
 - **結果**: 修正此問題後，圖表容器的參考恢復正常，K 線圖的排版與渲染問題隨之解決。
 
 ### 4. 資料庫結構未同步錯誤修復 (Database Schema Mismatch Fix)
@@ -67,11 +56,23 @@
 在擴充交易資料匯入功能後，執行匯入時發生後端錯誤。
 
 - **錯誤現象**: 伺服器日誌顯示 `sqlite3.OperationalError: table trades has no column named fee`。
-- **根本原因**: 雖然程式碼 (`server.py`) 已經更新，預期會寫入 `fee`, `tax` 等新欄位，但使用者本地的 `trade_notes.db` 資料庫檔案仍然是舊的結構，並未包含這些新欄位。`CREATE TABLE IF NOT EXISTS` 指令不會修改已存在的資料表。
+- **根本原因**: 雖然程式碼 (`server.py`) 已經更新，預期會寫入新欄位，但使用者本地的 `trade_notes.db` 資料庫檔案仍然是舊的結構。
 - **解決方案**:
     - **診斷**: 確認問題是因程式碼與現有資料庫結構不一致所導致。
-    - **建議操作**: 建議使用者手動刪除舊的 `trade_notes.db` 檔案。
-    - **系統行為**: 一旦舊檔案被刪除，下次啟動後端伺服器時，`init_database` 函式會自動偵測到檔案不存在，並建立一個全新的、擁有正確欄位結構的資料庫。
+    - **建議操作**: 建議使用者手動刪除舊的 `trade_notes.db` 檔案，以便程式在下次啟動時自動生成最新結構的資料庫。
+
+### 5. API 序列化錯誤修復 (Timestamp Serialization Fix)
+
+在擴充 `/api/trade_data` 端點以回傳所有交易欄位後，前端在獲取 K 線圖的交易資料時，後端發生了 500 伺服器錯誤。
+
+- **錯誤現象**: 伺服器日誌顯示 `TypeError: Object of type Timestamp is not JSON serializable`。
+- **根本原因分析**:
+    - 當後端使用 Pandas 的 `read_sql_query` 從資料庫讀取交易紀錄時，`trade_time` 欄位被自動轉換為 Pandas 特有的 `Timestamp` 物件。
+    - 在 API 準備回傳數據時，FastAPI 的 `JSONResponse` 會試圖將這些資料序列化為 JSON 格式。然而，Python 內建的 `json` 函式庫並不知道如何處理 `pandas.Timestamp` 這種非標準的物件型別，因此拋出 `TypeError`。
+- **解決方案**:
+    - 在 `server.py` 的 `get_trade_data` 函式中，於 `df.to_dict()` 轉換步驟之前，加入一道明確的型別轉換程序。
+    - 使用 `df['trade_time'] = df['trade_time'].dt.strftime('%Y-%m-%d %H:%M:%S')`，將整個 `trade_time` 欄位的資料從 `Timestamp` 物件，轉換為 `YYYY-MM-DD HH:MM:SS` 格式的標準字串。
+- **結果**: 經過此修正，所有回傳給前端的資料都已是 JSON 相容的基礎型別（字串、數字、布林值等），API 恢復正常運作，前端圖表也能正確接收並顯示交易資料。
 
 ---
 (The rest of the file remains as it was)
@@ -261,7 +262,7 @@
 - **根本原因二**:
     此錯誤發生在 `server.py` 將審計報告回傳給前端的過程中。Pandas 在進行數據聚合時，產生的數值（如交易筆數、總損益等）其資料型別通常是 NumPy 的特定型別，例如 `numpy.int64` 或 `numpy.float64`。FastAPI 預設的 `jsonable_encoder` 無法直接將這些 NumPy 特有的數字型別序列化為標準的 JSON 格式，從而導致轉換失敗。
 - **解決方案二**:
-    在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），并轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
+    在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），並轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
 - **影響**: 這兩項修正強化了系統的穩定性（魯棒性），使其能夠應對不乾淨的輸入資料（如缺失的商品名稱）以及處理 Python 生態系統中常見的 NumPy 資料型別，確保了 API 的正常回應與前後端資料流的順暢。經過這些修正，後端系統的核心錯誤皆已解決，應用程式現已進入穩定狀態。
 
 ### 2.7 錯誤七：交易資料圖層顯示異常 - `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` (已解決)

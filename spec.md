@@ -1,7 +1,7 @@
 # TradeCheck K線圖與資料管理功能規格書
 
 - **版本**: v2.6
-- **最後更新日期**: 2025-12-11
+- **最後更新日期**: 2025-12-12
 
 ## 1. 總覽
 
@@ -121,25 +121,47 @@ Y 軸的縮放管理確保了價格資訊的清晰可見，並提供手動控制
 
 ---
 
-## 5. 後端 API (`/api/kline_data`) 資料處理規格
+## 5. 後端核心 API 規格 (Backend Core API Specifications)
 
-### 5.1 資料來源
-- 從 `trade_notes.db` 資料庫的 `market_data` 表中讀取所有 K 線資料。
+本節詳細定義主要後端 API 的請求與回應格式。
 
-### 5.2 時間週期處理 (Resampling)
-- 當 API 收到 `timeframe` 參數時（非 `1T`），執行以下聚合邏輯：
-  ```python
-  df.resample(timeframe).agg({
-      'open': 'first',
-      'high': 'max',
-      'low': 'min',
-      'close': 'last',
-      'volume': 'sum'
-  })
-  ```
-- **空值處理 (關鍵修復)**:
-  1.  **移除無效 K 棒**: 在聚合後，立即執行 `dropna(subset=['open', 'high', 'low', 'close'], how='all')`。
-  2.  **替換剩餘 NaN**: 在最後回傳前，執行 `replace({np.nan: None})`，將剩餘的 `NaN` 值替換為 JSON 相容的 `null`。
+### 5.1 GET /api/kline_data
+- **目的**: 獲取 K 線資料以供前端圖表繪製。
+- **方法**: `GET`
+- **查詢參數**:
+    - `timeframe` (string, optional): 時間週期，可選值為 `1T`, `5T`, `15T`, `1H`, `1D`。預設為 `1T`。
+- **成功回應 (200 OK)**:
+    - **內容**: 一個 JSON 陣列，其中每個物件代表一根 K 棒。
+    - **物件欄位**:
+        - `time` (integer): K 棒起始時間的 UNIX 時間戳 (秒)。
+        - `open` (number): 開盤價。
+        - `high` (number): 最高價。
+        - `low` (number): 最低價。
+        - `close` (number): 收盤價。
+        - `value` (number): 該週期的總成交量。
 
-### 5.3 回傳格式
-- 資料被格式化為符合 `lightweight-charts` 的 JSON 陣列，每個物件包含 `time` (Unix 時間戳), `open`, `high`, `low`, `close`, `value` (成交量)。
+### 5.2 GET /api/trade_data
+- **目的**: 獲取指定時間範圍內的所有交易紀錄，以供前端圖表標記與表格使用。
+- **方法**: `GET`
+- **查詢參數**:
+    - `start_time` (integer, required): 查詢起始時間的 UNIX 時間戳 (秒)。
+    - `end_time` (integer, required): 查詢結束時間的 UNIX 時間戳 (秒)。
+- **成功回應 (200 OK)**:
+    - **內容**: 一個 JSON 陣列，其中每個物件代表一筆交易紀錄。
+    - **物件欄位**:
+
+| 欄位           | 型別    | 說明                                                                 |
+| -------------- | ------- | -------------------------------------------------------------------- |
+| `trade_id`     | String  | 該筆交易的唯一識別碼 (SHA256雜湊)。                                |
+| `trade_time`   | String  | 交易時間，格式為 `YYYY-MM-DD HH:MM:SS` 的字串。                 |
+| `action`       | String  | 買賣別，例如 "Buy" 或 "Sell"。                                    |
+| `net_pnl`      | Number  | 該筆交易的平倉損益淨額。                                           |
+| `contracts`    | Integer | 口數。                                                               |
+| `product_name` | String  | 商品名稱。                                                           |
+| `source_file`  | String  | 該筆紀錄來源的 CSV 檔名。                                          |
+| `open_price`   | Number  | 新倉價。                                                             |
+| `close_price`  | Number  | 平倉價。                                                             |
+| `fee`          | Number  | 手續費。                                                             |
+| `tax`          | Number  | 期交稅。                                                             |
+| `time`         | Integer | 與 `trade_time` 相同的 UNIX 時間戳 (秒)，供圖表庫使用。          |
+| `marker_price` | Number  | 用於在圖表上標記的價格，通常為收盤價。                               |
