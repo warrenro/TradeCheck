@@ -49,7 +49,7 @@
       <button @click="setManualYAxisRange">{{ $t('set_y_range') }}</button>
       <button @click="resetYAxisRange">{{ $t('reset_y_range') }}</button>
     </div>
-    <div ref="chartContainer" class="chart-container-wrapper">
+    <div class="chart-container-wrapper">
       <div ref="chartContainer" class="chart-container"></div>
       <div ref="tooltip" class="tooltip" :style="tooltipStyle">
         <div class="tooltip-item"><strong>{{ $t('trade_time') }}:</strong> {{ formatTimestamp(tooltipData.time) }}</div>

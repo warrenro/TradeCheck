@@ -8,7 +8,7 @@
 
 ## 功能擴充與實作 (v2.6)
 
-在 `v2.6` 版本中，我們為系統新增了兩項關鍵功能，以提升資料管理的靈活性。
+在 `v2.6` 版本中，我們為系統新增並修復了幾項關鍵功能。
 
 ### 1. 擴充交易資料匯入功能 (Expanding Trade Data Import)
 
@@ -19,28 +19,60 @@
     1.  **資料庫結構更新**: 修改 `server.py` 中的 `init_database` 函式，在 `trades` 資料表的 `CREATE TABLE` 語句中新增了 `open_price REAL`, `close_price REAL`, `fee REAL`, `tax REAL` 四個欄位。
     2.  **資料處理邏輯更新**: `trade_check.py` 中的 `load_transactions_from_csv` 方法被更新，其欄位對應字典 `column_mapping` 已擴充，納入了所有新欄位，並進行了對應的型別轉換。
     3.  **匯入邏輯更新**: 修改 `server.py` 中的 `import_trades_from_file` 函式，將其 `INSERT OR IGNORE` SQL 語句擴充，使其能夠接收並寫入所有新欄位的資料。
-- **結果**: 現在，當使用者透過 `/api/import_trades` 端點匯入 `tradedata` 的 CSV 檔案時，所有欄位都會被完整地存入資料庫，為未來的詳細分析奠定了基礎。
+- **結果**: 現在，當使用者透過 `/api/import_trades` 端點匯入 `tradedata` 的 CSV 檔案時，所有欄位都會被完整地存入資料庫。
 
 ### 2. 新增清空交易資料功能 (Adding Clear Trades Data Feature)
 
 為了方便使用者重新開始或清除測試資料，系統新增了清空所有交易紀錄的功能。
 
 - **後端實作 (`server.py`)**:
-    1.  **新增 API 端點**: 建立了一個新的 `POST /api/clear_trades` 端點。使用 `POST` 而非 `GET` 是因為此操作會修改伺服器狀態，屬於非冪等操作。
-    2.  **核心邏輯**: 該端點的函式會連接到 `trade_notes.db` 資料庫，並對 `trades` 資料表執行 `DELETE FROM trades` SQL 指令。
-    3.  **日誌與回饋**: 為了確保操作可追蹤，該函式會在執行前後記錄警告級別的日誌。為提供準確的回饋，它會先查詢刪除前的總筆數，再執行刪除，最後回傳一個包含已刪除筆數的成功訊息給前端。
+    1.  **新增 API 端點**: 建立了一個新的 `POST /api/clear_trades` 端點。
+    2.  **核心邏輯**: 該端點會對 `trades` 資料表執行 `DELETE FROM trades` SQL 指令。
+    3.  **日誌與回饋**: 為提供準確的回饋，函式會回傳包含已刪除筆數的成功訊息給前端。
 
 - **前端實作 (`frontend/src/App.vue`)**:
-    1.  **新增 UI 元件**: 在左側的控制面板中，新增了一個紅底白字的「清空交易資料」按鈕 (`clear-button`)，其醒目的樣式旨在提醒使用者這是一個具破壞性的操作。
-    2.  **實作確認流程**:
-        -   點擊按鈕時，會觸發 `clearAllTrades` 方法。
-        -   該方法首先會呼叫瀏覽器原生的 `window.confirm()` 函式，彈出一個模式對話框，再次詢問使用者「您確定要清空所有交易資料嗎？此操作無法復原。」
-    3.  **觸發 API 呼叫**:
-        -   只有當使用者點擊「確認」後，程式才會繼續執行，使用 `fetch` API 向後端的 `/api/clear_trades` 端點發送 `POST` 請求。
-        -   若使用者取消操作，則只在日誌中記錄，不執行任何動作。
-    4.  **結果處理**:
-        -   API 呼叫成功後，使用 `window.alert()` 顯示後端回傳的成功訊息 (例如「成功清空 XXX 筆交易資料」)。
-        -   之後，立即呼叫 `window.location.reload()` 來重新整理整個應用程式，確保圖表和報告都反映出資料已被清空的最新狀態。
+    1.  **新增 UI 元件**: 在左側的控制面板中，新增了一個紅色的「清空交易資料」按鈕，以警示其破壞性。
+    2.  **實作確認流程**: 點擊按鈕時，會觸發 `window.confirm()` 確認對話框。
+    3.  **觸發 API 呼叫**: 只有當使用者確認後，才會向後端的 `/api/clear_trades` 端點發送 `POST` 請求。
+    4.  **結果處理**: API 呼叫成功後，使用 `window.alert()` 顯示成功訊息，並立即呼叫 `window.location.reload()` 來重新整理整個應用程式。
+
+### 3. K線圖頁面排版錯誤修復 (K-line Chart Layout Fix)
+
+在新增功能後，使用者回報 K 線圖頁面排版出現「跑掉」的異常。
+
+- **問題現象**: K 線圖頁面佈局錯亂，無法正常顯示。
+- **初步排查**:
+    - 最初懷疑是 `App.vue` 中的全域 CSS 樣式洩漏，影響了 `KlineChart.vue` 子元件的佈局。
+    - 嘗試將 `App.vue` 的 `<style>` 標籤改為 `<style scoped>`，雖然這是 Vue 開發的最佳實踐，但並未解決本次的排版問題。
+- **根本原因分析**:
+    - 在問題未解決後，從頭對 `KlineChart.vue` 元件進行了更深入的程式碼審查。
+    - 最終發現，在元件的 HTML 樣板中，存在兩個 `<div>` 元素被賦予了**相同的 ref 名稱**: `ref="chartContainer"`。
+    ```html
+    <div ref="chartContainer" class="chart-container-wrapper">
+      <div ref="chartContainer" class="chart-container"></div>
+    </div>
+    ```
+    - 在 Vue 3 中，當一個 `ref` 名稱在同一個元件樣板中被多次使用時，該 `ref` 將只會指向最後一個被渲染的元素。這導致圖表建立函式 `createChart(chartContainer.value, ...)` 在一個非預期的 `div` 容器上建立圖表，從而破壞了 `lightweight-charts` 函式庫的內部佈局計算。
+- **解決方案**:
+    - 移除外層 `<div>` 的 `ref="chartContainer"` 屬性，確保該 `ref` 名稱的唯一性，並讓圖表只在預期的內層 `<div>` 中被建立。
+    ```html
+    <div class="chart-container-wrapper">
+      <div ref="chartContainer" class="chart-container"></div>
+    </div>
+    ```
+- **結果**: 修正此問題後，圖表容器的參考恢復正常，K 線圖的排版與渲染問題隨之解決。
+
+### 4. 資料庫結構未同步錯誤修復 (Database Schema Mismatch Fix)
+
+在擴充交易資料匯入功能後，執行匯入時發生後端錯誤。
+
+- **錯誤現象**: 伺服器日誌顯示 `sqlite3.OperationalError: table trades has no column named fee`。
+- **根本原因**: 雖然程式碼 (`server.py`) 已經更新，預期會寫入 `fee`, `tax` 等新欄位，但使用者本地的 `trade_notes.db` 資料庫檔案仍然是舊的結構，並未包含這些新欄位。`CREATE TABLE IF NOT EXISTS` 指令不會修改已存在的資料表。
+- **解決方案**:
+    - **診斷**: 確認問題是因程式碼與現有資料庫結構不一致所導致。
+    - **建議操作**: 建議使用者手動刪除舊的 `trade_notes.db` 檔案。
+    - **系統行為**: 一旦舊檔案被刪除，下次啟動後端伺服器時，`init_database` 函式會自動偵測到檔案不存在，並建立一個全新的、擁有正確欄位結構的資料庫。
+
 ---
 (The rest of the file remains as it was)
 ...
@@ -229,7 +261,7 @@
 - **根本原因二**:
     此錯誤發生在 `server.py` 將審計報告回傳給前端的過程中。Pandas 在進行數據聚合時，產生的數值（如交易筆數、總損益等）其資料型別通常是 NumPy 的特定型別，例如 `numpy.int64` 或 `numpy.float64`。FastAPI 預設的 `jsonable_encoder` 無法直接將這些 NumPy 特有的數字型別序列化為標準的 JSON 格式，從而導致轉換失敗。
 - **解決方案二**:
-    在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），並轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
+    在 `server.py` 中，將 `run_audit` 產生的報告傳遞給 `jsonable_encoder` 之前，手動將報告中的所有 NumPy 數值型別轉換為標準的 Python 型別 (如 `int`, `float`)。我實作了一個遞迴函式 `convert_numpy_types` 來遍歷整個報告字典（包括巢狀的字典和列表），并轉換所有 `numpy.integer` 和 `numpy.floating` 的實例。
 - **影響**: 這兩項修正強化了系統的穩定性（魯棒性），使其能夠應對不乾淨的輸入資料（如缺失的商品名稱）以及處理 Python 生態系統中常見的 NumPy 資料型別，確保了 API 的正常回應與前後端資料流的順暢。經過這些修正，後端系統的核心錯誤皆已解決，應用程式現已進入穩定狀態。
 
 ### 2.7 錯誤七：交易資料圖層顯示異常 - `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` (已解決)

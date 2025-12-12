@@ -711,7 +711,7 @@ const getKpiClass = (value, type) => {
 };
 </script>
 
-<style>
+<style scoped>
 /* --- New Styles for Features --- */
 
 .view-switcher {
