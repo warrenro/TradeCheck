@@ -736,6 +736,101 @@ async def import_transaction_csv(request: TransactionImportRequest):
         logger.error(f"Failed to import transaction data from {filename}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to import transaction data: {str(e)}")
 
+def merge_trade_data():
+    """
+    Merges trade data with transaction data to backfill the open trade time.
+    """
+    logger.info(f"Connecting to database: {DB_FILE}")
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        
+        TRADES_TABLE = 'trades'
+        TRANSACTION_DATA_TABLE = 'TransactionData'
+        
+        logger.info(f"Loading data from '{TRADES_TABLE}' and '{TRANSACTION_DATA_TABLE}' tables...")
+        trades_df = pd.read_sql_query(f"SELECT * FROM {TRADES_TABLE}", conn)
+        transactions_df = pd.read_sql_query(f"SELECT * FROM {TRANSACTION_DATA_TABLE}", conn)
+        logger.info(f"Loaded {len(trades_df)} records from '{TRADES_TABLE}'.")
+        logger.info(f"Loaded {len(transactions_df)} records from '{TRANSACTION_DATA_TABLE}'.")
+
+    except Exception as e:
+        logger.error(f"Failed to read data from database: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to read data from database: {str(e)}")
+
+    if trades_df.empty:
+        logger.warning(f"The '{TRADES_TABLE}' table is empty. No data to process.")
+        return "The 'trades' table is empty. No data to process."
+        
+    if transactions_df.empty:
+        logger.warning(f"The '{TRANSACTION_DATA_TABLE}' table is empty. Cannot find open times.")
+        return "The 'TransactionData' table is empty. Cannot find open times."
+
+    trades_df['trade_time'] = pd.to_datetime(trades_df['trade_time'])
+    transactions_df['transaction_time'] = pd.to_datetime(transactions_df['transaction_time'])
+
+    opening_transactions = transactions_df[transactions_df['position_type'] == '新倉'].copy()
+    
+    if opening_transactions.empty:
+        logger.warning("No opening trades ('新倉') found in 'TransactionData'. Cannot proceed.")
+        return "No opening trades ('新倉') found in 'TransactionData'. Cannot proceed."
+        
+    open_times = []
+    match_count = 0
+
+    logger.info("Starting to match open times for each PnL record...")
+    for _, pnl_record in trades_df.iterrows():
+        close_time = pnl_record['trade_time']
+        open_price = pnl_record['open_price']
+        product = pnl_record['product_name']
+
+        candidates = opening_transactions[
+            (opening_transactions['product_name'].str.contains(product, na=False)) &
+            (opening_transactions['price'] == open_price) &
+            (opening_transactions['transaction_time'] < close_time)
+        ]
+
+        if not candidates.empty:
+            candidates['time_diff'] = close_time - candidates['transaction_time']
+            best_match = candidates.loc[candidates['time_diff'].idxmin()]
+            open_times.append(best_match['transaction_time'])
+            match_count += 1
+        else:
+            open_times.append(None)
+
+    trades_df['open_trade_time'] = open_times
+    
+    trades_df['open_trade_time'] = trades_df['open_trade_time'].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('N/A')
+    trades_df['trade_time'] = trades_df['trade_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+    summary = (f"Matching process complete. Found open times for {match_count} out of {len(trades_df)} records.")
+    logger.info(summary)
+
+    try:
+        MERGED_TABLE = 'trades_merged'
+        logger.info(f"Writing merged data to new table: '{MERGED_TABLE}'...")
+        trades_df.to_sql(MERGED_TABLE, conn, if_exists='replace', index=False)
+        logger.info(f"Successfully saved {len(trades_df)} records to '{MERGED_TABLE}' table.")
+        return f"Successfully saved {len(trades_df)} records to '{MERGED_TABLE}' table. {summary}"
+    except Exception as e:
+        logger.error(f"Failed to write merged data to database: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to write merged data to database: {str(e)}")
+    finally:
+        conn.close()
+        logger.info("Database connection closed.")
+
+@app.post("/api/merge_trades")
+async def merge_trades_endpoint():
+    """
+    Triggers the process to merge trade data with transaction data to backfill open times.
+    """
+    logger.info("Received request to merge trades.")
+    try:
+        result_message = merge_trade_data()
+        return {"status": "success", "message": result_message}
+    except Exception as e:
+        logger.critical(f"An unexpected error occurred during trade merge: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {str(e)}")
+
 if __name__ == '__main__':
     logger.info("Starting TradeCheck backend server with uvicorn.")
     # This allows running the server directly for testing

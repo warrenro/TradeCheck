@@ -37,6 +37,28 @@
         - `fetchTransactionFiles` 方法會呼叫後端的 `/api/transaction_csv_files` 來獲取檔案列表並填充下拉選單。
         - `importTransactions` 方法會在使用者點擊匯入按鈕時觸發，向 `/api/import_transaction_csv` 端點發送 `POST` 請求，並在完成後透過 `alert` 顯示後端回傳的結果訊息。
 
+### 2. 新增交易資料合併功能 (Trade Data Merging)
+
+為了豐富 `trades` (平倉損益) 表的資料維度，系統新增了將其與 `TransactionData` (逐筆成交) 資料合併，以回填「新倉交易時間」的功能。
+
+- **後端實作 (`server.py`)**:
+    1.  **新增核心邏輯函式 `merge_trade_data()`**:
+        - 此函式負責整個合併流程。它會連接資料庫，並使用 Pandas 套件讀取 `trades` 和 `TransactionData` 表格。
+        - 實作核心配對演算法：對於 `trades` 中的每一筆紀錄，它會篩選 `TransactionData` 中商品名稱相同、價格等於新倉價、且時間更早的「新倉」紀錄。
+        - 在候選紀錄中，透過計算時間差，找出最接近平倉時間的一筆，將其 `transaction_time` 作為 `open_trade_time`。
+        - 最後，使用 Pandas 的 `to_sql` 方法，將附帶 `open_trade_time` 欄位的合併後資料，以覆寫 (`if_exists='replace'`) 的方式存入一個名為 `trades_merged` 的新表格中。
+
+    2.  **新增 API 端點 `POST /api/merge_trades`**:
+        - 建立此端點，其唯一目的是呼叫 `merge_trade_data()` 函式。
+        - 這種設計將觸發機制 (API) 與核心商業邏輯 (函式) 分離，提高了程式碼的模組化與可維護性。
+        - API 會回傳一個 JSON 物件，其中包含執行的結果摘要訊息，例如成功儲存的筆數、成功匹配的筆數等。
+
+- **觸發方式**:
+    - 由於此功能目前為後端資料處理流程，尚未建立對應的前端 UI。
+    - 使用者可以透過發送 POST 請求至 `/api/merge_trades` 來手動觸發此流程。例如，使用 `curl` 指令：
+      ```bash
+      curl -X POST http://127.0.0.1:8000/api/merge_trades
+      ```
 # TradeCheck 系統實作與設計決策
 - **版本**: v2.6
 - **最後更新日期**: 2025-12-12

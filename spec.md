@@ -83,6 +83,19 @@
     5. 後端將資料寫入 `TransactionData` 資料庫表格中。`order_id` 作為唯一鍵，使用 `INSERT OR IGNORE` 策略防止重複匯入。
     6. 前端透過 `alert` 顯示匯入結果，包含新增及因重複而跳過的筆數。
 
+### 2.5 交易資料合併 (Trade Data Merging)
+- **目的**: 針對已匯入的 `trades` (平倉損益) 與 `TransactionData` (逐筆成交) 資料進行合併，以回填 `trades` 紀錄中缺失的「新倉交易時間」。
+- **後端 API**: `POST /api/merge_trades`
+- **處理流程**:
+    1. 使用者觸發此 API。
+    2. 後端讀取 `trades` 與 `TransactionData` 兩個資料表。
+    3. 針對每一筆 `trades` 紀錄，系統會根據商品名稱、新倉價格、以及時間順序，從 `TransactionData` 中尋找最匹配的一筆「新倉」紀錄。
+    4. 成功找到匹配後，會將該筆新倉紀錄的成交時間 (`transaction_time`) 回填。
+- **產出**: 
+    - 一個名為 `trades_merged` 的新資料庫表格。
+    - 此表格的結構與 `trades` 完全相同，但額外增加了一個 `open_trade_time` 欄位。
+    - 此操作會覆蓋已存在的 `trades_merged` 表格，確保資料的最新狀態。
+
 ---
 
 ## 3. K 線圖核心需求
@@ -221,5 +234,25 @@ Y 軸的縮放管理確保了價格資訊的清晰可見，並提供手動控制
         "message": "Import completed for 'your_selected_file.csv'. New records: X, Skipped duplicates: Y.",
         "new": X,
         "skipped": Y
+      }
+      ```
+
+### 5.5 POST /api/merge_trades
+- **目的**: 觸發交易資料合併流程，回填新倉交易時間。
+- **方法**: `POST`
+- **請求內容**: 無
+- **成功回應 (200 OK)**:
+    - **內容**: 一個包含合併結果摘要的 JSON 物件。
+      ```json
+      {
+        "status": "success",
+        "message": "Successfully saved X records to 'trades_merged' table. Matching process complete. Found open times for Y out of Z records."
+      }
+      ```
+- **失敗回應 (500 Internal Server Error)**:
+    - **內容**: 若發生資料庫讀取失敗或寫入失敗等問題，將回傳錯誤訊息。
+      ```json
+      {
+        "detail": "Failed to read data from database: ..."
       }
       ```
